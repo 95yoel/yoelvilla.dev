@@ -1,0 +1,200 @@
+<button class="mobile-language-btn" type="button" (click)="toggleLanguagePanel()">
+  <img src="/icons/idioma.png" alt="Language" width="20" height="20">
+</button>
+
+<div class="mobile-scroll-container">
+  <section class="mobile-section home-section">
+    <h1 class="title">{{ 'home.title' | translate }}</h1>
+    <p class="subtitle">{{ 'home.subtitle' | translate }}</p>
+  </section>
+
+  <section class="mobile-section about-section">
+    <h2 class="section-title">{{ 'about.title' | translate }}</h2>
+    <div class="about">
+      <p [innerHTML]="'about.paragraph1' | translate"></p>
+      <p [innerHTML]="'about.paragraph2' | translate"></p>
+    </div>
+  </section>
+
+  <section class="mobile-section portfolio-section">
+    <h2 class="section-title">{{ 'portfolio.title' | translate }}</h2>
+    
+    <div class="work">
+      <div class="tabs">
+        <button class="tab" [class.active]="activeTab === 'proyectos'" (click)="activeTab = 'proyectos'">
+          {{ 'portfolio.tabs.projects' | translate }}
+        </button>
+        <button class="tab" [class.active]="activeTab === 'experiencia'" (click)="activeTab = 'experiencia'">
+          {{ 'portfolio.tabs.experience' | translate }}
+        </button>
+      </div>
+
+      <div class="tab-content" *ngIf="activeTab === 'proyectos'">
+        <div class="mobile-carousel-wrap">
+          <button *ngIf="canGoPrev()" class="mobile-car-btn prev" type="button" (click)="prevProject()"><</button>
+          
+          <div class="mobile-carousel">
+            <article class="card" *ngIf="currentProjectIndex === 0">
+              <header>
+                <h4>{{ 'portfolio.project1.title' | translate }}</h4>
+                <span class="badge">{{ 'portfolio.project1.tech' | translate }}</span>
+              </header>
+              <p>{{ 'portfolio.project1.description' | translate }}</p>
+              <a [href]="'portfolio.project1.github' | translate" target="_blank" rel="noopener" class="project-link">
+                Ver en GitHub →
+              </a>
+            </article>
+
+            <!-- <article class="card" *ngIf="currentProjectIndex === 1">
+              <header>
+                <h4>{{ 'portfolio.project2.title' | translate }}</h4>
+                <span class="badge">{{ 'portfolio.project2.tech' | translate }}</span>
+              </header>
+              <p>{{ 'portfolio.project2.description' | translate }}</p>
+              <a [href]="'portfolio.project2.github' | translate" target="_blank" rel="noopener" class="project-link">
+                Ver en GitHub →
+              </a>
+            </article>
+
+            <article class="card" *ngIf="currentProjectIndex === 2">
+              <header>
+                <h4>{{ 'portfolio.project3.title' | translate }}</h4>
+                <span class="badge">{{ 'portfolio.project3.tech' | translate }}</span>
+              </header>
+              <p>{{ 'portfolio.project3.description' | translate }}</p>
+              <a [href]="'portfolio.project3.github' | translate" target="_blank" rel="noopener" class="project-link">
+                Ver en GitHub →
+              </a>
+            </article>
+
+            <article class="card" *ngIf="currentProjectIndex === 3">
+              <header>
+                <h4>{{ 'portfolio.project4.title' | translate }}</h4>
+                <span class="badge">{{ 'portfolio.project4.tech' | translate }}</span>
+              </header>
+              <p>{{ 'portfolio.project4.description' | translate }}</p>
+              <a [href]="'portfolio.project4.github' | translate" target="_blank" rel="noopener" class="project-link">
+                Ver en GitHub →
+              </a>
+            </article> -->
+          </div>
+
+          <button *ngIf="canGoNext()" class="mobile-car-btn next" type="button" (click)="nextProject()">></button>
+        </div>
+      </div>
+
+      <div class="tab-content" *ngIf="activeTab === 'experiencia'">
+        <ul class="xp">
+          <li>{{ 'portfolio.experience1' | translate }}</li>
+          <li>{{ 'portfolio.experience2' | translate }}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mobile-section contact-section">
+    <h2 class="section-title">{{ 'contact.title' | translate }}</h2>
+    <div class="contact">
+      <p class="contact-lead">
+        {{ 'contact.lead' | translate }}
+      </p>
+
+      <div class="feedback-panel" *ngIf="showFeedback" [class.success]="feedbackType === 'success'" [class.error]="feedbackType === 'error'">
+        {{ feedbackMessage }}
+      </div>
+
+      <form class="contact-form" (submit)="sendMessage($event)" novalidate>
+        <input 
+          type="text" 
+          name="hp_field" 
+          class="honeypot" 
+          tabindex="-1" 
+          autocomplete="new-password" 
+          aria-hidden="true"
+          value="" />
+
+        <label>
+          <span>{{ 'contact.form.name' | translate }}</span>
+          <input 
+            name="name" 
+            type="text" 
+            [(ngModel)]="contactName"
+            (input)="updateName($event)"
+            [placeholder]="'contact.form.namePlaceholder' | translate" 
+            required />
+        </label>
+
+        <label>
+          <span>{{ 'contact.form.email' | translate }}</span>
+          <input 
+            name="email" 
+            type="email" 
+            [(ngModel)]="contactEmail"
+            (input)="updateEmail($event)"
+            [placeholder]="'contact.form.emailPlaceholder' | translate" 
+            required />
+        </label>
+
+        <label class="full">
+          <span>{{ 'contact.form.message' | translate }}</span>
+          <textarea 
+            name="message" 
+            rows="5" 
+            [(ngModel)]="contactMessage"
+            (input)="updateMessage($event)"
+            [placeholder]="'contact.form.messagePlaceholder' | translate" 
+            required></textarea>
+        </label>
+
+        <button 
+          class="btn-send" 
+          type="submit"
+          [disabled]="!isFormValid()">
+          {{ 'contact.form.send' | translate }}
+        </button>
+      </form>
+
+      <div class="contact-cards">
+        <div class="card">
+          <a href="mailto:hello@yoelvilla.dev" rel="noopener">
+            <strong>{{ 'contact.cards.email' | translate }}</strong>
+            <span>hello&#64;yoelvilla.dev</span>
+          </a>
+          <button 
+            class="copy-btn" 
+            type="button" 
+            [matTooltip]="'tooltips.copy' | translate"
+            (click)="copyToClipboard('hello@yoelvilla.dev')">
+            <img src="icons/copy.svg" [alt]="'tooltips.copy' | translate" width="16" height="16">
+          </button>
+        </div>
+        <div class="card">
+          <a href="https://www.linkedin.com/in/yoel-villa" target="_blank" rel="noopener">
+            <strong>{{ 'contact.cards.linkedin' | translate }}</strong>
+            <span>/in/yoel-villa</span>
+          </a>
+          <button 
+            class="copy-btn" 
+            type="button" 
+            [matTooltip]="'tooltips.copy' | translate"
+            (click)="copyToClipboard('https://www.linkedin.com/in/yoel-villa')">
+            <img src="icons/copy.svg" [alt]="'tooltips.copy' | translate" width="16" height="16">
+          </button>
+        </div>
+        <div class="card">
+          <a href="https://github.com/95yoel" target="_blank" rel="noopener">
+            <strong>{{ 'contact.cards.github' | translate }}</strong>
+            <span>&#64;95yoel</span>
+          </a>
+          <button 
+            class="copy-btn" 
+            type="button" 
+            [matTooltip]="'tooltips.copy' | translate"
+            (click)="copyToClipboard('https://github.com/95yoel')">
+            <img src="icons/copy.svg" [alt]="'tooltips.copy' | translate" width="16" height="16">
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

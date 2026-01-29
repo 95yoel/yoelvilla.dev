@@ -1,0 +1,21 @@
+<div #panel class="language-panel">
+  <h3 class="panel-title">{{ 'config.languagePanel.title' | translate }}</h3>
+  
+  <div class="language-options">
+    <button 
+      class="language-option"
+      [class.active]="currentLang === 'es'"
+      (click)="selectLanguage('es')">
+      <span class="language-text">{{ 'config.languagePanel.spanish' | translate }}</span>
+      <img src="icons/es.svg" alt="Español" class="flag-icon">
+    </button>
+
+    <button 
+      class="language-option"
+      [class.active]="currentLang === 'en'"
+      (click)="selectLanguage('en')">
+      <span class="language-text">{{ 'config.languagePanel.english' | translate }}</span>
+      <img src="icons/en.svg" alt="English" class="flag-icon">
+    </button>
+  </div>
+</div>

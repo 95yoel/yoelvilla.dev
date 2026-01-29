@@ -1,0 +1,75 @@
+{
+  "home": {
+    "title": "YOEL VILLA",
+    "subtitle": "FullStack Developer | Java / Angular"
+  },
+  "nav": {
+    "home": "Inicio",
+    "about": "Sobre mí",
+    "portfolio": "Portfolio",
+    "contact": "Contacto"
+  },
+  "about": {
+    "title": "Sobre mí",
+    "paragraph1": "Soy desarrollador <strong>Full Stack</strong> especializado en <strong>Angular</strong> y <strong>Java</strong>. Trabajo en la modernización de <strong>plataformas bancarias</strong>, donde aprovecho la <strong>IA</strong> para acelerar migraciones de código legacy y generar documentación técnica de forma más eficiente.",
+    "paragraph2": "Me gusta entender el software <strong>más allá del código</strong>: desde cómo llega a producción hasta cómo lo usa el usuario final. En mi tiempo libre, trasteo con <strong>Python</strong>, <strong>infraestructura cloud</strong> y lo que me genere curiosidad."
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "tabs": {
+      "projects": "Proyectos",
+      "experience": "Experiencia"
+    },
+    "project1": {
+      "title": "yoelvilla.dev",
+      "tech": "Angular 19 · AWS · TypeScript",
+      "description": "Portfolio personal con arquitectura serverless. Frontend desplegado en S3 + CloudFront, backend con Lambda + API Gateway. Sistema de traducción custom, cursor personalizado y formulario de contacto integrado.",
+      "github": "https://github.com/95yoel/portfolio"
+    },
+    "experience1": "Desarrollador Angular/Java en Métrica (Mayo 2025 - Actualidad): Modernización de plataformas bancarias para Santander. Migración de sistemas legacy Informix 4GL a arquitecturas modernas con Spring Boot y Angular. Uso de IA para acelerar análisis y refactorización de código legacy.",
+    "experience2": "Desarrollador Angular en IRM Analytics (Mayo 2024 - Mayo 2025): Desarrollo de dashboards interactivos para análisis de datos complejos. Implementación de Web Workers e IndexedDB para procesamiento optimizado de grandes volúmenes de datos. Visualizaciones avanzadas con D3.js, Sigma.js y mapas interactivos."
+  },
+  "contact": {
+    "title": "Hablemos",
+    "lead": "¿Tienes un proyecto o pregunta? Escríbeme y te respondo.",
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "email": "Email",
+      "emailPlaceholder": "tucorreo@dominio.com",
+      "message": "Mensaje",
+      "messagePlaceholder": "Cuéntame brevemente…",
+      "send": "Enviar",
+      "sending": "Enviando..."
+    },
+    "feedback": {
+      "success": "✅ Mensaje enviado",
+      "error": "❌ Algo falló, prueba en otro momento"
+    },
+    "cards": {
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "github": "GitHub"
+    }
+  },
+  "tooltips": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "cursorConfig": "Configuración Cursor",
+    "languageConfig": "Idioma",
+    "copy": "Copiar"
+  },
+  "config": {
+    "cursorPanel": {
+      "title": "Configuración del Cursor",
+      "size": "Tamaño",
+      "lag": "Retraso",
+      "color": "Color"
+    },
+    "languagePanel": {
+      "title": "Seleccionar Idioma",
+      "spanish": "Español",
+      "english": "English"
+    }
+  }
+}

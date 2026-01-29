@@ -1,0 +1,65 @@
+.language-panel {
+  position: fixed;
+  top: 5rem;
+  right: 1.5rem;
+  width: 280px;
+  background: linear-gradient(135deg, var(--color-bg-panel) 0%, color-mix(in srgb, var(--color-bg-panel) 60%, transparent) 100%);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-panel);
+  z-index: 100001;
+  color: var(--color-text-dark);
+  font-family: var(--font-primary);
+}
+
+.panel-title {
+  margin: 0 0 1.25rem 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: center;
+}
+
+.language-options {
+  display: grid;
+  gap: 10px;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.language-option:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--color-accent);
+}
+
+.language-option.active {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-color: var(--color-accent);
+  font-weight: 500;
+}
+
+.language-text {
+  flex: 1;
+  text-align: left;
+}
+
+.flag-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 2px;
+}

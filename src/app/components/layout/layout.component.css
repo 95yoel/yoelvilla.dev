@@ -1,0 +1,39 @@
+header {
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-right: 2rem;
+  padding-left: 1rem;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  z-index: 99999;
+}
+
+img {
+  height: 32px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  filter: saturate(0.9);
+  opacity: 0.95;
+}
+
+.config-icon,
+.language-icon {
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.config-icon:hover,
+.language-icon:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}

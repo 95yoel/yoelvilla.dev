@@ -1,0 +1,43 @@
+<div #panel class="config-panel">
+  <button class="close-btn" (click)="onCloseClick()">✕</button>
+  <h4>{{ 'config.cursorPanel.title' | translate }}</h4>
+
+  <div class="content">
+    <label>
+      {{ 'config.cursorPanel.color' | translate }}
+      <input type="color" [(ngModel)]="cursorColor" (input)="onLiveChange()">
+    </label>
+
+    <label>
+      {{ 'config.cursorPanel.size' | translate }}
+      <input type="number" min="10" max="200" [(ngModel)]="cursorSize" (input)="onLiveChange()" (blur)="onLiveChange()">
+    </label>
+
+    <label>
+      Dot Size (px)
+      <input type="number" min="2" max="50" [(ngModel)]="dotSize" (input)="onLiveChange()" (blur)="onLiveChange()">
+    </label>
+
+    <label>
+      Brightness
+      <div class="range-wrapper">
+        <input type="range" min="0.5" max="1.5" step="0.05"
+               [(ngModel)]="brightness" (input)="onLiveChange()">
+        <span>{{ brightness | number:'1.2-2' }}</span>
+      </div>
+    </label>
+
+    <label>
+      {{ 'config.cursorPanel.lag' | translate }}
+      <div class="range-wrapper">
+        <input type="range" min="0.05" max="0.30" step="0.01"
+               [(ngModel)]="delay" (input)="onLiveChange()">
+        <span>{{ delay | number:'1.2-2' }}</span>
+      </div>
+    </label>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn-ghost" (click)="resetConfig()">Reset to Default</button>
+  </div>
+</div>

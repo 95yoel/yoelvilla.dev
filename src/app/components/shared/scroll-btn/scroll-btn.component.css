@@ -1,0 +1,48 @@
+:host {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+}
+
+:host.prev {
+  right: auto;
+  left: 2rem;
+}
+
+.scroll-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  color: var(--color-text-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-medium);
+}
+
+.scroll-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.1);
+}
+
+.scroll-btn svg {
+  transition: transform var(--transition-medium);
+}
+
+.scroll-btn:hover svg {
+  transform: translateX(3px);
+}
+
+:host.prev .scroll-btn svg {
+  transform: rotate(180deg);
+}
+
+:host.prev .scroll-btn:hover svg {
+  transform: rotate(180deg) translateX(3px);
+}

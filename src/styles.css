@@ -1,1 +1,137 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+:root {
+  /*
+  Primary section colors
+  */
+  --color-home: #8B2F3C;        
+  --color-about: #F4B267;       
+  --color-portfolio: #546E64;   
+  --color-contact: #E86A78;     
+  
+  /*
+  Accent color
+  */
+  --color-accent: #7BC2A5;     
+  
+  /*
+  Text colors
+  */
+  --color-text-light: #FFF7F2;   
+  --color-text-muted: #F3D9C9;   
+  --color-text-dark: #4B5563;    
+  --color-text-darker: #374151;  
+  --color-text-darkest: #111827; 
+  --color-text-slate: #6B7280;   
+  
+  /* Background colors */
+  --color-bg-panel: #F3D9C9CC;         
+  --color-bg-card: rgba(15, 23, 42, 0.18);
+  --color-bg-white: #FDFBFA;            
+  --color-bg-light: #F9FAFB;           
+  
+  /*
+  Borders and lines
+  */
+  --color-border-light: rgba(255, 255, 255, 0.18);
+  --color-border-medium: rgba(255, 255, 255, 0.28);
+  --color-border-strong: rgba(255, 255, 255, 0.45);
+  --color-border-subtle: #E5E0DC;
+  --color-border-slate: #E2E8F0;
+  --color-border-slate-dark: #CBD5E1;
+  
+  /*
+  Shadows
+  */
+  --shadow-text: 0 1px 2px rgba(15, 23, 42, 0.5);
+  --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.32);
+  --shadow-panel: 0 18px 40px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.14);
+  
+  /*
+  Typography
+  */
+  --font-primary: "Inter", sans-serif;
+  --font-display: "Playfair Display", serif;
+  
+  /*
+  Font sizes
+  */
+  --font-size-base: 1.5rem;
+  --font-size-title: 3rem;
+  --font-size-small: 0.9rem;
+  
+  /*
+  Spacing
+  */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  
+  /*
+  Transitions
+  */
+  --transition-fast: 0.2s ease;
+  --transition-medium: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /*
+  Border radius
+  */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+}
+
+/* 
+   RESET AND BASE
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-primary);
+  overflow: hidden;
+  cursor: none;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+/* 
+   MATERIAL TOOLTIPS STYLES
+*/
+
+.mat-mdc-tooltip {
+  --mdc-plain-tooltip-container-color: transparent !important;
+  --mdc-plain-tooltip-supporting-text-color: var(--color-text-light) !important;
+  --mdc-plain-tooltip-supporting-text-font: var(--font-primary) !important;
+  --mdc-plain-tooltip-supporting-text-size: 0.9rem !important;
+}
+
+.mat-mdc-tooltip .mdc-tooltip__surface {
+  background-color: transparent !important;
+  color: var(--color-text-light) !important;
+  font-family: var(--font-primary) !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  padding: 4px 8px !important;
+  text-shadow: 0 2px 4px rgba(15, 23, 42, 0.6) !important;
+}
+
+.cdk-overlay-container {
+  z-index: 999999 !important;
+}
+
+.cdk-overlay-pane {
+  z-index: 999999 !important;
+}

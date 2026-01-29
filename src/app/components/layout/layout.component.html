@@ -1,0 +1,33 @@
+<header *ngIf="layout === 'desktop'">
+  <img 
+    src="/icons/config.svg" 
+    alt="Configuration" 
+    class="config-icon" 
+    (click)="toggleConfigPanel()"
+    [matTooltip]="t('tooltips.cursorConfig')"
+    matTooltipPosition="left"
+  >
+  <img 
+    src="/icons/idioma.png" 
+    alt="Language" 
+    class="language-icon" 
+    (click)="toggleLanguagePanel()"
+    [matTooltip]="t('tooltips.languageConfig')"
+    matTooltipPosition="left"
+  >
+</header>
+
+<app-config-panel 
+  #configPanel
+  *ngIf="showConfigPanel && layout === 'desktop'" 
+  (close)="showConfigPanel = false">
+</app-config-panel>
+
+<app-language-panel
+  #languagePanel
+  *ngIf="showLanguagePanel"
+  (close)="showLanguagePanel = false">
+</app-language-panel>
+
+<villayoel-desktop *ngIf="layout === 'desktop'"></villayoel-desktop>
+<villayoel-mobile *ngIf="layout === 'mobile'" (openLanguagePanel)="toggleLanguagePanel()"></villayoel-mobile>

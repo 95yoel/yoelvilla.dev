@@ -1,0 +1,75 @@
+{
+  "home": {
+    "title": "YOEL VILLA",
+    "subtitle": "FullStack Developer | Java / Angular"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "portfolio": "Portfolio",
+    "contact": "Contact"
+  },
+  "about": {
+    "title": "About Me",
+    "paragraph1": "I'm a <strong>Full Stack</strong> developer specialized in <strong>Angular</strong> and <strong>Java</strong>. I work on modernizing <strong>banking platforms</strong>, where I leverage <strong>AI</strong> to accelerate legacy code migrations and generate technical documentation more efficiently.",
+    "paragraph2": "I like to understand software <strong>beyond the code</strong>: from how it reaches production to how the end user experiences it. In my free time, I tinker with <strong>Python</strong>, <strong>cloud infrastructure</strong>, and whatever sparks my curiosity."
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "tabs": {
+      "projects": "Projects",
+      "experience": "Experience"
+    },
+    "project1": {
+      "title": "yoelvilla.dev",
+      "tech": "Angular 19 · AWS · TypeScript",
+      "description": "Personal portfolio with serverless architecture. Frontend deployed on S3 + CloudFront, backend with Lambda + API Gateway. Custom translation system, personalized cursor and integrated contact form.",
+      "github": "https://github.com/95yoel/portfolio"
+    },
+    "experience1": "Angular/Java Developer at Métrica (May 2025 - Present): Banking platform modernization for Santander. Migration of Informix 4GL legacy systems to modern architectures with Spring Boot and Angular. AI-assisted analysis and legacy code refactoring.",
+    "experience2": "Angular Developer at IRM Analytics (May 2024 - May 2025): Development of interactive dashboards for complex data analysis. Implementation of Web Workers and IndexedDB for optimized large-scale data processing. Advanced visualizations with D3.js, Sigma.js and interactive maps."
+  },
+  "contact": {
+    "title": "Let's Talk",
+    "lead": "Do you have a project or question? Write to me and I'll respond.",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "youremail@domain.com",
+      "message": "Message",
+      "messagePlaceholder": "Tell me briefly…",
+      "send": "Send",
+      "sending": "Sending..."
+    },
+    "feedback": {
+      "success": "✅ Message sent",
+      "error": "❌ Something failed, try again later"
+    },
+    "cards": {
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "github": "GitHub"
+    }
+  },
+  "tooltips": {
+    "previous": "Previous",
+    "next": "Next",
+    "cursorConfig": "Cursor Settings",
+    "languageConfig": "Language",
+    "copy": "Copy"
+  },
+  "config": {
+    "cursorPanel": {
+      "title": "Cursor Configuration",
+      "size": "Size",
+      "lag": "Lag",
+      "color": "Color"
+    },
+    "languagePanel": {
+      "title": "Select Language",
+      "spanish": "Español",
+      "english": "English"
+    }
+  }
+}
