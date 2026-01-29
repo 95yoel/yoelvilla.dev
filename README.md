@@ -4,7 +4,7 @@
 
 ### 🌍 Choose your language / Elige tu idioma
 
-[![English](public/icons/en.svg)](#english-version) &nbsp;&nbsp;&nbsp;&nbsp; [![Español](public/icons/es.svg)](#versión-en-español)
+<a href="#english-version"><img src="public/icons/en.svg" alt="English" width="32" height="32"></a> &nbsp;&nbsp;&nbsp;&nbsp; <a href="#versión-en-español"><img src="public/icons/es.svg" alt="Español" width="32" height="32"></a>
 
 </div>
 
