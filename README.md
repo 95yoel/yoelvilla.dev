@@ -15,6 +15,8 @@
 
 Minimalist personal portfolio with modern design and advanced features. Built with Angular 19 and deployed with serverless architecture on AWS.
 
+🔗 **Live demo**: [https://yoelvilla.dev](https://yoelvilla.dev)
+
 **[🇪🇸 Ver versión en español](#versión-en-español)**
 
 ## 🚀 Features
@@ -58,7 +60,18 @@ Minimalist personal portfolio with modern design and advanced features. Built wi
 3. **Portfolio**: Active project showcase with navigation
 4. **Contact**: Form + contact cards with copy buttons
 
-## 🏗️ Technical Architecture
+## � Design Philosophy
+
+The navigation is the core of the experience.  
+Instead of a traditional top navbar, I designed a persistent lateral navigation that acts as the main interaction anchor.
+
+Horizontal scrolling reinforces the idea of moving through sections as spaces, not as a vertical document.
+
+The color palette follows a "soft contrast" philosophy: muted tones, low-opacity surfaces and subtle highlights. This creates a calm, focused atmosphere where content and motion stand out without visual noise.
+
+The goal was to create a portfolio that feels more like a navigable interface than a traditional webpage.
+
+## �🏗️ Technical Architecture
 
 ### Main Stack
 ```
@@ -134,26 +147,7 @@ src/app/
 - CSS variables for main colors
 - Font: Inter (Google Fonts)
 
-## 💻 Development
-
-### Installation
-```bash
-npm install
-```
-
-### Development server
-```bash
-ng serve
-```
-Navigate to `http://localhost:4200/`
-
-### Production build
-```bash
-ng build --configuration production
-```
-Artifacts are generated in `dist/browser/`
-
-## 🔧 Configuration
+##  Configuration
 
 ### Environment Variables
 ```typescript
@@ -308,6 +302,8 @@ Personal project - All rights reserved
 
 Portfolio personal minimalista con diseño moderno y funcionalidades avanzadas. Desarrollado con Angular 19 y desplegado con arquitectura serverless en AWS.
 
+🔗 **Demo en vivo**: [https://yoelvilla.dev](https://yoelvilla.dev)
+
 **[🇬🇧 View English version](#english-version)**
 
 ## 🚀 Características
@@ -351,7 +347,18 @@ Portfolio personal minimalista con diseño moderno y funcionalidades avanzadas. 
 3. **Portfolio**: Placeholder "PRÓXIMAMENTE" (código comentado para futuro)
 4. **Contacto**: Formulario + tarjetas de contacto con botones de copia
 
-## 🏗️ Arquitectura Técnica
+## � Filosofía de Diseño
+
+La navegación es el núcleo de la experiencia.  
+En lugar de una barra superior tradicional, diseñé una navegación lateral persistente que actúa como el ancla principal de interacción.
+
+El scroll horizontal refuerza la idea de moverse a través de las secciones como espacios, no como un documento vertical.
+
+La paleta de colores sigue una filosofía de "contraste suave": tonos apagados, superficies de baja opacidad y acentos sutiles. Esto crea una atmósfera calmada y enfocada donde el contenido y el movimiento destacan sin ruido visual.
+
+El objetivo fue crear un portfolio que se sienta más como una interfaz navegable que como una página web tradicional.
+
+## �🏗️ Arquitectura Técnica
 
 ### Stack Principal
 ```
@@ -427,26 +434,7 @@ src/app/
 - Variables CSS para colores principales
 - Font: Inter (Google Fonts)
 
-## 💻 Desarrollo
-
-### Instalación
-```bash
-npm install
-```
-
-### Servidor de desarrollo
-```bash
-ng serve
-```
-Navega a `http://localhost:4200/`
-
-### Build de producción
-```bash
-ng build
-```
-Los artefactos se generan en `dist/`
-
-## 🔧 Configuración
+##  Configuración
 
 ### Environment Variables
 ```typescript

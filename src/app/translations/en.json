@@ -24,7 +24,7 @@
       "title": "yoelvilla.dev",
       "tech": "Angular 19 · AWS · TypeScript",
       "description": "Personal portfolio with serverless architecture. Frontend deployed on S3 + CloudFront, backend with Lambda + API Gateway. Custom translation system, personalized cursor and integrated contact form.",
-      "github": "https://github.com/95yoel/portfolio"
+      "github": "https://github.com/95yoel/yoelvilla.dev/"
     },
     "experience1": "Angular/Java Developer at Métrica (May 2025 - Present): Banking platform modernization for Santander. Migration of Informix 4GL legacy systems to modern architectures with Spring Boot and Angular. AI-assisted analysis and legacy code refactoring.",
     "experience2": "Angular Developer at IRM Analytics (May 2024 - May 2025): Development of interactive dashboards for complex data analysis. Implementation of Web Workers and IndexedDB for optimized large-scale data processing. Advanced visualizations with D3.js, Sigma.js and interactive maps."
