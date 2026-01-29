@@ -60,7 +60,7 @@ Minimalist personal portfolio with modern design and advanced features. Built wi
 3. **Portfolio**: Active project showcase with navigation
 4. **Contact**: Form + contact cards with copy buttons
 
-## � Design Philosophy
+## 💡 Design Philosophy
 
 The navigation is the core of the experience.  
 Instead of a traditional top navbar, I designed a persistent lateral navigation that acts as the main interaction anchor.
@@ -347,7 +347,7 @@ Portfolio personal minimalista con diseño moderno y funcionalidades avanzadas. 
 3. **Portfolio**: Placeholder "PRÓXIMAMENTE" (código comentado para futuro)
 4. **Contacto**: Formulario + tarjetas de contacto con botones de copia
 
-## � Filosofía de Diseño
+## 💡 Filosofía de Diseño
 
 La navegación es el núcleo de la experiencia.  
 En lugar de una barra superior tradicional, diseñé una navegación lateral persistente que actúa como el ancla principal de interacción.
@@ -434,7 +434,7 @@ src/app/
 - Variables CSS para colores principales
 - Font: Inter (Google Fonts)
 
-##  Configuración
+## 🔧 Configuración
 
 ### Environment Variables
 ```typescript
@@ -573,26 +573,7 @@ Podría haber implementado GitHub Actions para automatizar el build y deploy a S
 
 Estas decisiones reflejan un enfoque pragmático: elegir herramientas que maximicen el valor profesional sin caer en complejidad innecesaria.
 
-## 💻 Desarrollo
-
-### Instalación
-```bash
-npm install
-```
-
-### Servidor de desarrollo
-```bash
-ng serve
-```
-Navega a `http://localhost:4200/`
-
-### Build de producción
-```bash
-ng build --configuration production
-```
-Los artefactos se generan en `dist/browser/`
-
-## 📄 Licencia
+##  Licencia
 Proyecto personal - Todos los derechos reservados
 
 ## 👤 Autor
