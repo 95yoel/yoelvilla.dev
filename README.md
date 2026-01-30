@@ -274,7 +274,7 @@ Although platforms like Vercel or GitHub Pages simplify deployment, I deliberate
 
 - **Professional relevance**: AWS dominates the enterprise market (32% of global cloud computing). Vercel and GitHub Pages are excellent for personal projects, but less common in corporate environments
 - **Complete ecosystem**: Lambda, API Gateway, Secrets Manager, CloudWatch → experience with real services that appear in job offers
-- **Total control**: CDN configuration, security policies, rate limiting, secret management... it's not "magic deployment", it's real infrastructure
+- **Total control**: CDN configuration, security policies, rate limiting, secret management
 - **Transferable learning**: S3, CloudFront, and Lambda concepts apply to projects of any scale
 
 ### Why no CI/CD?
@@ -562,7 +562,7 @@ Aunque plataformas como Vercel o GitHub Pages simplifican el deployment, opté p
 
 - **Relevancia profesional**: AWS domina el mercado enterprise (32% del cloud computing mundial). Vercel y GitHub Pages son excelentes para proyectos personales, pero menos comunes en entornos corporativos
 - **Ecosistema completo**: Lambda, API Gateway, Secrets Manager, CloudWatch → experiencia con servicios reales que aparecen en ofertas de trabajo
-- **Control total**: Configuración de CDN, políticas de seguridad, rate limiting, gestión de secretos... no es "magic deployment", es infraestructura real
+- **Control total**: Configuración de CDN, políticas de seguridad, rate limiting, gestión de secretos
 - **Aprendizaje transferible**: Los conceptos de S3, CloudFront y Lambda se aplican a proyectos de cualquier escala
 
 ### ¿Por qué no CI/CD?
