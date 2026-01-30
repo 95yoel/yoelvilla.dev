@@ -345,7 +345,7 @@ Portfolio personal minimalista con diseño moderno y funcionalidades avanzadas. 
 ### Secciones
 1. **Home**: Presentación con nombre y especialización
 2. **Sobre mí**: Descripción personal con keywords en negrita
-3. **Portfolio**: Placeholder "PRÓXIMAMENTE" (código comentado para futuro)
+3. **Portfolio**: Muestra de proyectos activos con navegación
 4. **Contacto**: Formulario + tarjetas de contacto con botones de copia
 
 ## 💡 Filosofía de Diseño
