@@ -212,6 +212,7 @@ Fully managed serverless API:
   - On-demand execution (pay-per-use)
   - Automatic auto-scaling
   - Configured timeout for email operations
+  - **Source code**: [lambda-yoelvilla.dev](https://github.com/95yoel/lambda-yoelvilla.dev)
 
 - **API Gateway**: RESTful Lambda exposure
   - Endpoint: `https://oa2o9zdgzc.execute-api.eu-west-3.amazonaws.com/prod/contact`
@@ -499,6 +500,7 @@ API serverless completamente gestionada:
   - Ejecución on-demand (pay-per-use)
   - Auto-scaling automático
   - Timeout configurado para operaciones de email
+  - **Código fuente**: [lambda-yoelvilla.dev](https://github.com/95yoel/lambda-yoelvilla.dev)
 
 - **API Gateway**: Exposición RESTful de la Lambda
   - Endpoint: `https://oa2o9zdgzc.execute-api.eu-west-3.amazonaws.com/prod/contact`
