@@ -37,22 +37,26 @@
             <article class="card" *ngIf="currentProjectIndex === 0">
               <header>
                 <h4>{{ 'portfolio.project1.title' | translate }}</h4>
-                <span class="badge">{{ 'portfolio.project1.tech' | translate }}</span>
+                <div class="card-tech">
+                  <span class="badge">{{ 'portfolio.project1.tech' | translate }}</span>
+                </div>
               </header>
               <p>{{ 'portfolio.project1.description' | translate }}</p>
               <a [href]="'portfolio.project1.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub &rarr;
+                {{ 'portfolio.actions.github' | translate }} &rarr;
               </a>
             </article>
 
             <article class="card" *ngIf="currentProjectIndex === 1">
               <header>
                 <h4>{{ 'portfolio.project2.title' | translate }}</h4>
-                <span class="badge">{{ 'portfolio.project2.tech' | translate }}</span>
+                <div class="card-tech">
+                  <span class="badge">{{ 'portfolio.project2.tech' | translate }}</span>
+                </div>
               </header>
               <p>{{ 'portfolio.project2.description' | translate }}</p>
               <a [href]="'portfolio.project2.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub &rarr;
+                {{ 'portfolio.actions.demo' | translate }} &rarr;
               </a>
             </article>
           </div>

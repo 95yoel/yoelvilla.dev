@@ -20,6 +20,10 @@
       "projects": "Proyectos",
       "experience": "Experiencia"
     },
+    "actions": {
+      "github": "Ver en GitHub",
+      "demo": "Ver demo"
+    },
     "project1": {
       "title": "yoelvilla.dev",
       "tech": "Angular 19 · AWS · TypeScript",

@@ -361,9 +361,9 @@ nav li.active {
 
 .card header {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   margin-bottom: .6rem;
   padding-bottom: .4rem;
   border-bottom: 1px solid rgba(255, 255, 255, .12);
@@ -373,6 +373,17 @@ nav li.active {
   margin: 0;
   font-size: 1.5rem;
   line-height: 1.3;
+  width: 100%;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+.card-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
 }
 
 .badge {
