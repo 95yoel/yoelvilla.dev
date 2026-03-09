@@ -31,7 +31,7 @@
       "github": "https://github.com/95yoel/yoelvilla.dev/"
     },
     "project2": {
-      "title": "Frontend Route Designer",
+      "title": "Route Designer",
       "tech": "Angular · Cloudflare · Railway · SQLite",
       "description": "Mountain route planner and analyzer. Track editor with topographic layers, DEM-based elevation profiling and automatic slope analysis. Frontend deployed on Cloudflare Workers and backend on Railway with SQLite cache and rate limiting.",
       "github": "https://frontend-route-designer.villayoel.workers.dev/"
