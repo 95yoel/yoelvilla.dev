@@ -11,8 +11,8 @@
   },
   "about": {
     "title": "Sobre m\u00ed",
-    "paragraph1": "Soy desarrollador <strong>Full Stack</strong> especializado en <strong>Angular</strong> y <strong>Java</strong>. Trabajo en la modernizaci\u00f3n de <strong>plataformas bancarias</strong>, donde aprovecho la <strong>IA</strong> para acelerar migraciones de c\u00f3digo legacy y generar documentaci\u00f3n t\u00e9cnica de forma m\u00e1s eficiente.",
-    "paragraph2": "Me gusta entender el software <strong>m\u00e1s all\u00e1 del c\u00f3digo</strong>: desde c\u00f3mo llega a producci\u00f3n hasta c\u00f3mo lo usa el usuario final. En mi tiempo libre, trasteo con <strong>Python</strong>, <strong>infraestructura cloud</strong> y lo que me genere curiosidad."
+    "paragraph1": "Soy desarrollador <strong>Full Stack</strong> especializado en <strong>Angular</strong> y <strong>Java Spring Boot</strong>. He trabajado en entornos <strong>enterprise</strong> y en la modernización de aplicaciones bancarias, participando en migraciones desde <strong>Informix 4GL</strong> hacia arquitecturas más actuales basadas en <strong>APIs REST</strong>, <strong>SQL</strong> y una organización modular del código.",
+    "paragraph2": "Me interesa construir software <strong>útil, mantenible y bien pensado</strong>, entendiendo el contexto completo: negocio, arquitectura, datos y experiencia de uso. Utilizo la <strong>IA</strong> como una herramienta de apoyo para acelerar el análisis de sistemas legacy, detectar patrones, contrastar decisiones y avanzar más rápido en tareas de refactorización y documentación, sin renunciar al criterio técnico."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -36,8 +36,8 @@
       "description": "Planificador y analizador de rutas de monta\u00f1a. Editor de tracks con capas topogr\u00e1ficas, c\u00e1lculo de elevaci\u00f3n con DEM y an\u00e1lisis autom\u00e1tico de pendientes. Frontend desplegado en Cloudflare Workers y backend en Railway con cach\u00e9 SQLite y rate limiting.",
       "github": "https://frontend-route-designer.villayoel.workers.dev/"
     },
-    "experience1": "Desarrollador Angular/Java en M\u00e9trica (Mayo 2025 - Actualidad): Modernizaci\u00f3n de plataformas bancarias para Santander. Migraci\u00f3n de sistemas legacy Informix 4GL a arquitecturas modernas con Spring Boot y Angular. Uso de IA para acelerar an\u00e1lisis y refactorizaci\u00f3n de c\u00f3digo legacy.",
-    "experience2": "Desarrollador Angular en IRM Analytics (Mayo 2024 - Mayo 2025): Desarrollo de dashboards interactivos para an\u00e1lisis de datos complejos. Implementaci\u00f3n de Web Workers e IndexedDB para procesamiento optimizado de grandes vol\u00famenes de datos. Visualizaciones avanzadas con D3.js, Sigma.js y mapas interactivos."
+    "experience1": "Desarrollador Angular/Java en M\u00e9trica (mayo 2025 - febrero 2026): Participé en la modernización de aplicaciones bancarias para Banco Santander, dentro de una migración desde Informix 4GL hacia una arquitectura Java con enfoque hexagonal. Trabajé en la definición de la base del proyecto, el desarrollo de servicios REST y la integración con Informix y Oracle, ayudando a transformar lógica legacy en servicios más mantenibles y preparados para evolucionar.",
+    "experience2": "Desarrollador Angular en IRM Analytics (mayo 2024 - mayo 2025): Desarrollé aplicaciones frontend para usuarios de negocio que trabajaban con grandes volúmenes de datos. Mejoré el rendimiento en navegador con Web Workers e IndexedDB, y construí dashboards, mapas y grafos interactivos que facilitaron la exploración visual de información compleja y una toma de decisiones más ágil."
   },
   "contact": {
     "title": "Hablemos",

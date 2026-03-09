@@ -11,8 +11,8 @@
   },
   "about": {
     "title": "About Me",
-    "paragraph1": "I'm a <strong>Full Stack</strong> developer specialized in <strong>Angular</strong> and <strong>Java</strong>. I work on modernizing <strong>banking platforms</strong>, where I leverage <strong>AI</strong> to accelerate legacy code migrations and generate technical documentation more efficiently.",
-    "paragraph2": "I like to understand software <strong>beyond the code</strong>: from how it reaches production to how the end user experiences it. In my free time, I tinker with <strong>Python</strong>, <strong>cloud infrastructure</strong>, and whatever sparks my curiosity."
+    "paragraph1": "I'm a <strong>Full Stack</strong> developer specialized in <strong>Angular</strong> and <strong>Java Spring Boot</strong>. I've worked in <strong>enterprise</strong> environments and on the modernization of banking applications, helping migrate systems from <strong>Informix 4GL</strong> to more current architectures built around <strong>REST APIs</strong>, <strong>SQL</strong> and a modular codebase.",
+    "paragraph2": "I'm interested in building software that is <strong>useful, maintainable and well thought out</strong>, looking at the full context: business, architecture, data and user experience. I use <strong>AI</strong> as a support tool to speed up legacy-system analysis, uncover patterns, challenge decisions and move faster on refactoring and documentation without outsourcing technical judgment."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -36,8 +36,8 @@
       "description": "Mountain route planner and analyzer. Track editor with topographic layers, DEM-based elevation profiling and automatic slope analysis. Frontend deployed on Cloudflare Workers and backend on Railway with SQLite cache and rate limiting.",
       "github": "https://frontend-route-designer.villayoel.workers.dev/"
     },
-    "experience1": "Angular/Java Developer at M\u00e9trica (May 2025 - Present): Banking platform modernization for Santander. Migration of Informix 4GL legacy systems to modern architectures with Spring Boot and Angular. AI-assisted analysis and legacy code refactoring.",
-    "experience2": "Angular Developer at IRM Analytics (May 2024 - May 2025): Development of interactive dashboards for complex data analysis. Implementation of Web Workers and IndexedDB for optimized large-scale data processing. Advanced visualizations with D3.js, Sigma.js and interactive maps."
+    "experience1": "Angular/Java Developer at M\u00e9trica (May 2025 - February 2026): I worked on the modernization of banking applications for Banco Santander as part of a migration from Informix 4GL to a Java architecture with a hexagonal approach. I contributed to the project's base structure, REST service development and integration with Informix and Oracle, helping turn legacy business logic into services that were easier to maintain and evolve.",
+    "experience2": "Angular Developer at IRM Analytics (May 2024 - May 2025): I built frontend applications for business users working with large data volumes. I improved browser-side performance with Web Workers and IndexedDB, and developed dashboards, maps and interactive graphs that made complex information easier to explore and faster to act on."
   },
   "contact": {
     "title": "Let's Talk",
