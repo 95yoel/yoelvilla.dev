@@ -26,7 +26,13 @@
       "description": "Personal portfolio with serverless architecture. Frontend deployed on S3 + CloudFront, backend with Lambda + API Gateway. Custom translation system, personalized cursor and integrated contact form.",
       "github": "https://github.com/95yoel/yoelvilla.dev/"
     },
-    "experience1": "Angular/Java Developer at Métrica (May 2025 - Present): Banking platform modernization for Santander. Migration of Informix 4GL legacy systems to modern architectures with Spring Boot and Angular. AI-assisted analysis and legacy code refactoring.",
+    "project2": {
+      "title": "Frontend Route Designer",
+      "tech": "Angular · Cloudflare · Railway · SQLite",
+      "description": "Mountain route planner and analyzer. Track editor with topographic layers, DEM-based elevation profiling and automatic slope analysis. Frontend deployed on Cloudflare Workers and backend on Railway with SQLite cache and rate limiting.",
+      "github": "https://frontend-route-designer.villayoel.workers.dev/"
+    },
+    "experience1": "Angular/Java Developer at M\u00e9trica (May 2025 - Present): Banking platform modernization for Santander. Migration of Informix 4GL legacy systems to modern architectures with Spring Boot and Angular. AI-assisted analysis and legacy code refactoring.",
     "experience2": "Angular Developer at IRM Analytics (May 2024 - May 2025): Development of interactive dashboards for complex data analysis. Implementation of Web Workers and IndexedDB for optimized large-scale data processing. Advanced visualizations with D3.js, Sigma.js and interactive maps."
   },
   "contact": {
@@ -38,13 +44,13 @@
       "email": "Email",
       "emailPlaceholder": "youremail@domain.com",
       "message": "Message",
-      "messagePlaceholder": "Tell me briefly…",
+      "messagePlaceholder": "Tell me briefly\u2026",
       "send": "Send",
       "sending": "Sending..."
     },
     "feedback": {
-      "success": "✅ Message sent",
-      "error": "❌ Something failed, try again later"
+      "success": "\u2705 Message sent",
+      "error": "\u274c Something failed, try again later"
     },
     "cards": {
       "email": "Email",
@@ -68,7 +74,7 @@
     },
     "languagePanel": {
       "title": "Select Language",
-      "spanish": "Español",
+      "spanish": "Espa\u00f1ol",
       "english": "English"
     }
   }

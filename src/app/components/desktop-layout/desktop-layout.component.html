@@ -46,42 +46,20 @@
               </header>
               <p>{{ 'portfolio.project1.description' | translate }}</p>
               <a [href]="'portfolio.project1.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
+                Ver en GitHub &rarr;
               </a>
             </article>
 
-            <!-- <article class="card">
+            <article class="card">
               <header>
                 <h4>{{ 'portfolio.project2.title' | translate }}</h4>
                 <span class="badge">{{ 'portfolio.project2.tech' | translate }}</span>
               </header>
               <p>{{ 'portfolio.project2.description' | translate }}</p>
               <a [href]="'portfolio.project2.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
+                Ver en GitHub &rarr;
               </a>
             </article>
-
-            <article class="card">
-              <header>
-                <h4>{{ 'portfolio.project3.title' | translate }}</h4>
-                <span class="badge">{{ 'portfolio.project3.tech' | translate }}</span>
-              </header>
-              <p>{{ 'portfolio.project3.description' | translate }}</p>
-              <a [href]="'portfolio.project3.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
-              </a>
-            </article>
-
-            <article class="card">
-              <header>
-                <h4>{{ 'portfolio.project4.title' | translate }}</h4>
-                <span class="badge">{{ 'portfolio.project4.tech' | translate }}</span>
-              </header>
-              <p>{{ 'portfolio.project4.description' | translate }}</p>
-              <a [href]="'portfolio.project4.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
-              </a>
-            </article> -->
           </div>
 
           <button *ngIf="canScrollCarouselNext" class="car-btn next" type="button" (click)="carouselNext()">>></button>
@@ -104,15 +82,12 @@
         {{ 'contact.lead' | translate }}
       </p>
 
-      <!-- Feedback panel -->
       <div class="feedback-panel" *ngIf="showFeedback" [class.success]="feedbackType === 'success'" [class.error]="feedbackType === 'error'">
         {{ feedbackMessage }}
       </div>
 
       <div class="contact-grid">
-        <!-- Formulario -->
         <form class="contact-form" (submit)="sendMessage($event)" novalidate>
-          <!-- Honeypot field para evitar bots -->
           <input 
             type="text" 
             name="hp_field" 
@@ -163,7 +138,6 @@
           </button>
         </form>
 
-        <!-- Tarjetas de contacto alternativo -->
         <div class="contact-cards">
           <div class="card">
             <a href="mailto:hello@yoelvilla.dev" rel="noopener">

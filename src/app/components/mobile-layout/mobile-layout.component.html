@@ -41,42 +41,20 @@
               </header>
               <p>{{ 'portfolio.project1.description' | translate }}</p>
               <a [href]="'portfolio.project1.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
+                Ver en GitHub &rarr;
               </a>
             </article>
 
-            <!-- <article class="card" *ngIf="currentProjectIndex === 1">
+            <article class="card" *ngIf="currentProjectIndex === 1">
               <header>
                 <h4>{{ 'portfolio.project2.title' | translate }}</h4>
                 <span class="badge">{{ 'portfolio.project2.tech' | translate }}</span>
               </header>
               <p>{{ 'portfolio.project2.description' | translate }}</p>
               <a [href]="'portfolio.project2.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
+                Ver en GitHub &rarr;
               </a>
             </article>
-
-            <article class="card" *ngIf="currentProjectIndex === 2">
-              <header>
-                <h4>{{ 'portfolio.project3.title' | translate }}</h4>
-                <span class="badge">{{ 'portfolio.project3.tech' | translate }}</span>
-              </header>
-              <p>{{ 'portfolio.project3.description' | translate }}</p>
-              <a [href]="'portfolio.project3.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
-              </a>
-            </article>
-
-            <article class="card" *ngIf="currentProjectIndex === 3">
-              <header>
-                <h4>{{ 'portfolio.project4.title' | translate }}</h4>
-                <span class="badge">{{ 'portfolio.project4.tech' | translate }}</span>
-              </header>
-              <p>{{ 'portfolio.project4.description' | translate }}</p>
-              <a [href]="'portfolio.project4.github' | translate" target="_blank" rel="noopener" class="project-link">
-                Ver en GitHub →
-              </a>
-            </article> -->
           </div>
 
           <button *ngIf="canGoNext()" class="mobile-car-btn next" type="button" (click)="nextProject()">></button>

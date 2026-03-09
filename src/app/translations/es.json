@@ -5,14 +5,14 @@
   },
   "nav": {
     "home": "Inicio",
-    "about": "Sobre mí",
+    "about": "Sobre m\u00ed",
     "portfolio": "Portfolio",
     "contact": "Contacto"
   },
   "about": {
-    "title": "Sobre mí",
-    "paragraph1": "Soy desarrollador <strong>Full Stack</strong> especializado en <strong>Angular</strong> y <strong>Java</strong>. Trabajo en la modernización de <strong>plataformas bancarias</strong>, donde aprovecho la <strong>IA</strong> para acelerar migraciones de código legacy y generar documentación técnica de forma más eficiente.",
-    "paragraph2": "Me gusta entender el software <strong>más allá del código</strong>: desde cómo llega a producción hasta cómo lo usa el usuario final. En mi tiempo libre, trasteo con <strong>Python</strong>, <strong>infraestructura cloud</strong> y lo que me genere curiosidad."
+    "title": "Sobre m\u00ed",
+    "paragraph1": "Soy desarrollador <strong>Full Stack</strong> especializado en <strong>Angular</strong> y <strong>Java</strong>. Trabajo en la modernizaci\u00f3n de <strong>plataformas bancarias</strong>, donde aprovecho la <strong>IA</strong> para acelerar migraciones de c\u00f3digo legacy y generar documentaci\u00f3n t\u00e9cnica de forma m\u00e1s eficiente.",
+    "paragraph2": "Me gusta entender el software <strong>m\u00e1s all\u00e1 del c\u00f3digo</strong>: desde c\u00f3mo llega a producci\u00f3n hasta c\u00f3mo lo usa el usuario final. En mi tiempo libre, trasteo con <strong>Python</strong>, <strong>infraestructura cloud</strong> y lo que me genere curiosidad."
   },
   "portfolio": {
     "title": "Portfolio",
@@ -23,28 +23,34 @@
     "project1": {
       "title": "yoelvilla.dev",
       "tech": "Angular 19 · AWS · TypeScript",
-      "description": "Portfolio personal con arquitectura serverless. Frontend desplegado en S3 + CloudFront, backend con Lambda + API Gateway. Sistema de traducción custom, cursor personalizado y formulario de contacto integrado.",
+      "description": "Portfolio personal con arquitectura serverless. Frontend desplegado en S3 + CloudFront, backend con Lambda + API Gateway. Sistema de traducci\u00f3n custom, cursor personalizado y formulario de contacto integrado.",
       "github": "https://github.com/95yoel/yoelvilla.dev/"
     },
-    "experience1": "Desarrollador Angular/Java en Métrica (Mayo 2025 - Actualidad): Modernización de plataformas bancarias para Santander. Migración de sistemas legacy Informix 4GL a arquitecturas modernas con Spring Boot y Angular. Uso de IA para acelerar análisis y refactorización de código legacy.",
-    "experience2": "Desarrollador Angular en IRM Analytics (Mayo 2024 - Mayo 2025): Desarrollo de dashboards interactivos para análisis de datos complejos. Implementación de Web Workers e IndexedDB para procesamiento optimizado de grandes volúmenes de datos. Visualizaciones avanzadas con D3.js, Sigma.js y mapas interactivos."
+    "project2": {
+      "title": "Frontend Route Designer",
+      "tech": "Angular · Cloudflare · Railway · SQLite",
+      "description": "Planificador y analizador de rutas de monta\u00f1a. Editor de tracks con capas topogr\u00e1ficas, c\u00e1lculo de elevaci\u00f3n con DEM y an\u00e1lisis autom\u00e1tico de pendientes. Frontend desplegado en Cloudflare Workers y backend en Railway con cach\u00e9 SQLite y rate limiting.",
+      "github": "https://frontend-route-designer.villayoel.workers.dev/"
+    },
+    "experience1": "Desarrollador Angular/Java en M\u00e9trica (Mayo 2025 - Actualidad): Modernizaci\u00f3n de plataformas bancarias para Santander. Migraci\u00f3n de sistemas legacy Informix 4GL a arquitecturas modernas con Spring Boot y Angular. Uso de IA para acelerar an\u00e1lisis y refactorizaci\u00f3n de c\u00f3digo legacy.",
+    "experience2": "Desarrollador Angular en IRM Analytics (Mayo 2024 - Mayo 2025): Desarrollo de dashboards interactivos para an\u00e1lisis de datos complejos. Implementaci\u00f3n de Web Workers e IndexedDB para procesamiento optimizado de grandes vol\u00famenes de datos. Visualizaciones avanzadas con D3.js, Sigma.js y mapas interactivos."
   },
   "contact": {
     "title": "Hablemos",
-    "lead": "¿Tienes un proyecto o pregunta? Escríbeme y te respondo.",
+    "lead": "\u00bfTienes un proyecto o pregunta? Escr\u00edbeme y te respondo.",
     "form": {
       "name": "Nombre",
       "namePlaceholder": "Tu nombre",
       "email": "Email",
       "emailPlaceholder": "tucorreo@dominio.com",
       "message": "Mensaje",
-      "messagePlaceholder": "Cuéntame brevemente…",
+      "messagePlaceholder": "Cu\u00e9ntame brevemente...",
       "send": "Enviar",
       "sending": "Enviando..."
     },
     "feedback": {
-      "success": "✅ Mensaje enviado",
-      "error": "❌ Algo falló, prueba en otro momento"
+      "success": "Mensaje enviado",
+      "error": "Algo fall\u00f3, prueba en otro momento"
     },
     "cards": {
       "email": "Email",
@@ -55,20 +61,20 @@
   "tooltips": {
     "previous": "Anterior",
     "next": "Siguiente",
-    "cursorConfig": "Configuración Cursor",
+    "cursorConfig": "Configuraci\u00f3n Cursor",
     "languageConfig": "Idioma",
     "copy": "Copiar"
   },
   "config": {
     "cursorPanel": {
-      "title": "Configuración del Cursor",
-      "size": "Tamaño",
+      "title": "Configuraci\u00f3n del Cursor",
+      "size": "Tama\u00f1o",
       "lag": "Retraso",
       "color": "Color"
     },
     "languagePanel": {
       "title": "Seleccionar Idioma",
-      "spanish": "Español",
+      "spanish": "Espa\u00f1ol",
       "english": "English"
     }
   }

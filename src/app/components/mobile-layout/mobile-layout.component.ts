@@ -20,7 +20,7 @@ export class MobileLayoutComponent implements AfterViewInit {
   
   activeTab: 'proyectos' | 'experiencia' = 'proyectos'
   currentProjectIndex = 0
-  totalProjects = 1 // Update to add more projects
+  totalProjects = 2
   showScrollTopButton = false
   
   private translationService = inject(TranslationService)
