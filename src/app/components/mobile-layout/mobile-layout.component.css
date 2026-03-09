@@ -45,6 +45,7 @@
 }
 
 .mobile-section {
+  --slide-base: transparent;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -54,22 +55,35 @@
   color: var(--color-text-light);
   text-align: center;
   box-sizing: border-box;
+  background-image: linear-gradient(
+    135deg,
+    var(--slide-prev, var(--slide-base)) 0%,
+    var(--slide-base) 42%,
+    var(--slide-base) 58%,
+    var(--slide-next, var(--slide-base)) 100%
+  );
 }
 
 .home-section {
-  background-color: var(--color-home);
+  --slide-base: var(--color-home);
+  --slide-next: var(--color-about);
 }
 
 .about-section {
-  background-color: var(--color-about);
+  --slide-prev: var(--color-home);
+  --slide-base: var(--color-about);
+  --slide-next: var(--color-portfolio);
 }
 
 .portfolio-section {
-  background-color: var(--color-portfolio);
+  --slide-prev: var(--color-about);
+  --slide-base: var(--color-portfolio);
+  --slide-next: var(--color-contact);
 }
 
 .contact-section {
-  background-color: var(--color-contact);
+  --slide-prev: var(--color-portfolio);
+  --slide-base: var(--color-contact);
 }
 
 .title {
