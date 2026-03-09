@@ -1,4 +1,4 @@
-import { Component, inject, Output, EventEmitter } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Output, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -13,12 +13,15 @@ import { environment } from '../../../environments/environment';
   templateUrl: './mobile-layout.component.html',
   styleUrl: './mobile-layout.component.css'
 })
-export class MobileLayoutComponent {
+export class MobileLayoutComponent implements AfterViewInit {
   @Output() openLanguagePanel = new EventEmitter<void>();
+  @ViewChild('mobileScrollContainer') mobileScrollContainer?: ElementRef<HTMLDivElement>;
+  @ViewChildren('mobileSection') mobileSections?: QueryList<ElementRef<HTMLElement>>;
   
   activeTab: 'proyectos' | 'experiencia' = 'proyectos'
   currentProjectIndex = 0
   totalProjects = 1 // Update to add more projects
+  showScrollTopButton = false
   
   private translationService = inject(TranslationService)
   private http = inject(HttpClient)
@@ -34,8 +37,47 @@ export class MobileLayoutComponent {
   feedbackType: 'success' | 'error' = 'success'
   isSending = false
 
+  ngAfterViewInit(): void {
+    this.updateScrollTopButtonVisibility()
+  }
+
   toggleLanguagePanel() {
     this.openLanguagePanel.emit()
+  }
+
+  onContainerScroll(): void {
+    this.updateScrollTopButtonVisibility()
+  }
+
+  scrollToTop(): void {
+    this.mobileScrollContainer?.nativeElement.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
+  private updateScrollTopButtonVisibility(): void {
+    const container = this.mobileScrollContainer?.nativeElement
+    const sections = this.mobileSections?.toArray() ?? []
+
+    if (!container || sections.length < 2) {
+      this.showScrollTopButton = false
+      return
+    }
+
+    const viewportMidpoint = container.scrollTop + (container.clientHeight / 2)
+
+    const currentSectionIndex = sections.findIndex((section, index) => {
+      const element = section.nativeElement
+      const start = element.offsetTop
+      const end = index === sections.length - 1
+        ? Number.POSITIVE_INFINITY
+        : start + element.offsetHeight
+
+      return viewportMidpoint >= start && viewportMidpoint < end
+    })
+
+    this.showScrollTopButton = currentSectionIndex > 0
   }
 
   nextProject() {

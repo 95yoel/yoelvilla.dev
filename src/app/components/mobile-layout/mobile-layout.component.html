@@ -2,13 +2,13 @@
   <img src="/icons/idioma.png" alt="Language" width="20" height="20">
 </button>
 
-<div class="mobile-scroll-container">
-  <section class="mobile-section home-section">
+<div #mobileScrollContainer class="mobile-scroll-container" (scroll)="onContainerScroll()">
+  <section #mobileSection class="mobile-section home-section">
     <h1 class="title">{{ 'home.title' | translate }}</h1>
     <p class="subtitle">{{ 'home.subtitle' | translate }}</p>
   </section>
 
-  <section class="mobile-section about-section">
+  <section #mobileSection class="mobile-section about-section">
     <h2 class="section-title">{{ 'about.title' | translate }}</h2>
     <div class="about">
       <p [innerHTML]="'about.paragraph1' | translate"></p>
@@ -16,7 +16,7 @@
     </div>
   </section>
 
-  <section class="mobile-section portfolio-section">
+  <section #mobileSection class="mobile-section portfolio-section">
     <h2 class="section-title">{{ 'portfolio.title' | translate }}</h2>
     
     <div class="work">
@@ -92,7 +92,7 @@
     </div>
   </section>
 
-  <section class="mobile-section contact-section">
+  <section #mobileSection class="mobile-section contact-section">
     <h2 class="section-title">{{ 'contact.title' | translate }}</h2>
     <div class="contact">
       <p class="contact-lead">
@@ -198,3 +198,14 @@
     </div>
   </section>
 </div>
+
+<button
+  *ngIf="showScrollTopButton"
+  class="mobile-scroll-top-btn"
+  type="button"
+  (click)="scrollToTop()"
+  aria-label="Scroll to top">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline points="18 15 12 9 6 15"></polyline>
+  </svg>
+</button>

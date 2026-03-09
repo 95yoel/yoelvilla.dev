@@ -1,5 +1,6 @@
 :host {
   display: block;
+  position: relative;
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -42,6 +43,9 @@
 .mobile-scroll-container {
   width: 100%;
   min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .mobile-section {
@@ -62,6 +66,32 @@
     var(--slide-base) 58%,
     var(--slide-next, var(--slide-base)) 100%
   );
+}
+
+.mobile-scroll-top-btn {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1000;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  color: var(--color-text-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.mobile-scroll-top-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
 }
 
 .home-section {
