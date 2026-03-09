@@ -439,17 +439,18 @@ nav li.active {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, .2);
-  border: 1px solid rgba(255, 255, 255, .35);
-  color: #fff;
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  color: var(--color-text-light);
   width: 36px;
   height: 36px;
   border-radius: 999px;
   cursor: pointer;
   display: grid;
   place-items: center;
-  backdrop-filter: blur(2px);
-  transition: 0.3s ease-in-out;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+  transition: background var(--transition-medium), border-color var(--transition-medium), transform var(--transition-medium), box-shadow var(--transition-medium);
 }
 
 .car-btn.prev {
@@ -461,8 +462,10 @@ nav li.active {
 }
 
 .car-btn:hover {
-  background: rgba(255, 255, 255, .12);
-  border-color: var(--color-border-strong);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.28);
+  transform: translateY(-50%) scale(1.08);
 }
 
 @media (max-width: 1200px) {
