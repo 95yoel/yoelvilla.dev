@@ -13,7 +13,6 @@ header {
   padding-right: 2rem;
   padding-left: 1rem;
   box-sizing: border-box;
-  backdrop-filter: blur(10px);
   z-index: 99999;
 }
 
