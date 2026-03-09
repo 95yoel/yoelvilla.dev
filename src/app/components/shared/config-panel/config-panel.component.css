@@ -14,15 +14,19 @@ h4 {
 }
 
 .config-panel {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--color-bg-white) 95%, transparent) 0%, color-mix(in srgb, var(--color-bg-light) 95%, transparent) 100%);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-bg-white) 72%, transparent) 0%,
+    color-mix(in srgb, var(--color-bg-light) 62%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, white 38%, transparent);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
   border-radius: 16px;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 12px 40px rgba(15, 23, 42, 0.18),
+    0 4px 12px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
   min-width: 320px;
   padding: 24px;
   transform: translateX(100%);
