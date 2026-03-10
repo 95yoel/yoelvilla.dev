@@ -7,6 +7,8 @@ import { BlogService } from '../../services/blog.service';
 import { BlogArticleSummary } from '../../models/blog-article.model';
 import { TranslatePipe } from '../../../../translations/pipes/translate.pipe';
 import { TranslationService } from '../../../../translations/services/translation.service';
+import { LayoutService } from '../../../../services/layout.service';
+import { CustomCursorComponent } from '../../../../components/shared/custom-cursor/custom-cursor.component';
 
 type ArticleVm =
   | { status: 'loading' }
@@ -26,7 +28,7 @@ type ArticleVm =
 
 @Component({
   selector: 'app-blog-article-page',
-  imports: [CommonModule, RouterLink, BlogSidebarComponent, TranslatePipe],
+  imports: [CommonModule, RouterLink, BlogSidebarComponent, TranslatePipe, CustomCursorComponent],
   templateUrl: './blog-article.page.html',
   styleUrl: './blog-article.page.css'
 })
@@ -34,7 +36,9 @@ export class BlogArticlePage {
   private readonly route = inject(ActivatedRoute);
   private readonly blogService = inject(BlogService);
   private readonly translationService = inject(TranslationService);
+  private readonly layoutService = inject(LayoutService);
   private readonly reload$ = new Subject<void>();
+  readonly layout$ = this.layoutService.layout$;
 
   readonly vm$ = combineLatest([
     this.route.paramMap.pipe(map((params) => params.get('slug') || '')),

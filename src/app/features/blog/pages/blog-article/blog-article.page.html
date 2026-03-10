@@ -42,4 +42,6 @@
       </button>
     </div>
   </ng-template>
+
+  <custom-cursor *ngIf="(layout$ | async) === 'desktop'"></custom-cursor>
 </ng-container>
