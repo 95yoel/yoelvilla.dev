@@ -1,9 +1,10 @@
-import { Component, ElementRef, EventEmitter, HostListener, inject, Output, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, HostListener, inject, Output, ViewChild } from '@angular/core';
 import { gsap } from 'gsap';
 import { CursorConfig, CursorConfigService } from '../../../services/cursor-config.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../translations/pipes/translate.pipe';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-config-panel',
@@ -16,7 +17,7 @@ export class ConfigPanelComponent {
   @ViewChild('panel', { static: true }) panel!: ElementRef<HTMLDivElement>;
   @Output() close = new EventEmitter<void>()
 
-  private closing = false;
+  private readonly destroyRef = inject(DestroyRef);
   private readonly cursorConfig = inject(CursorConfigService);
   private ctx!: gsap.Context;
 
@@ -61,13 +62,15 @@ export class ConfigPanelComponent {
 
   ngOnInit(): void {
     this.cursorConfig.loadConfig();
-    this.cursorConfig.config$.subscribe(cfg => {
-      this.cursorColor = cfg.color
-      this.cursorSize = cfg.size
-      this.dotSize = cfg.dotSize
-      this.brightness = cfg.brightness
-      this.delay = cfg.delay
-    });
+    this.cursorConfig.config$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(cfg => {
+        this.cursorColor = cfg.color
+        this.cursorSize = cfg.size
+        this.dotSize = cfg.dotSize
+        this.brightness = cfg.brightness
+        this.delay = cfg.delay
+      });
   }
 
   onLiveChange() {

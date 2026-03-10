@@ -1,11 +1,10 @@
 import { Component, HostBinding, Input, inject } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslationService } from '../../../translations/services/translation.service';
-import { TranslatePipe } from '../../../translations/pipes/translate.pipe';
 
 @Component({
   selector: 'scroll-btn',
-  imports: [MatTooltipModule, TranslatePipe],
+  imports: [MatTooltipModule],
   templateUrl: './scroll-btn.component.html',
   styleUrl: './scroll-btn.component.css'
 })

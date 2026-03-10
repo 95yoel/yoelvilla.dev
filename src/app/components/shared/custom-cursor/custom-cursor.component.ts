@@ -1,6 +1,7 @@
-import { Component, ElementRef, inject, Renderer2 } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, Renderer2 } from '@angular/core';
 import { CursorConfigService } from '../../../services/cursor-config.service';
 import { DOCUMENT } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'custom-cursor',
@@ -20,23 +21,37 @@ export class CustomCursorComponent {
   private readonly renderer = inject(Renderer2);
   private readonly doc = inject(DOCUMENT);
   private readonly cursorConfig = inject(CursorConfigService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private onPointerDown = (e: PointerEvent) => this.spawnClickPulse(e.clientX, e.clientY);
+  private onMouseMove = (e: MouseEvent) => {
+    this.mouseX = e.clientX;
+    this.mouseY = e.clientY;
+  };
+  private animationFrameId?: number;
+  private mouseX = 0;
+  private mouseY = 0;
 
   ngOnInit(): void {
     this.cursorConfig.loadConfig();
-    this.cursorConfig.config$.subscribe(cfg => {
-      this.cursorColor = cfg.color;
-      this.cursorSize = cfg.size;
-      this.dotSize = cfg.dotSize;
-      this.brightness = cfg.brightness;
-      this.delay = cfg.delay;
-      this.updateCursorStyle();
-    });
+    this.cursorConfig.config$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(cfg => {
+        this.cursorColor = cfg.color;
+        this.cursorSize = cfg.size;
+        this.dotSize = cfg.dotSize;
+        this.brightness = cfg.brightness;
+        this.delay = cfg.delay;
+        this.updateCursorStyle();
+      });
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('pointerdown', this.onPointerDown as any, true);
+    window.removeEventListener('mousemove', this.onMouseMove);
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -47,32 +62,28 @@ export class CustomCursorComponent {
     const circle = root.querySelector('.cursor-circle') as HTMLElement;
     const dot = root.querySelector('.cursor-dot') as HTMLElement;
 
-    let mouseX = 0, mouseY = 0;
     let circleX = 0, circleY = 0;
     let dotX = 0, dotY = 0;
 
-    window.addEventListener('mousemove', (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    });
+    window.addEventListener('mousemove', this.onMouseMove);
 
     const animate = () => {
       const circleDelay = this.delay;
       const dotDelay = circleDelay * 1.5;
 
-      circleX += (mouseX - circleX) * circleDelay;
-      circleY += (mouseY - circleY) * circleDelay;
+      circleX += (this.mouseX - circleX) * circleDelay;
+      circleY += (this.mouseY - circleY) * circleDelay;
       cursor.style.left = `${circleX}px`;
       cursor.style.top = `${circleY}px`;
 
-      dotX += (mouseX - dotX) * dotDelay;
-      dotY += (mouseY - dotY) * dotDelay;
+      dotX += (this.mouseX - dotX) * dotDelay;
+      dotY += (this.mouseY - dotY) * dotDelay;
 
       const dx = dotX - circleX;
       const dy = dotY - circleY;
       dot.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
 
-      requestAnimationFrame(animate);
+      this.animationFrameId = requestAnimationFrame(animate);
     };
 
     window.addEventListener('pointerdown', this.onPointerDown, { passive: true, capture: true });

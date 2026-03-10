@@ -100,8 +100,8 @@
           <input 
             name="name" 
             type="text" 
-            [(ngModel)]="contactName"
-            (input)="updateName($event)"
+            [ngModel]="contactName"
+            (ngModelChange)="updateName($event)"
             [placeholder]="'contact.form.namePlaceholder' | translate" 
             required />
         </label>
@@ -111,8 +111,8 @@
           <input 
             name="email" 
             type="email" 
-            [(ngModel)]="contactEmail"
-            (input)="updateEmail($event)"
+            [ngModel]="contactEmail"
+            (ngModelChange)="updateEmail($event)"
             [placeholder]="'contact.form.emailPlaceholder' | translate" 
             required />
         </label>
@@ -122,8 +122,8 @@
           <textarea 
             name="message" 
             rows="5" 
-            [(ngModel)]="contactMessage"
-            (input)="updateMessage($event)"
+            [ngModel]="contactMessage"
+            (ngModelChange)="updateMessage($event)"
             [placeholder]="'contact.form.messagePlaceholder' | translate" 
             required></textarea>
         </label>
