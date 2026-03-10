@@ -1,8 +1,15 @@
 <ng-container *ngIf="vm$ | async as vm">
   <div class="blog-shell">
     <header class="blog-topbar">
-      <a routerLink="/" class="portfolio-link">{{ 'blog.backToPortfolio' | translate }}</a>
-      <a routerLink="/" class="brand-link">yoelvilla.dev</a>
+      <a routerLink="/" class="topbar-pill topbar-link">{{ 'blog.backToPortfolio' | translate }}</a>
+
+      <div class="topbar-actions">
+        <a routerLink="/" class="topbar-pill topbar-link">yoelvilla.dev</a>
+        <button type="button" class="topbar-pill topbar-button" (click)="toggleLanguagePanel()">
+          <img src="/icons/idioma.png" alt="" aria-hidden="true">
+          <span>{{ currentLanguage | uppercase }}</span>
+        </button>
+      </div>
     </header>
 
     <main class="blog-index-layout">
@@ -23,15 +30,23 @@
             <span class="tag" *ngFor="let tag of vm.featured.tags">{{ tag }}</span>
           </div>
 
-          <a [routerLink]="['/blog', vm.featured.slug]" class="featured-link">
+          <a [routerLink]="featuredLink(vm.featured.slug)" class="featured-link">
             {{ 'blog.readArticle' | translate }} &rarr;
           </a>
         </section>
 
-        <app-blog-sidebar [articles]="vm.rest.length ? vm.rest : (vm.featured ? [vm.featured] : [])"></app-blog-sidebar>
+        <app-blog-sidebar
+          [articles]="vm.rest.length ? vm.rest : (vm.featured ? [vm.featured] : [])"
+          [lang]="currentLanguage"></app-blog-sidebar>
       </div>
     </main>
   </div>
+
+  <app-language-panel
+    #languagePanel
+    *ngIf="showLanguagePanel"
+    (close)="showLanguagePanel = false"
+    (languageChange)="onLanguageChange($event)"></app-language-panel>
 
   <ng-template #stateBlock>
     <div class="blog-state" *ngIf="vm.status === 'loading'; else errorBlock">

@@ -26,7 +26,7 @@ img {
 }
 
 .config-icon,
-.language-icon {
+.language-trigger {
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -49,8 +49,19 @@ img {
   transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
+.language-trigger {
+  gap: 0.55rem;
+  font-family: var(--font-primary);
+  font-weight: 500;
+}
+
+.language-trigger-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .config-icon:hover,
-.language-icon:hover,
+.language-trigger:hover,
 .blog-link:hover {
   opacity: 1;
   transform: scale(1.05);

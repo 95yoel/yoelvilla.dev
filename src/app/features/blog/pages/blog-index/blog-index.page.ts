@@ -1,14 +1,16 @@
 import { Component, HostListener, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { Subject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Subject, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
 import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
 import { BlogService } from '../../services/blog.service';
 import { BlogArticleSummary } from '../../models/blog-article.model';
-import { TranslationService } from '../../../../translations/services/translation.service';
+import { Language, TranslationService } from '../../../../translations/services/translation.service';
 import { TranslatePipe } from '../../../../translations/pipes/translate.pipe';
 import { LayoutService } from '../../../../services/layout.service';
 import { CustomCursorComponent } from '../../../../components/shared/custom-cursor/custom-cursor.component';
+import { LanguagePanelComponent } from '../../../../components/shared/language-panel/language-panel.component';
+import { BlogRoutingService } from '../../services/blog-routing.service';
 
 type IndexViewState =
   | { status: 'loading' }
@@ -17,24 +19,32 @@ type IndexViewState =
 
 @Component({
   selector: 'app-blog-index-page',
-  imports: [CommonModule, RouterLink, BlogSidebarComponent, TranslatePipe, CustomCursorComponent],
+  imports: [CommonModule, RouterLink, BlogSidebarComponent, TranslatePipe, CustomCursorComponent, LanguagePanelComponent],
   templateUrl: './blog-index.page.html',
   styleUrl: './blog-index.page.css'
 })
 export class BlogIndexPage {
+  private readonly route = inject(ActivatedRoute);
   private readonly blogService = inject(BlogService);
   private readonly translationService = inject(TranslationService);
+  private readonly blogRoutingService = inject(BlogRoutingService);
   private readonly layoutService = inject(LayoutService);
   private readonly doc = inject(DOCUMENT);
   private readonly reload$ = new Subject<void>();
   readonly layout$ = this.layoutService.layout$;
+  showLanguagePanel = false;
   showScrollTopButton = false;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
+  private readonly lang$ = this.route.data.pipe(
+    map(() => this.blogRoutingService.getRouteLanguage()),
+    map((routeLang) => this.blogRoutingService.resolveLanguage(routeLang)),
+    tap(() => this.blogRoutingService.ensureLocalizedIndexRoute(this.blogRoutingService.getRouteLanguage()))
+  );
 
   readonly vm$ = combineLatest([
-    this.translationService.currentLang$,
+    this.lang$,
     this.reload$.pipe(startWith(undefined))
   ]).pipe(
     switchMap(([lang]) =>
@@ -81,5 +91,21 @@ export class BlogIndexPage {
   retry(): void {
     this.blogService.clearCaches();
     this.reload$.next();
+  }
+
+  toggleLanguagePanel(): void {
+    this.showLanguagePanel = !this.showLanguagePanel;
+  }
+
+  onLanguageChange(lang: Language): void {
+    this.blogRoutingService.goToIndex(lang);
+  }
+
+  get currentLanguage(): Language {
+    return this.translationService.getCurrentLanguage();
+  }
+
+  get featuredLink(): (slug: string) => string[] {
+    return (slug: string) => this.blogRoutingService.buildArticleLink(slug, this.currentLanguage);
   }
 }

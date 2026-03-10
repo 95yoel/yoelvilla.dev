@@ -1,11 +1,17 @@
 <ng-container *ngIf="vm$ | async as vm">
   <div class="article-shell">
     <header class="article-topbar">
-      <div class="article-links">
-        <a routerLink="/" class="portfolio-link">{{ 'blog.backToPortfolio' | translate }}</a>
-        <a routerLink="/blog" class="portfolio-link">{{ 'blog.backToBlog' | translate }}</a>
+      <div class="article-links" *ngIf="vm.status === 'ready'; else articleLinksFallback">
+        <a routerLink="/" class="topbar-pill topbar-link">{{ 'blog.backToPortfolio' | translate }}</a>
+        <a [routerLink]="blogIndexLink" class="topbar-pill topbar-link">{{ 'blog.backToBlog' | translate }}</a>
       </div>
-      <a routerLink="/" class="brand-link">yoelvilla.dev</a>
+      <div class="topbar-actions" *ngIf="vm.status === 'ready'">
+        <a routerLink="/" class="topbar-pill topbar-link">yoelvilla.dev</a>
+        <button type="button" class="topbar-pill topbar-button" (click)="toggleLanguagePanel()">
+          <img src="/icons/idioma.png" alt="" aria-hidden="true">
+          <span>{{ currentLanguage | uppercase }}</span>
+        </button>
+      </div>
     </header>
 
     <div class="article-layout" *ngIf="vm.status === 'ready'; else articleState">
@@ -24,9 +30,20 @@
         <div class="markdown-body" [innerHTML]="vm.article.html"></div>
       </article>
 
-      <app-blog-sidebar [articles]="vm.articles" [activeSlug]="vm.article.slug"></app-blog-sidebar>
+      <app-blog-sidebar [articles]="vm.articles" [activeSlug]="vm.article.slug" [lang]="currentLanguage"></app-blog-sidebar>
     </div>
   </div>
+
+  <app-language-panel
+    *ngIf="showLanguagePanel && vm.status === 'ready'"
+    (close)="showLanguagePanel = false"
+    (languageChange)="onLanguageChange($event, vm.article.slug)"></app-language-panel>
+
+  <ng-template #articleLinksFallback>
+    <div class="article-links">
+      <a routerLink="/" class="topbar-pill topbar-link">{{ 'blog.backToPortfolio' | translate }}</a>
+    </div>
+  </ng-template>
 
   <ng-template #articleState>
     <div class="blog-state" *ngIf="vm.status === 'loading'; else articleError">

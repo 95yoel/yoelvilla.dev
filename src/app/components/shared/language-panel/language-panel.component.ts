@@ -13,6 +13,7 @@ import { TranslatePipe } from '../../../translations/pipes/translate.pipe';
 export class LanguagePanelComponent {
   @ViewChild('panel', { static: true }) panel!: ElementRef<HTMLDivElement>;
   @Output() close = new EventEmitter<void>();
+  @Output() languageChange = new EventEmitter<Language>();
 
   private closing = false;
   private readonly translationService = inject(TranslationService);
@@ -53,6 +54,7 @@ export class LanguagePanelComponent {
   selectLanguage(lang: Language) {
     this.translationService.setLanguage(lang);
     this.currentLang = lang;
+    this.languageChange.emit(lang);
     this.startCloseAnimation();
   }
 

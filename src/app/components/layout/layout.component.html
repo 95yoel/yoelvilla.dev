@@ -1,25 +1,22 @@
 <header *ngIf="layout === 'desktop'">
   <a
-    routerLink="/blog"
+    [routerLink]="blogIndexLink"
     class="blog-link"
     [attr.aria-label]="t('blog.actions.open')">
     {{ t('blog.title') }}
   </a>
+  <button
+    type="button"
+    class="blog-link language-trigger"
+    (click)="toggleLanguagePanel()">
+    <img src="/icons/idioma.png" alt="" aria-hidden="true" class="language-trigger-icon">
+    <span>{{ currentLanguage | uppercase }}</span>
+  </button>
   <img 
     src="/icons/config.svg" 
     alt="Configuration" 
     class="config-icon" 
     (click)="toggleConfigPanel()"
-    [matTooltip]="t('tooltips.cursorConfig')"
-    matTooltipPosition="left"
-  >
-  <img 
-    src="/icons/idioma.png" 
-    alt="Language" 
-    class="language-icon" 
-    (click)="toggleLanguagePanel()"
-    [matTooltip]="t('tooltips.languageConfig')"
-    matTooltipPosition="left"
   >
 </header>
 

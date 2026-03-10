@@ -10,7 +10,7 @@
 
   <a
     *ngFor="let article of articles; trackBy: trackBySlug"
-    [routerLink]="['/blog', article.slug]"
+    [routerLink]="getArticleLink(article.slug)"
     class="sidebar-article"
     [class.active]="article.slug === activeSlug">
     <span class="sidebar-date" *ngIf="article.date">{{ article.date }}</span>

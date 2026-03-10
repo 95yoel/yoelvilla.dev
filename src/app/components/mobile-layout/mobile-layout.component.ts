@@ -6,6 +6,8 @@ import { TranslatePipe } from '../../translations/pipes/translate.pipe';
 import { ContactService } from '../../services/contact.service';
 import { PortfolioService, PortfolioTab } from '../../services/portfolio.service';
 import { RouterLink } from '@angular/router';
+import { BlogRoutingService } from '../../features/blog/services/blog-routing.service';
+import { TranslationService } from '../../translations/services/translation.service';
 
 @Component({
   selector: 'villayoel-mobile',
@@ -22,6 +24,8 @@ export class MobileLayoutComponent implements AfterViewInit {
   
   private contactService = inject(ContactService)
   private portfolioService = inject(PortfolioService)
+  private translationService = inject(TranslationService)
+  private blogRoutingService = inject(BlogRoutingService)
 
   get activeTab(): PortfolioTab {
     return this.portfolioService.snapshot.activeTab
@@ -65,6 +69,10 @@ export class MobileLayoutComponent implements AfterViewInit {
 
   get isSending(): boolean {
     return this.contactService.snapshot.isSending
+  }
+
+  get blogIndexLink(): string[] {
+    return this.blogRoutingService.buildIndexLink(this.translationService.getCurrentLanguage())
   }
 
   ngAfterViewInit(): void {
