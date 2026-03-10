@@ -85,7 +85,8 @@
     },
     "actions": {
       "open": "Open blog",
-      "retry": "Try again"
+      "retry": "Try again",
+      "scrollTop": "Scroll to top"
     }
   },
   "tooltips": {

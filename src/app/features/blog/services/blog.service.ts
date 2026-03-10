@@ -15,6 +15,10 @@ interface FrontmatterData {
   published?: boolean;
 }
 
+interface LocalizedFields {
+  [key: string]: unknown;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -144,14 +148,23 @@ export class BlogService {
       return null;
     }
 
+    const languages = this.toLanguageArray(entry['languages']);
+    const localizedTitle = this.pickLocalizedValue(entry['title'], fallbackLang);
+    const localizedSummary = this.pickLocalizedValue(entry['summary'], fallbackLang);
+    const lang = this.toLanguage(entry['lang']) || (languages.includes(fallbackLang) ? fallbackLang : null);
+
+    if (!lang) {
+      return null;
+    }
+
     return {
       slug,
-      title: this.toStringValue(entry['title']) || slug,
-      description: this.toStringValue(entry['description']) || '',
-      date: this.toStringValue(entry['date']) || '',
-      lang: this.toLanguage(entry['lang']) || fallbackLang,
+      title: localizedTitle || this.toStringValue(entry['title']) || slug,
+      description: localizedSummary || this.toStringValue(entry['description']) || '',
+      date: this.toNullableStringValue(entry['date']),
+      lang,
       tags: this.toStringArray(entry['tags']),
-      coverImage: this.toStringValue(entry['coverImage']) || undefined,
+      coverImage: this.toNullableStringValue(entry['coverImage']) || undefined,
       published: entry['published'] !== false
     };
   }
@@ -240,11 +253,30 @@ export class BlogService {
     return typeof value === 'string' ? value.trim() : '';
   }
 
+  private toNullableStringValue(value: unknown): string {
+    return value == null ? '' : this.toStringValue(value);
+  }
+
   private toStringArray(value: unknown): string[] {
     return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
   }
 
+  private toLanguageArray(value: unknown): Language[] {
+    return Array.isArray(value)
+      ? value.filter((item): item is Language => item === 'es' || item === 'en')
+      : [];
+  }
+
   private toLanguage(value: unknown): Language | null {
     return value === 'es' || value === 'en' ? value : null;
+  }
+
+  private pickLocalizedValue(value: unknown, lang: Language): string {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return '';
+    }
+
+    const localized = value as LocalizedFields;
+    return this.toStringValue(localized[lang]);
   }
 }

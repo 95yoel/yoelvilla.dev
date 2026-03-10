@@ -54,5 +54,16 @@
     </div>
   </ng-template>
 
+  <button
+    *ngIf="showScrollTopButton"
+    class="blog-scroll-top-btn"
+    type="button"
+    (click)="scrollToTop()"
+    [attr.aria-label]="'blog.actions.scrollTop' | translate">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+
   <custom-cursor *ngIf="(layout$ | async) === 'desktop'"></custom-cursor>
 </ng-container>

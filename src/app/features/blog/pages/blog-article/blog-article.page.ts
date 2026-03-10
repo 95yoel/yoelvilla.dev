@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
@@ -40,6 +40,7 @@ export class BlogArticlePage {
   private readonly doc = inject(DOCUMENT);
   private readonly reload$ = new Subject<void>();
   readonly layout$ = this.layoutService.layout$;
+  showScrollTopButton = false;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
@@ -86,6 +87,18 @@ export class BlogArticlePage {
     this.doc.body.style.overflow = this.previousBodyOverflow;
     this.doc.body.style.overflowX = this.previousBodyOverflowX;
     this.doc.documentElement.style.overflow = this.previousHtmlOverflow;
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.showScrollTopButton = window.scrollY > 240;
+  }
+
+  scrollToTop(): void {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }
 
   retry(): void {
