@@ -75,8 +75,4 @@ export class LanguagePanelComponent {
   ngOnDestroy(): void {
     this.ctx?.revert();
   }
-
-  t(key: string): string {
-    return this.translationService.translate(key);
-  }
 }

@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ViewChild, inject } from '@angular/core';
 import { DesktopLayoutComponent } from '../desktop-layout/desktop-layout.component';
 import { CommonModule } from '@angular/common';
 import { MobileLayoutComponent } from '../mobile-layout/mobile-layout.component';
@@ -6,6 +6,7 @@ import { LayoutService } from '../../services/layout.service';
 import { ConfigPanelComponent } from '../shared/config-panel/config-panel.component';
 import { LanguagePanelComponent } from '../shared/language-panel/language-panel.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslationService } from '../../translations/services/translation.service';
 
 @Component({
@@ -22,14 +23,17 @@ export class LayoutComponent {
   layout: 'mobile' | 'desktop' = 'desktop';
   showConfigPanel = false;
   showLanguagePanel = false;
+  private destroyRef = inject(DestroyRef);
   private translationService = inject(TranslationService);
 
   constructor(private layoutService: LayoutService) {}
 
   ngOnInit() {
-    this.layoutService.layout$.subscribe(l => {
-      this.layout = l;
-    });
+    this.layoutService.layout$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(l => {
+        this.layout = l;
+      });
   }
 
   toggleConfigPanel() {
