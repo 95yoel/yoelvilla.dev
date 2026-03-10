@@ -1,14 +1,13 @@
 import { Component, ElementRef, HostListener, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import gsap from 'gsap';
 import { ScrollBtnComponent } from '../shared/scroll-btn/scroll-btn.component';
 import { CustomCursorComponent } from '../shared/custom-cursor/custom-cursor.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '../../translations/pipes/translate.pipe';
-import { TranslationService } from '../../translations/services/translation.service';
-import { environment } from '../../../environments/environment';
+import { ContactService } from '../../services/contact.service';
+import { PortfolioService, PortfolioTab } from '../../services/portfolio.service';
 
 @Component({
   selector: 'villayoel-desktop',
@@ -22,13 +21,12 @@ export class DesktopLayoutComponent {
   @ViewChild('carousel') carouselRef!: ElementRef<HTMLDivElement>;
   @ViewChildren('panel') panels!: QueryList<ElementRef>;
 
-  public activeWorkTab: 'proyectos' | 'experiencia' = 'proyectos'
-  private lastWorkTab: 'proyectos' | 'experiencia' = 'proyectos'
+  private lastWorkTab: PortfolioTab = 'proyectos'
 
   private portfolioEl?: HTMLElement
   private isScrolling = false
-  private translationService = inject(TranslationService)
-  private http = inject(HttpClient)
+  private contactService = inject(ContactService)
+  private portfolioService = inject(PortfolioService)
   
   // Track current section
   currentSectionIndex = 0
@@ -37,16 +35,41 @@ export class DesktopLayoutComponent {
   canScrollCarouselNext = false
   canScrollCarouselPrev = false
 
-  // Form validation
-  contactName = ''
-  contactEmail = ''
-  contactMessage = ''
+  get activeWorkTab(): PortfolioTab {
+    return this.portfolioService.snapshot.activeTab
+  }
 
-  // Feedback state
-  showFeedback = false
-  feedbackMessage = ''
-  feedbackType: 'success' | 'error' = 'success'
-  isSending = false
+  set activeWorkTab(tab: PortfolioTab) {
+    this.portfolioService.setActiveTab(tab)
+  }
+
+  get contactName(): string {
+    return this.contactService.snapshot.name
+  }
+
+  get contactEmail(): string {
+    return this.contactService.snapshot.email
+  }
+
+  get contactMessage(): string {
+    return this.contactService.snapshot.message
+  }
+
+  get showFeedback(): boolean {
+    return this.contactService.snapshot.showFeedback
+  }
+
+  get feedbackMessage(): string {
+    return this.contactService.snapshot.feedbackMessage
+  }
+
+  get feedbackType(): 'success' | 'error' {
+    return this.contactService.snapshot.feedbackType
+  }
+
+  get isSending(): boolean {
+    return this.contactService.snapshot.isSending
+  }
 
   @HostListener('wheel', ['$event'])
   onWheel(event: WheelEvent) {
@@ -122,7 +145,6 @@ export class DesktopLayoutComponent {
       case 'portfolio':
         element.classList.add('portfolio-section')
         this.portfolioEl = element
-        if (!this.activeWorkTab) this.activeWorkTab = 'proyectos'
         const work = this.getWorkRoot(element)
         if (work) {
           gsap.set(work, { opacity: 0, y: 12 })
@@ -205,7 +227,7 @@ export class DesktopLayoutComponent {
     }
   }
 
-  public switchWorkTab(tab: 'proyectos' | 'experiencia'): void {
+  public switchWorkTab(tab: PortfolioTab): void {
     if (this.activeWorkTab === tab) return
 
     this.unanimateWorkTab(this.activeWorkTab, this.portfolioEl)
@@ -216,7 +238,7 @@ export class DesktopLayoutComponent {
     queueMicrotask(() => this.animateWorkTab(tab, this.portfolioEl))
   }
 
-  private animateWorkTab(tab: 'proyectos' | 'experiencia', element?: HTMLElement): void {
+  private animateWorkTab(tab: PortfolioTab, element?: HTMLElement): void {
     const work = this.getWorkRoot(element)
     if (!work) return
 
@@ -247,7 +269,7 @@ export class DesktopLayoutComponent {
     }
   }
 
-  private unanimateWorkTab(tab: 'proyectos' | 'experiencia', element?: HTMLElement): void {
+  private unanimateWorkTab(tab: PortfolioTab, element?: HTMLElement): void {
     const work = this.getWorkRoot(element)
     if (!work) return
 
@@ -385,104 +407,26 @@ export class DesktopLayoutComponent {
   // Send message via backend
   public sendMessage(ev: Event) {
     ev.preventDefault()
-
     const form = ev.target as HTMLFormElement
-    const data = new FormData(form)
-    
-    // Bot detection: if honeypot has value, it's a bot
-    const honeypotValue = (data.get('hp_field') || '').toString().trim()
-    if (honeypotValue.length > 0) {
-      return
-    }
-
-    const name = (data.get('name') || '').toString().trim()
-    const email = (data.get('email') || '').toString().trim()
-    const message = (data.get('message') || '').toString().trim()
-
-    // Capture current language
-    const currentLang = this.translationService.getCurrentLanguage()
-
-    // Create payload for backend
-    const payload = {
-      name,
-      email,
-      message,
-      lang: currentLang
-    }
-
-    // Activate sending state
-    this.isSending = true
-
-    // HTTP call to backend
-    const apiUrl = `${environment.CONTACT_API}${environment.CONTACT_ENDPOINT}`
-
-    this.http.post(apiUrl, payload).subscribe({
-      next: (response) => {
-        this.isSending = false
-        this.feedbackType = 'success'
-        this.feedbackMessage = this.translationService.translate('contact.feedback.success')
-        this.showFeedback = true
-
-        // Clear form
-        this.contactName = ''
-        this.contactEmail = ''
-        this.contactMessage = ''
-
-        // Hide after 3 seconds
-        setTimeout(() => {
-          this.showFeedback = false
-        }, 3000)
-      },
-      error: (error) => {
-        this.isSending = false
-        this.feedbackType = 'error'
-        this.feedbackMessage = this.translationService.translate('contact.feedback.error')
-        this.showFeedback = true
-
-        setTimeout(() => {
-          this.showFeedback = false
-        }, 3000)
-      }
-    })
+    this.contactService.submitForm(form)
   }
 
   // Form validation
   isFormValid(): boolean {
-    const name = this.contactName.trim()
-    const email = this.contactEmail.trim()
-    const message = this.contactMessage.trim()
-
-    // Name: minimum 2 characters
-    if (name.length < 2) return false
-
-    // Email: not empty and valid format
-    if (!email || !this.isValidEmail(email)) return false
-
-    // Message: minimum 3 characters
-    if (message.length < 3) return false
-
-    return true
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+    return this.contactService.isFormValid()
   }
 
   // Update form values and clean spaces
-  updateName(event: Event) {
-    const input = event.target as HTMLInputElement
-    this.contactName = input.value
+  updateName(value: string) {
+    this.contactService.updateName(value)
   }
 
-  updateEmail(event: Event) {
-    const input = event.target as HTMLInputElement
-    this.contactEmail = input.value
+  updateEmail(value: string) {
+    this.contactService.updateEmail(value)
   }
 
-  updateMessage(event: Event) {
-    const textarea = event.target as HTMLTextAreaElement
-    this.contactMessage = textarea.value
+  updateMessage(value: string) {
+    this.contactService.updateMessage(value)
   }
 
   // Copy text to clipboard
@@ -493,9 +437,4 @@ export class DesktopLayoutComponent {
       // Copy error
     })
   }
-
-  t(key: string): string {
-    return this.translationService.translate(key)
-  }
-
 }

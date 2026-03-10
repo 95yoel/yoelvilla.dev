@@ -1,11 +1,10 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Output, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '../../translations/pipes/translate.pipe';
-import { TranslationService } from '../../translations/services/translation.service';
-import { environment } from '../../../environments/environment';
+import { ContactService } from '../../services/contact.service';
+import { PortfolioService, PortfolioTab } from '../../services/portfolio.service';
 
 @Component({
   selector: 'villayoel-mobile',
@@ -18,24 +17,54 @@ export class MobileLayoutComponent implements AfterViewInit {
   @ViewChild('mobileScrollContainer') mobileScrollContainer?: ElementRef<HTMLDivElement>;
   @ViewChildren('mobileSection') mobileSections?: QueryList<ElementRef<HTMLElement>>;
   
-  activeTab: 'proyectos' | 'experiencia' = 'proyectos'
-  currentProjectIndex = 0
-  totalProjects = 2
   showScrollTopButton = false
   
-  private translationService = inject(TranslationService)
-  private http = inject(HttpClient)
+  private contactService = inject(ContactService)
+  private portfolioService = inject(PortfolioService)
 
-  // Form validation
-  contactName = ''
-  contactEmail = ''
-  contactMessage = ''
+  get activeTab(): PortfolioTab {
+    return this.portfolioService.snapshot.activeTab
+  }
 
-  // Feedback state
-  showFeedback = false
-  feedbackMessage = ''
-  feedbackType: 'success' | 'error' = 'success'
-  isSending = false
+  set activeTab(tab: PortfolioTab) {
+    this.portfolioService.setActiveTab(tab)
+  }
+
+  get currentProjectIndex(): number {
+    return this.portfolioService.snapshot.currentProjectIndex
+  }
+
+  get totalProjects(): number {
+    return this.portfolioService.snapshot.totalProjects
+  }
+
+  get contactName(): string {
+    return this.contactService.snapshot.name
+  }
+
+  get contactEmail(): string {
+    return this.contactService.snapshot.email
+  }
+
+  get contactMessage(): string {
+    return this.contactService.snapshot.message
+  }
+
+  get showFeedback(): boolean {
+    return this.contactService.snapshot.showFeedback
+  }
+
+  get feedbackMessage(): string {
+    return this.contactService.snapshot.feedbackMessage
+  }
+
+  get feedbackType(): 'success' | 'error' {
+    return this.contactService.snapshot.feedbackType
+  }
+
+  get isSending(): boolean {
+    return this.contactService.snapshot.isSending
+  }
 
   ngAfterViewInit(): void {
     this.updateScrollTopButtonVisibility()
@@ -81,121 +110,44 @@ export class MobileLayoutComponent implements AfterViewInit {
   }
 
   nextProject() {
-    if (this.currentProjectIndex < this.totalProjects - 1) {
-      this.currentProjectIndex++
-    }
+    this.portfolioService.nextProject()
   }
 
   prevProject() {
-    if (this.currentProjectIndex > 0) {
-      this.currentProjectIndex--
-    }
+    this.portfolioService.prevProject()
   }
 
   canGoNext(): boolean {
-    return this.currentProjectIndex < this.totalProjects - 1
+    return this.portfolioService.canGoNext()
   }
 
   canGoPrev(): boolean {
-    return this.currentProjectIndex > 0
+    return this.portfolioService.canGoPrev()
   }
 
   // Send message via backend
   public sendMessage(ev: Event) {
     ev.preventDefault()
-
     const form = ev.target as HTMLFormElement
-    const data = new FormData(form)
-    
-    // Bot detection: if honeypot has value, it's a bot
-    const honeypotValue = (data.get('hp_field') || '').toString().trim()
-    if (honeypotValue.length > 0) {
-      return
-    }
-
-    const name = (data.get('name') || '').toString().trim()
-    const email = (data.get('email') || '').toString().trim()
-    const message = (data.get('message') || '').toString().trim()
-
-    // Capture current language
-    const currentLang = this.translationService.getCurrentLanguage()
-
-    // Create payload for backend
-    const payload = {
-      name,
-      email,
-      message,
-      lang: currentLang
-    }
-
-    // HTTP call to backend
-    const apiUrl = `${environment.CONTACT_API}${environment.CONTACT_ENDPOINT}`
-
-    this.http.post(apiUrl, payload).subscribe({
-      next: (response) => {
-        this.feedbackType = 'success'
-        this.feedbackMessage = this.translationService.translate('contact.feedback.success')
-        this.showFeedback = true
-
-        // Clear form
-        this.contactName = ''
-        this.contactEmail = ''
-        this.contactMessage = ''
-
-        // Hide after 3 seconds
-        setTimeout(() => {
-          this.showFeedback = false
-        }, 3000)
-      },
-      error: (error) => {
-        this.feedbackType = 'error'
-        this.feedbackMessage = this.translationService.translate('contact.feedback.error')
-        this.showFeedback = true
-
-        setTimeout(() => {
-          this.showFeedback = false
-        }, 3000)
-      }
-    })
+    this.contactService.submitForm(form)
   }
 
   // Form validation
   isFormValid(): boolean {
-    const name = this.contactName.trim()
-    const email = this.contactEmail.trim()
-    const message = this.contactMessage.trim()
-
-    // Name: minimum 2 characters
-    if (name.length < 2) return false
-
-    // Email: not empty and valid format
-    if (!email || !this.isValidEmail(email)) return false
-
-    // Message: minimum 3 characters
-    if (message.length < 3) return false
-
-    return true
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+    return this.contactService.isFormValid()
   }
 
   // Update form values and clean spaces
-  updateName(event: Event) {
-    const input = event.target as HTMLInputElement
-    this.contactName = input.value
+  updateName(value: string) {
+    this.contactService.updateName(value)
   }
 
-  updateEmail(event: Event) {
-    const input = event.target as HTMLInputElement
-    this.contactEmail = input.value
+  updateEmail(value: string) {
+    this.contactService.updateEmail(value)
   }
 
-  updateMessage(event: Event) {
-    const textarea = event.target as HTMLTextAreaElement
-    this.contactMessage = textarea.value
+  updateMessage(value: string) {
+    this.contactService.updateMessage(value)
   }
 
   // Copy text to clipboard
