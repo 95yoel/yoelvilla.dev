@@ -2,6 +2,7 @@ import { Language } from '../../../translations/services/translation.service';
 
 export interface BlogArticleSummary {
   slug: string;
+  sourceSlug: string;
   title: string;
   description: string;
   date: string;

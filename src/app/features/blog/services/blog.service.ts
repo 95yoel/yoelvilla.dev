@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map, shareReplay, tap } from 'rxjs';
+import { Observable, map, shareReplay, switchMap, tap } from 'rxjs';
 import { marked } from 'marked';
 import { environment } from '../../../../environments/environment';
 import { Language } from '../../../translations/services/translation.service';
@@ -54,11 +54,24 @@ export class BlogService {
       return cached;
     }
 
-    const request = forkJoin({
-      index: this.getIndex(lang),
-      markdown: this.http.get(this.resolvePath(`articles/${lang}/${slug}.md`), { responseType: 'text' })
-    }).pipe(
-      map(({ index, markdown }) => this.toArticle(index, markdown, slug, lang)),
+    const request = this.getIndex(lang).pipe(
+      map((index) => ({
+        index,
+        article: index.find((entry) => entry.slug === slug)
+      })),
+      switchMap(({ index, article }) =>
+        this.http.get(
+          this.resolvePath(`articles/${lang}/${article?.sourceSlug || slug}.md`),
+          { responseType: 'text' }
+        ).pipe(
+          map((markdown) => ({
+            index,
+            article,
+            markdown
+          }))
+        )
+      ),
+      map(({ index, article, markdown }) => this.toArticle(index, markdown, slug, lang, article)),
       tap(() => {
         this.storeLastArticle(slug);
         this.storeLastLanguage(lang);
@@ -84,9 +97,15 @@ export class BlogService {
     this.articleCache.clear();
   }
 
-  private toArticle(index: BlogArticleSummary[], markdown: string, slug: string, lang: Language): BlogArticle {
+  private toArticle(
+    index: BlogArticleSummary[],
+    markdown: string,
+    slug: string,
+    lang: Language,
+    matchedArticle?: BlogArticleSummary
+  ): BlogArticle {
     const { body, frontmatter } = this.extractFrontmatter(markdown);
-    const fromIndex = index.find((article) => article.slug === slug);
+    const fromIndex = matchedArticle || index.find((article) => article.slug === slug);
 
     if (!body.trim() && !fromIndex) {
       throw new Error(`Blog article ${slug} not found`);
@@ -94,6 +113,7 @@ export class BlogService {
 
     const summary: BlogArticleSummary = {
       slug,
+      sourceSlug: fromIndex?.sourceSlug || slug,
       lang,
       title: fromIndex?.title || frontmatter.title || slug,
       description: fromIndex?.description || frontmatter.description || '',
@@ -143,10 +163,12 @@ export class BlogService {
     }
 
     const entry = value as Record<string, unknown>;
-    const slug = this.toStringValue(entry['slug']);
-    if (!slug) {
+    const sourceSlug = this.toStringValue(entry['slug']);
+    if (!sourceSlug) {
       return null;
     }
+
+    const slug = this.normalizeRouteSlug(sourceSlug);
 
     const languages = this.toLanguageArray(entry['languages']);
     const localizedTitle = this.pickLocalizedValue(entry['title'], fallbackLang);
@@ -159,6 +181,7 @@ export class BlogService {
 
     return {
       slug,
+      sourceSlug,
       title: localizedTitle || this.toStringValue(entry['title']) || slug,
       description: localizedSummary || this.toStringValue(entry['description']) || '',
       date: this.toNullableStringValue(entry['date']),
@@ -235,6 +258,15 @@ export class BlogService {
 
   private cleanScalar(value: string): string {
     return value.replace(/^['"]|['"]$/g, '').trim();
+  }
+
+  private normalizeRouteSlug(slug: string): string {
+    return slug
+      .trim()
+      .toLowerCase()
+      .replace(/[.\s_]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 
   private resolvePath(path: string): string {
