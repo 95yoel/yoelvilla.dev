@@ -52,6 +52,11 @@ export class CustomCursorComponent {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
+
+    const host = this.elRef.nativeElement as HTMLElement;
+    if (host.parentNode === this.doc.body) {
+      this.doc.body.removeChild(host);
+    }
   }
 
   ngAfterViewInit(): void {

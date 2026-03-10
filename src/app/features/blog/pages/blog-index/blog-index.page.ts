@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
@@ -25,8 +25,12 @@ export class BlogIndexPage {
   private readonly blogService = inject(BlogService);
   private readonly translationService = inject(TranslationService);
   private readonly layoutService = inject(LayoutService);
+  private readonly doc = inject(DOCUMENT);
   private readonly reload$ = new Subject<void>();
   readonly layout$ = this.layoutService.layout$;
+  private previousBodyOverflow = '';
+  private previousBodyOverflowX = '';
+  private previousHtmlOverflow = '';
 
   readonly vm$ = combineLatest([
     this.translationService.currentLang$,
@@ -44,6 +48,22 @@ export class BlogIndexPage {
       )
     )
   );
+
+  ngOnInit(): void {
+    this.previousBodyOverflow = this.doc.body.style.overflow;
+    this.previousBodyOverflowX = this.doc.body.style.overflowX;
+    this.previousHtmlOverflow = this.doc.documentElement.style.overflow;
+
+    this.doc.body.style.overflow = 'auto';
+    this.doc.body.style.overflowX = 'hidden';
+    this.doc.documentElement.style.overflow = 'auto';
+  }
+
+  ngOnDestroy(): void {
+    this.doc.body.style.overflow = this.previousBodyOverflow;
+    this.doc.body.style.overflowX = this.previousBodyOverflowX;
+    this.doc.documentElement.style.overflow = this.previousHtmlOverflow;
+  }
 
   retry(): void {
     this.blogService.clearCaches();
