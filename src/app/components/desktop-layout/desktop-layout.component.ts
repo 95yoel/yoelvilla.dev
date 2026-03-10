@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '../../translations/pipes/translate.pipe';
 import { ContactService } from '../../services/contact.service';
 import { PortfolioService, PortfolioTab } from '../../services/portfolio.service';
+import { SectionNavigationService } from '../../services/section-navigation.service';
 
 @Component({
   selector: 'villayoel-desktop',
@@ -27,10 +28,8 @@ export class DesktopLayoutComponent {
   private isScrolling = false
   private contactService = inject(ContactService)
   private portfolioService = inject(PortfolioService)
+  private sectionNavigationService = inject(SectionNavigationService)
   
-  // Track current section
-  currentSectionIndex = 0
-
   // Carousel navigation state
   canScrollCarouselNext = false
   canScrollCarouselPrev = false
@@ -71,6 +70,10 @@ export class DesktopLayoutComponent {
     return this.contactService.snapshot.isSending
   }
 
+  get currentSectionIndex(): number {
+    return this.sectionNavigationService.snapshot.currentSectionIndex
+  }
+
   @HostListener('wheel', ['$event'])
   onWheel(event: WheelEvent) {
     event.preventDefault()
@@ -96,31 +99,20 @@ export class DesktopLayoutComponent {
   }
 
   ngAfterViewInit(): void {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const section = entry.target as HTMLElement
-          const sectionName = section.dataset['section'] || ''
-
-          if (entry.isIntersecting) {
-            this.handleSectionChange(sectionName, section)
-          } else {
-            this.handleSectionLeave(sectionName, section)
-          }
-        })
-      },
+    this.sectionNavigationService.registerSections(
+      this.panels.toArray().map((panel) => panel.nativeElement as HTMLElement),
       {
-        root: null,
-        threshold: 0.5,
+        onSectionEnter: (sectionName, element) => this.handleSectionChange(sectionName, element),
+        onSectionLeave: (sectionName, element) => this.handleSectionLeave(sectionName, element)
       }
     )
 
-    this.panels.forEach((panel) => {
-      observer.observe(panel.nativeElement)
-    })
-
     // Initialize carousel buttons state
     setTimeout(() => this.updateCarouselButtons(), 100)
+  }
+
+  ngOnDestroy(): void {
+    this.sectionNavigationService.disconnect()
   }
 
   private handleSectionChange(sectionName: string, element: HTMLElement) {
@@ -128,11 +120,6 @@ export class DesktopLayoutComponent {
     if (navItem) {
       navItem.classList.add('active')
     }
-    
-    // Update current section index
-    const panelsArray = this.panels.toArray()
-    this.currentSectionIndex = panelsArray.findIndex(p => p.nativeElement === element)
-
     switch (sectionName) {
       case 'home':
         element.classList.add('home-section')
@@ -345,27 +332,19 @@ export class DesktopLayoutComponent {
 
   
   scrollToSection(sectionName: string) {
-    const targetSection = this.panels.find(ref =>
-      ref.nativeElement.dataset.section === sectionName
-    )
+    const targetSection = this.sectionNavigationService.findSectionByName(sectionName)
 
     if (targetSection) {
-      targetSection.nativeElement.scrollIntoView({ behavior: 'smooth', inline: 'start' })
+      targetSection.scrollIntoView({ behavior: 'smooth', inline: 'start' })
     }
   }
 
   scrollToNext() {
-    const panelsArray = this.panels.toArray()
     const container = this.scrollContainer.nativeElement
-
-    const currentScroll = container.scrollLeft
-    const screenWidth = window.innerWidth
-
-    const currentIndex = Math.round(currentScroll / screenWidth)
-    const nextPanel = panelsArray[currentIndex + 1]
+    const nextPanel = this.sectionNavigationService.getNextSection()
 
     if (nextPanel) {
-      const offsetLeft = nextPanel.nativeElement.offsetLeft
+      const offsetLeft = nextPanel.offsetLeft
 
       container.scrollTo({
         left: offsetLeft,
@@ -375,17 +354,11 @@ export class DesktopLayoutComponent {
   }
 
   scrollToPrev() {
-    const panelsArray = this.panels.toArray()
     const container = this.scrollContainer.nativeElement
-
-    const currentScroll = container.scrollLeft
-    const screenWidth = window.innerWidth
-
-    const currentIndex = Math.round(currentScroll / screenWidth)
-    const prevPanel = panelsArray[currentIndex - 1]
+    const prevPanel = this.sectionNavigationService.getPrevSection()
 
     if (prevPanel) {
-      const offsetLeft = prevPanel.nativeElement.offsetLeft
+      const offsetLeft = prevPanel.offsetLeft
 
       container.scrollTo({
         left: offsetLeft,
@@ -395,13 +368,11 @@ export class DesktopLayoutComponent {
   }
 
   isFirstSection(): boolean {
-    return this.currentSectionIndex === 0
+    return this.sectionNavigationService.isFirstSection()
   }
 
   isLastSection(): boolean {
-    const panelsArray = this.panels?.toArray()
-    if (!panelsArray) return false
-    return this.currentSectionIndex >= panelsArray.length - 1
+    return this.sectionNavigationService.isLastSection()
   }
 
   // Send message via backend
