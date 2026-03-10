@@ -1,6 +1,12 @@
-<button class="mobile-language-btn" type="button" (click)="toggleLanguagePanel()">
-  <img src="/icons/idioma.png" alt="Language" width="20" height="20">
-</button>
+<div class="mobile-top-actions">
+  <a routerLink="/blog" class="mobile-blog-btn">
+    {{ 'blog.title' | translate }}
+  </a>
+
+  <button class="mobile-language-btn" type="button" (click)="toggleLanguagePanel()">
+    <img src="/icons/idioma.png" alt="Language" width="20" height="20">
+  </button>
+</div>
 
 <div #mobileScrollContainer class="mobile-scroll-container" (scroll)="onContainerScroll()">
   <section #mobileSection class="mobile-section home-section">

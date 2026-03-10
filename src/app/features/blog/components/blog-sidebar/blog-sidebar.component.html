@@ -1,0 +1,20 @@
+<aside class="blog-sidebar">
+  <div class="sidebar-header">
+    <span class="sidebar-kicker">{{ 'blog.latest' | translate }}</span>
+    <h2>{{ 'blog.allArticles' | translate }}</h2>
+  </div>
+
+  <div class="sidebar-empty" *ngIf="!articles.length">
+    {{ 'blog.empty' | translate }}
+  </div>
+
+  <a
+    *ngFor="let article of articles; trackBy: trackBySlug"
+    [routerLink]="['/blog', article.slug]"
+    class="sidebar-article"
+    [class.active]="article.slug === activeSlug">
+    <span class="sidebar-date" *ngIf="article.date">{{ article.date }}</span>
+    <strong>{{ article.title }}</strong>
+    <p *ngIf="article.description">{{ article.description }}</p>
+  </a>
+</aside>

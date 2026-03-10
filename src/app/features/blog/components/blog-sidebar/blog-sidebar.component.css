@@ -1,0 +1,74 @@
+.blog-sidebar {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sidebar-kicker {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 247, 242, 0.72);
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--color-text-light);
+}
+
+.sidebar-empty {
+  color: rgba(255, 247, 242, 0.8);
+  line-height: 1.6;
+}
+
+.sidebar-article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  text-decoration: none;
+  color: var(--color-text-light);
+  transition: transform var(--transition-medium), background var(--transition-medium), border-color var(--transition-medium);
+}
+
+.sidebar-article:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.sidebar-article.active {
+  background: rgba(123, 194, 165, 0.14);
+  border-color: rgba(123, 194, 165, 0.35);
+}
+
+.sidebar-date {
+  font-size: 0.8rem;
+  color: rgba(255, 247, 242, 0.7);
+}
+
+.sidebar-article strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.sidebar-article p {
+  margin: 0;
+  color: rgba(255, 247, 242, 0.84);
+  line-height: 1.55;
+  font-size: 0.95rem;
+}

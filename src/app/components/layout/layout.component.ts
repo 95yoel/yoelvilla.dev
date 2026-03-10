@@ -8,10 +8,11 @@ import { LanguagePanelComponent } from '../shared/language-panel/language-panel.
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslationService } from '../../translations/services/translation.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-layout',
-  imports: [MobileLayoutComponent, DesktopLayoutComponent, CommonModule, ConfigPanelComponent, LanguagePanelComponent, MatTooltipModule],
+  imports: [MobileLayoutComponent, DesktopLayoutComponent, CommonModule, ConfigPanelComponent, LanguagePanelComponent, MatTooltipModule, RouterLink],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })

@@ -1,0 +1,56 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <div class="blog-shell">
+    <header class="blog-topbar">
+      <a routerLink="/" class="portfolio-link">{{ 'blog.backToPortfolio' | translate }}</a>
+      <a routerLink="/" class="brand-link">yoelvilla.dev</a>
+    </header>
+
+    <main class="blog-index-layout">
+      <section class="blog-hero">
+        <span class="blog-eyebrow">{{ 'blog.eyebrow' | translate }}</span>
+        <h1>{{ 'blog.headline' | translate }}</h1>
+        <p>{{ 'blog.subheadline' | translate }}</p>
+      </section>
+
+      <div class="blog-index-grid" *ngIf="vm.status === 'ready'; else stateBlock">
+        <section class="featured-article" *ngIf="vm.featured; else emptyBlock">
+          <div class="featured-label">{{ 'blog.featured' | translate }}</div>
+          <span class="featured-date" *ngIf="vm.featured.date">{{ vm.featured.date }}</span>
+          <h2>{{ vm.featured.title }}</h2>
+          <p>{{ vm.featured.description }}</p>
+
+          <div class="featured-tags" *ngIf="vm.featured.tags.length">
+            <span class="tag" *ngFor="let tag of vm.featured.tags">{{ tag }}</span>
+          </div>
+
+          <a [routerLink]="['/blog', vm.featured.slug]" class="featured-link">
+            {{ 'blog.readArticle' | translate }} &rarr;
+          </a>
+        </section>
+
+        <app-blog-sidebar [articles]="vm.rest.length ? vm.rest : (vm.featured ? [vm.featured] : [])"></app-blog-sidebar>
+      </div>
+    </main>
+  </div>
+
+  <ng-template #stateBlock>
+    <div class="blog-state" *ngIf="vm.status === 'loading'; else errorBlock">
+      {{ 'blog.loadingIndex' | translate }}
+    </div>
+  </ng-template>
+
+  <ng-template #errorBlock>
+    <div class="blog-state error">
+      <p>{{ 'blog.errorIndex' | translate }}</p>
+      <button type="button" class="state-button" (click)="retry()">
+        {{ 'blog.actions.retry' | translate }}
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template #emptyBlock>
+    <div class="blog-state">
+      {{ 'blog.empty' | translate }}
+    </div>
+  </ng-template>
+</ng-container>

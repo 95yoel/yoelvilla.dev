@@ -5,10 +5,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '../../translations/pipes/translate.pipe';
 import { ContactService } from '../../services/contact.service';
 import { PortfolioService, PortfolioTab } from '../../services/portfolio.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'villayoel-mobile',
-  imports: [CommonModule, FormsModule, MatTooltipModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, MatTooltipModule, TranslatePipe, RouterLink],
   templateUrl: './mobile-layout.component.html',
   styleUrl: './mobile-layout.component.css'
 })

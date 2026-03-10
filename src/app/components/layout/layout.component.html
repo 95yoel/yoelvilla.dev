@@ -1,4 +1,10 @@
 <header *ngIf="layout === 'desktop'">
+  <a
+    routerLink="/blog"
+    class="blog-link"
+    [attr.aria-label]="t('blog.actions.open')">
+    {{ t('blog.title') }}
+  </a>
   <img 
     src="/icons/config.svg" 
     alt="Configuration" 

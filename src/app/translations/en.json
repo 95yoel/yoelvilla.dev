@@ -62,6 +62,32 @@
       "github": "GitHub"
     }
   },
+  "blog": {
+    "title": "Blog",
+    "eyebrow": "Writing",
+    "headline": "Notes on frontend, architecture and practical engineering.",
+    "subheadline": "A quieter space inside the portfolio to publish longer thoughts, technical decisions and hands-on articles.",
+    "featured": "Featured article",
+    "latest": "Latest",
+    "allArticles": "All articles",
+    "empty": "There are no published articles yet.",
+    "loadingIndex": "Loading articles...",
+    "loadingArticle": "Loading article...",
+    "errorIndex": "The article index could not be loaded.",
+    "errorArticle": "The requested article could not be loaded.",
+    "untitled": "Untitled article",
+    "backToPortfolio": "Back to yoelvilla.dev",
+    "backToBlog": "Back to blog",
+    "readArticle": "Read article",
+    "readingTimeFallback": "Markdown article",
+    "meta": {
+      "publishedOn": "Published on"
+    },
+    "actions": {
+      "open": "Open blog",
+      "retry": "Try again"
+    }
+  },
   "tooltips": {
     "previous": "Previous",
     "next": "Next",

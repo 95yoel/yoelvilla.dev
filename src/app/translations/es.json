@@ -62,6 +62,32 @@
       "github": "GitHub"
     }
   },
+  "blog": {
+    "title": "Blog",
+    "eyebrow": "Artículos",
+    "headline": "Notas sobre frontend, arquitectura e ingeniería aplicada.",
+    "subheadline": "Un espacio más tranquilo dentro del portfolio para publicar ideas largas, decisiones técnicas y artículos prácticos.",
+    "featured": "Artículo destacado",
+    "latest": "Lo último",
+    "allArticles": "Todos los artículos",
+    "empty": "Todavía no hay artículos publicados.",
+    "loadingIndex": "Cargando artículos...",
+    "loadingArticle": "Cargando artículo...",
+    "errorIndex": "No se pudo cargar el índice de artículos.",
+    "errorArticle": "No se pudo cargar el artículo solicitado.",
+    "untitled": "Artículo sin título",
+    "backToPortfolio": "Volver a yoelvilla.dev",
+    "backToBlog": "Volver al blog",
+    "readArticle": "Leer artículo",
+    "readingTimeFallback": "Artículo en markdown",
+    "meta": {
+      "publishedOn": "Publicado el"
+    },
+    "actions": {
+      "open": "Abrir blog",
+      "retry": "Reintentar"
+    }
+  },
   "tooltips": {
     "previous": "Anterior",
     "next": "Siguiente",

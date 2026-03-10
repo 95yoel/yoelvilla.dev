@@ -1,0 +1,45 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <div class="article-shell">
+    <header class="article-topbar">
+      <div class="article-links">
+        <a routerLink="/" class="portfolio-link">{{ 'blog.backToPortfolio' | translate }}</a>
+        <a routerLink="/blog" class="portfolio-link">{{ 'blog.backToBlog' | translate }}</a>
+      </div>
+      <a routerLink="/" class="brand-link">yoelvilla.dev</a>
+    </header>
+
+    <div class="article-layout" *ngIf="vm.status === 'ready'; else articleState">
+      <article class="article-card">
+        <div class="article-meta">
+          <span *ngIf="vm.article.date">{{ 'blog.meta.publishedOn' | translate }} {{ vm.article.date }}</span>
+        </div>
+
+        <h1>{{ vm.article.title || ('blog.untitled' | translate) }}</h1>
+        <p class="article-description" *ngIf="vm.article.description">{{ vm.article.description }}</p>
+
+        <div class="article-tags" *ngIf="vm.article.tags.length">
+          <span class="tag" *ngFor="let tag of vm.article.tags">{{ tag }}</span>
+        </div>
+
+        <div class="markdown-body" [innerHTML]="vm.article.html"></div>
+      </article>
+
+      <app-blog-sidebar [articles]="vm.articles" [activeSlug]="vm.article.slug"></app-blog-sidebar>
+    </div>
+  </div>
+
+  <ng-template #articleState>
+    <div class="blog-state" *ngIf="vm.status === 'loading'; else articleError">
+      {{ 'blog.loadingArticle' | translate }}
+    </div>
+  </ng-template>
+
+  <ng-template #articleError>
+    <div class="blog-state error">
+      <p>{{ 'blog.errorArticle' | translate }}</p>
+      <button type="button" class="state-button" (click)="retry()">
+        {{ 'blog.actions.retry' | translate }}
+      </button>
+    </div>
+  </ng-template>
+</ng-container>
