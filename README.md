@@ -108,6 +108,21 @@ src/app/
     └── environment.ts              # API Gateway URL
 ```
 
+### Current Architecture
+- `LayoutComponent` acts as the application shell and switches between desktop and mobile renderers.
+- `DesktopLayoutComponent` keeps desktop-specific interaction: horizontal scrolling, section transitions, GSAP animations, and desktop carousel behavior.
+- `MobileLayoutComponent` keeps mobile-specific interaction: vertical flow, project index navigation, and mobile scroll-to-top behavior.
+- `ContactService` centralizes form state, validation, submission, and feedback for both layouts.
+- `PortfolioService` centralizes shared portfolio state such as the active tab and mobile project navigation.
+- `SectionNavigationService` centralizes desktop section state and `IntersectionObserver` coordination without moving animations or physical scrolling out of the desktop component.
+- `cursor-config.service.ts` and `layout.service.ts` remain as the existing supporting services for cursor preferences and responsive layout detection.
+
+### Refactor Status
+- Shared contact and portfolio state has been extracted out of the desktop/mobile layouts.
+- Desktop section navigation state has been moved to a dedicated service with the same observer threshold and visible behavior.
+- Animations remain inside components on purpose to preserve timing and reduce regression risk.
+- Desktop and mobile still use different interaction models by design.
+
 ### Translation System
 - **TranslationService**: BehaviorSubject for reactivity, dynamic JSON loading, browser detection
 - **TranslatePipe**: Pure: false for automatic updates, subscription to language changes
@@ -395,6 +410,21 @@ src/app/
 └── environments/
     └── environment.ts              # API Gateway URL
 ```
+
+### Arquitectura Actual
+- `LayoutComponent` actúa como shell principal y decide si se renderiza la versión desktop o mobile.
+- `DesktopLayoutComponent` mantiene la interacción específica de escritorio: scroll horizontal, transiciones entre secciones, animaciones GSAP y comportamiento del carrusel desktop.
+- `MobileLayoutComponent` mantiene la interacción específica de mobile: flujo vertical, navegación de proyectos por índice y botón de volver arriba.
+- `ContactService` centraliza el estado del formulario, la validación, el envío y el feedback para ambos layouts.
+- `PortfolioService` centraliza el estado compartido del portfolio, como la tab activa y la navegación de proyectos en mobile.
+- `SectionNavigationService` centraliza el estado de secciones en desktop y la coordinación del `IntersectionObserver`, sin sacar del componente las animaciones ni el scroll físico.
+- `cursor-config.service.ts` y `layout.service.ts` se mantienen como servicios existentes para preferencias del cursor y detección responsive.
+
+### Estado del Refactor
+- El estado compartido de contacto y portfolio ya salió de los layouts desktop/mobile.
+- El estado de navegación de secciones en desktop ya vive en un servicio dedicado manteniendo el mismo threshold y el mismo comportamiento visible.
+- Las animaciones siguen dentro de los componentes a propósito para preservar timings y reducir riesgo de regresión.
+- Desktop y mobile siguen usando modelos de interacción distintos por diseño.
 
 ### Sistema de Traducción
 - **TranslationService**: BehaviorSubject para reactividad, carga dinámica de JSON, detección browser
