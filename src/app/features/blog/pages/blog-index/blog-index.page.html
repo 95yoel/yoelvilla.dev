@@ -22,7 +22,7 @@
       <div class="blog-index-grid" *ngIf="vm.status === 'ready'; else stateBlock">
         <section class="featured-article" *ngIf="vm.featured; else emptyBlock">
           <div class="featured-label">{{ 'blog.featured' | translate }}</div>
-          <span class="featured-date" *ngIf="vm.featured.date">{{ vm.featured.date }}</span>
+          <span class="featured-date" *ngIf="vm.featured.date">{{ formatDate(vm.featured.date) }}</span>
           <h2>{{ vm.featured.title }}</h2>
           <p>{{ vm.featured.description }}</p>
 

@@ -1,4 +1,4 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
@@ -37,6 +37,7 @@ export class BlogIndexPage {
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
+  private scrollWatcherId: number | null = null;
   private readonly lang$ = this.route.data.pipe(
     map(() => this.blogRoutingService.getRouteLanguage()),
     map((routeLang) => this.blogRoutingService.resolveLanguage(routeLang)),
@@ -68,24 +69,19 @@ export class BlogIndexPage {
     this.doc.body.style.overflow = 'auto';
     this.doc.body.style.overflowX = 'hidden';
     this.doc.documentElement.style.overflow = 'auto';
+    this.updateScrollTopButtonVisibility();
+    this.startScrollWatcher();
   }
 
   ngOnDestroy(): void {
     this.doc.body.style.overflow = this.previousBodyOverflow;
     this.doc.body.style.overflowX = this.previousBodyOverflowX;
     this.doc.documentElement.style.overflow = this.previousHtmlOverflow;
-  }
-
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    this.showScrollTopButton = window.scrollY > 240;
+    this.stopScrollWatcher();
   }
 
   scrollToTop(): void {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    this.scrollDocumentToTop();
   }
 
   retry(): void {
@@ -107,5 +103,72 @@ export class BlogIndexPage {
 
   get featuredLink(): (slug: string) => string[] {
     return (slug: string) => this.blogRoutingService.buildArticleLink(slug, this.currentLanguage);
+  }
+
+  formatDate(date: string): string {
+    return this.formatBlogDate(date, this.currentLanguage);
+  }
+
+  private formatBlogDate(date: string, lang: Language): string {
+    if (!date) {
+      return '';
+    }
+
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return new Intl.DateTimeFormat(lang === 'es' ? 'es-ES' : 'en-US', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }).format(parsedDate);
+  }
+
+  private updateScrollTopButtonVisibility(): void {
+    const scrollTop = window.scrollY
+      || this.doc.documentElement.scrollTop
+      || this.doc.body.scrollTop
+      || 0;
+
+    this.showScrollTopButton = scrollTop > 180;
+  }
+
+  private scrollDocumentToTop(): void {
+    const scrollTargets = [
+      this.doc.scrollingElement,
+      this.doc.documentElement,
+      this.doc.body
+    ].filter((target): target is HTMLElement => !!target);
+
+    for (const target of scrollTargets) {
+      target.scrollTo({ top: 0, behavior: 'smooth' });
+      target.scrollTop = 0;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    requestAnimationFrame(() => {
+      for (const target of scrollTargets) {
+        target.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+      this.updateScrollTopButtonVisibility();
+    });
+  }
+
+  private startScrollWatcher(): void {
+    this.stopScrollWatcher();
+    this.scrollWatcherId = window.setInterval(() => {
+      this.updateScrollTopButtonVisibility();
+    }, 150);
+  }
+
+  private stopScrollWatcher(): void {
+    if (this.scrollWatcherId !== null) {
+      window.clearInterval(this.scrollWatcherId);
+      this.scrollWatcherId = null;
+    }
   }
 }

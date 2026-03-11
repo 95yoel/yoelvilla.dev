@@ -26,4 +26,21 @@ export class BlogSidebarComponent {
   getArticleLink(slug: string): string[] {
     return this.blogRoutingService.buildArticleLink(slug, this.lang);
   }
+
+  formatDate(date: string): string {
+    if (!date) {
+      return '';
+    }
+
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return new Intl.DateTimeFormat(this.lang === 'es' ? 'es-ES' : 'en-US', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }).format(parsedDate);
+  }
 }

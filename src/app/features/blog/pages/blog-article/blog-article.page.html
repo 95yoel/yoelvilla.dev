@@ -17,7 +17,7 @@
     <div class="article-layout" *ngIf="vm.status === 'ready'; else articleState">
       <article class="article-card">
         <div class="article-meta">
-          <span *ngIf="vm.article.date">{{ 'blog.meta.publishedOn' | translate }} {{ vm.article.date }}</span>
+          <span *ngIf="vm.article.date">{{ 'blog.meta.publishedOn' | translate }} {{ formatDate(vm.article.date) }}</span>
         </div>
 
         <h1>{{ vm.article.title || ('blog.untitled' | translate) }}</h1>
@@ -66,9 +66,10 @@
     type="button"
     (click)="scrollToTop()"
     [attr.aria-label]="'blog.actions.scrollTop' | translate">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
       <polyline points="18 15 12 9 6 15"></polyline>
     </svg>
+    <span class="blog-scroll-top-text">{{ 'blog.actions.scrollTop' | translate }}</span>
   </button>
 
   <custom-cursor *ngIf="(layout$ | async) === 'desktop'"></custom-cursor>

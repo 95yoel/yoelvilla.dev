@@ -13,7 +13,7 @@
     [routerLink]="getArticleLink(article.slug)"
     class="sidebar-article"
     [class.active]="article.slug === activeSlug">
-    <span class="sidebar-date" *ngIf="article.date">{{ article.date }}</span>
+    <span class="sidebar-date" *ngIf="article.date">{{ formatDate(article.date) }}</span>
     <strong>{{ article.title }}</strong>
     <p *ngIf="article.description">{{ article.description }}</p>
   </a>

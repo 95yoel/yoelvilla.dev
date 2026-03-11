@@ -163,12 +163,13 @@ export class BlogService {
     }
 
     const entry = value as Record<string, unknown>;
-    const sourceSlug = this.toStringValue(entry['slug']);
-    if (!sourceSlug) {
+    const canonicalSlug = this.toStringValue(entry['slug']);
+    if (!canonicalSlug) {
       return null;
     }
 
-    const slug = this.normalizeRouteSlug(sourceSlug);
+    const slug = this.normalizeRouteSlug(canonicalSlug);
+    const sourceSlug = this.pickLocalizedValue(entry['sourceSlug'], fallbackLang) || canonicalSlug;
 
     const languages = this.toLanguageArray(entry['languages']);
     const localizedTitle = this.pickLocalizedValue(entry['title'], fallbackLang);
