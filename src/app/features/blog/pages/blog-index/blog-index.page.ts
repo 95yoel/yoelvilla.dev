@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, switchMap, tap } from 'rxjs';
+import { Subject, Subscription, catchError, combineLatest, distinctUntilChanged, map, of, startWith, switchMap, tap, timer } from 'rxjs';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -60,6 +60,7 @@ interface BlogFiltersFormValue {
 })
 export class BlogIndexPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly blogService = inject(BlogService);
   private readonly translationService = inject(TranslationService);
   private readonly blogRoutingService = inject(BlogRoutingService);
@@ -76,6 +77,7 @@ export class BlogIndexPage {
   showLanguagePanel = false;
   showScrollTopButton = false;
   filtersExpanded = false;
+  private searchInteractionSubscription: Subscription | null = null;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
@@ -90,8 +92,9 @@ export class BlogIndexPage {
   );
   private readonly searchTerm$ = this.searchControl.valueChanges.pipe(
     startWith(this.searchControl.getRawValue()),
-    debounceTime(300),
-    distinctUntilChanged()
+    map((value) => value.trim()),
+    distinctUntilChanged(),
+    switchMap((value) => value.length >= 3 ? timer(300).pipe(map(() => value)) : of(value))
   );
 
   readonly vm$ = combineLatest([
@@ -117,6 +120,11 @@ export class BlogIndexPage {
     this.doc.body.style.overflow = 'auto';
     this.doc.body.style.overflowX = 'hidden';
     this.doc.documentElement.style.overflow = 'auto';
+    this.searchInteractionSubscription = this.searchControl.valueChanges.subscribe((value) => {
+      if (value.trim().length > 0) {
+        this.filtersExpanded = false;
+      }
+    });
     this.updateScrollTopButtonVisibility();
     this.startScrollWatcher();
   }
@@ -125,6 +133,8 @@ export class BlogIndexPage {
     this.doc.body.style.overflow = this.previousBodyOverflow;
     this.doc.body.style.overflowX = this.previousBodyOverflowX;
     this.doc.documentElement.style.overflow = this.previousHtmlOverflow;
+    this.searchInteractionSubscription?.unsubscribe();
+    this.searchInteractionSubscription = null;
     this.stopScrollWatcher();
   }
 
@@ -155,6 +165,20 @@ export class BlogIndexPage {
 
   clearSearch(): void {
     this.searchControl.setValue('');
+  }
+
+  clearSearchAndFilters(): void {
+    this.clearSearch();
+    this.clearFilters();
+  }
+
+  submitSearch(results: BlogArticleSummary[]): void {
+    const firstResult = results[0];
+    if (!firstResult) {
+      return;
+    }
+
+    this.router.navigate(this.getSearchLink(firstResult.slug));
   }
 
   onLanguageChange(lang: Language): void {
