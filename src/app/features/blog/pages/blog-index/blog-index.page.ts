@@ -299,7 +299,10 @@ export class BlogIndexPage {
     const normalizedSearch = this.normalizeText(searchTerm);
 
     return articles
-      .filter((article) => this.normalizeText(article.title).includes(normalizedSearch))
+      .filter((article) => {
+        const searchableText = `${article.title} ${article.description}`;
+        return this.normalizeText(searchableText).includes(normalizedSearch);
+      })
       .slice(0, 6);
   }
 

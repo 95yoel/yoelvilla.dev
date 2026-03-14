@@ -65,7 +65,7 @@
   "blog": {
     "title": "Blog",
     "eyebrow": "Writing",
-    "headline": "Notes on frontend, architecture and practical engineering.",
+    "headline": "Software development notes.",
     "subheadline": "A quieter space inside the portfolio to publish longer thoughts, technical decisions and hands-on articles.",
     "featured": "Featured article",
     "latest": "Latest",
@@ -82,8 +82,8 @@
     "readingTimeFallback": "Markdown article",
     "search": {
       "title": "Search articles",
-      "label": "Search by title",
-      "placeholder": "Search articles",
+      "label": "Search by title and summary",
+      "placeholder": "Search article by title and description",
       "clear": "Clear",
       "minChars": "Type at least 3 letters to see suggestions.",
       "empty": "No articles match that search."

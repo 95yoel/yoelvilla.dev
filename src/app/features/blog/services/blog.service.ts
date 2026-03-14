@@ -188,7 +188,7 @@ export class BlogService {
       description: localizedSummary || this.toStringValue(entry['description']) || '',
       date: this.toNullableStringValue(entry['date']),
       lang,
-      tags: this.toStringArray(entry['tags']),
+      tags: this.pickLocalizedTags(entry, lang),
       coverImage: this.toNullableStringValue(entry['coverImage']) || undefined,
       published: entry['published'] !== false
     };
@@ -319,6 +319,17 @@ export class BlogService {
 
   private toStringArray(value: unknown): string[] {
     return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+  }
+
+  private pickLocalizedTags(entry: Record<string, unknown>, lang: Language): string[] {
+    const localizedKey = lang === 'es' ? 'tags_es' : 'tags_en';
+    const localizedTags = this.toStringArray(entry[localizedKey]);
+
+    if (localizedTags.length) {
+      return localizedTags;
+    }
+
+    return this.toStringArray(entry['tags']);
   }
 
   private toLanguageArray(value: unknown): Language[] {

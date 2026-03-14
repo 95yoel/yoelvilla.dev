@@ -65,7 +65,7 @@
   "blog": {
     "title": "Blog",
     "eyebrow": "Artículos",
-    "headline": "Notas sobre frontend, arquitectura e ingeniería aplicada.",
+    "headline": "Notas sobre desarrollo de software.",
     "subheadline": "Un espacio más tranquilo dentro del portfolio para publicar ideas largas, decisiones técnicas y artículos prácticos.",
     "featured": "Artículo destacado",
     "latest": "Lo último",
@@ -82,8 +82,8 @@
     "readingTimeFallback": "Artículo en markdown",
     "search": {
       "title": "Buscar artículos",
-      "label": "Buscar por título",
-      "placeholder": "Buscar artículos",
+      "label": "Buscar por título y resumen",
+      "placeholder": "Buscar artículo por título y descripción",
       "clear": "Limpiar",
       "minChars": "Escribe al menos 3 letras para ver sugerencias.",
       "empty": "No hay artículos que coincidan con esa búsqueda."
