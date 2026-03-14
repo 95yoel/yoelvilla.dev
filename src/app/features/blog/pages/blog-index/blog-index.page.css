@@ -72,6 +72,18 @@
   gap: 2rem;
 }
 
+.blog-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 380px);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.blog-main-column {
+  display: grid;
+  gap: 1.75rem;
+}
+
 .blog-hero {
   width: min(760px, 100%);
   display: grid;
@@ -116,16 +128,10 @@
   min-height: 3.5rem;
 }
 
-.blog-index-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 380px);
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.blog-main-column {
-  display: grid;
-  gap: 1.5rem;
+:host ::ng-deep app-blog-sidebar {
+  display: block;
+  position: sticky;
+  top: 1.5rem;
 }
 
 .filters-form {
@@ -502,8 +508,12 @@
 }
 
 @media (max-width: 920px) {
-  .blog-index-grid {
+  .blog-overview {
     grid-template-columns: 1fr;
+  }
+
+  :host ::ng-deep app-blog-sidebar {
+    position: static;
   }
 
   .filters-form {
