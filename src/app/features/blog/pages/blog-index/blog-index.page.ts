@@ -2,21 +2,21 @@ import { Component, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
-import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
-import { BlogService } from '../../services/blog.service';
-import { BlogArticleSummary } from '../../models/blog-article.model';
-import { Language, TranslationService } from '../../../../translations/services/translation.service';
-import { TranslatePipe } from '../../../../translations/pipes/translate.pipe';
-import { LayoutService } from '../../../../services/layout.service';
-import { CustomCursorComponent } from '../../../../components/shared/custom-cursor/custom-cursor.component';
-import { LanguagePanelComponent } from '../../../../components/shared/language-panel/language-panel.component';
-import { BlogRoutingService } from '../../services/blog-routing.service';
+import { Subject, catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, switchMap, tap } from 'rxjs';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { CustomCursorComponent } from '../../../../components/shared/custom-cursor/custom-cursor.component';
+import { LanguagePanelComponent } from '../../../../components/shared/language-panel/language-panel.component';
+import { LayoutService } from '../../../../services/layout.service';
+import { TranslatePipe } from '../../../../translations/pipes/translate.pipe';
+import { Language, TranslationService } from '../../../../translations/services/translation.service';
+import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
+import { BlogArticleSummary } from '../../models/blog-article.model';
+import { BlogRoutingService } from '../../services/blog-routing.service';
+import { BlogService } from '../../services/blog.service';
 
 type IndexViewState =
   | { status: 'loading' }
@@ -26,10 +26,11 @@ type IndexViewState =
       featured: BlogArticleSummary | null;
       rest: BlogArticleSummary[];
       availableTags: string[];
-      selectedTag: string;
       filteredCount: number;
       totalCount: number;
       hasActiveFilters: boolean;
+      searchResults: BlogArticleSummary[];
+      searchTerm: string;
     };
 
 interface BlogFiltersFormValue {
@@ -65,6 +66,7 @@ export class BlogIndexPage {
   private readonly layoutService = inject(LayoutService);
   private readonly doc = inject(DOCUMENT);
   private readonly reload$ = new Subject<void>();
+  readonly searchControl = new FormControl('', { nonNullable: true });
   readonly filterForm = new FormGroup({
     tag: new FormControl<string>(''),
     startDate: new FormControl<Date | null>(null),
@@ -73,6 +75,7 @@ export class BlogIndexPage {
   readonly layout$ = this.layoutService.layout$;
   showLanguagePanel = false;
   showScrollTopButton = false;
+  filtersExpanded = false;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
@@ -85,15 +88,21 @@ export class BlogIndexPage {
   private readonly filters$ = this.filterForm.valueChanges.pipe(
     startWith(this.filterForm.getRawValue())
   );
+  private readonly searchTerm$ = this.searchControl.valueChanges.pipe(
+    startWith(this.searchControl.getRawValue()),
+    debounceTime(300),
+    distinctUntilChanged()
+  );
 
   readonly vm$ = combineLatest([
     this.lang$,
     this.reload$.pipe(startWith(undefined)),
-    this.filters$
+    this.filters$,
+    this.searchTerm$
   ]).pipe(
-    switchMap(([lang, _reload, filters]) =>
+    switchMap(([lang, _reload, filters, searchTerm]) =>
       this.blogService.getIndex(lang).pipe(
-        map((articles): IndexViewState => this.buildViewState(articles, this.normalizeFilters(filters))),
+        map((articles): IndexViewState => this.buildViewState(articles, this.normalizeFilters(filters), searchTerm)),
         startWith({ status: 'loading' } as IndexViewState),
         catchError(() => of({ status: 'error' } as IndexViewState))
       )
@@ -132,12 +141,20 @@ export class BlogIndexPage {
     this.showLanguagePanel = !this.showLanguagePanel;
   }
 
+  toggleFilters(): void {
+    this.filtersExpanded = !this.filtersExpanded;
+  }
+
   clearFilters(): void {
     this.filterForm.reset({
       tag: '',
       startDate: null,
       endDate: null
     });
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
   }
 
   onLanguageChange(lang: Language): void {
@@ -152,13 +169,17 @@ export class BlogIndexPage {
     return (slug: string) => this.blogRoutingService.buildArticleLink(slug, this.currentLanguage);
   }
 
+  getSearchLink(slug: string): string[] {
+    return this.blogRoutingService.buildArticleLink(slug, this.currentLanguage);
+  }
+
   formatDate(date: string): string {
     return this.formatBlogDate(date, this.currentLanguage);
   }
 
   getFilterSummary(filteredCount: number, totalCount: number): string {
     return this.currentLanguage === 'es'
-      ? `${filteredCount} de ${totalCount} artículos visibles`
+      ? `${filteredCount} de ${totalCount} articulos visibles`
       : `${filteredCount} of ${totalCount} articles visible`;
   }
 
@@ -168,19 +189,34 @@ export class BlogIndexPage {
       : this.translationService.translate('blog.empty');
   }
 
-  private buildViewState(articles: BlogArticleSummary[], filters: BlogFiltersFormValue): IndexViewState {
+  showSearchResults(searchTerm: string, resultsCount: number): boolean {
+    return searchTerm.trim().length >= 3 && resultsCount > 0;
+  }
+
+  hasShortSearch(searchTerm: string): boolean {
+    const trimmed = searchTerm.trim();
+    return trimmed.length > 0 && trimmed.length < 3;
+  }
+
+  private buildViewState(
+    articles: BlogArticleSummary[],
+    filters: BlogFiltersFormValue,
+    searchTerm: string
+  ): IndexViewState {
     const availableTags = this.collectAvailableTags(articles);
     const filteredArticles = articles.filter((article) => this.matchesFilters(article, filters));
+    const normalizedSearchTerm = searchTerm.trim();
 
     return {
       status: 'ready',
       featured: filteredArticles[0] ?? null,
       rest: filteredArticles.slice(1),
       availableTags,
-      selectedTag: filters.tag?.trim() || '',
       filteredCount: filteredArticles.length,
       totalCount: articles.length,
-      hasActiveFilters: Boolean(filters.tag || filters.startDate || filters.endDate)
+      hasActiveFilters: Boolean(filters.tag || filters.startDate || filters.endDate),
+      searchResults: this.findSearchResults(articles, normalizedSearchTerm),
+      searchTerm: normalizedSearchTerm
     };
   }
 
@@ -215,8 +251,10 @@ export class BlogIndexPage {
     }
 
     const articleTimestamp = articleDate.getTime();
-    const startTimestamp = filters.startDate ? this.startOfDay(filters.startDate).getTime() : null;
-    const endTimestamp = filters.endDate ? this.endOfDay(filters.endDate).getTime() : null;
+    const effectiveStartDate = filters.startDate || filters.endDate;
+    const effectiveEndDate = filters.endDate || filters.startDate;
+    const startTimestamp = effectiveStartDate ? this.startOfDay(effectiveStartDate).getTime() : null;
+    const endTimestamp = effectiveEndDate ? this.endOfDay(effectiveEndDate).getTime() : null;
 
     if (startTimestamp !== null && articleTimestamp < startTimestamp) {
       return false;
@@ -227,6 +265,18 @@ export class BlogIndexPage {
     }
 
     return true;
+  }
+
+  private findSearchResults(articles: BlogArticleSummary[], searchTerm: string): BlogArticleSummary[] {
+    if (searchTerm.length < 3) {
+      return [];
+    }
+
+    const normalizedSearch = this.normalizeText(searchTerm);
+
+    return articles
+      .filter((article) => this.normalizeText(article.title).includes(normalizedSearch))
+      .slice(0, 6);
   }
 
   private formatBlogDate(date: string, lang: Language): string {
@@ -261,6 +311,13 @@ export class BlogIndexPage {
 
   private endOfDay(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+  }
+
+  private normalizeText(value: string): string {
+    return value
+      .toLocaleLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
   }
 
   private updateScrollTopButtonVisibility(): void {

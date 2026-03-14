@@ -80,8 +80,16 @@
     "backToBlog": "Back to blog",
     "readArticle": "Read article",
     "readingTimeFallback": "Markdown article",
+    "search": {
+      "title": "Search articles",
+      "label": "Search by title",
+      "placeholder": "Type at least 3 letters",
+      "clear": "Clear",
+      "minChars": "Type at least 3 letters to see suggestions.",
+      "empty": "No articles match that search."
+    },
     "filters": {
-      "title": "Filter articles",
+      "title": "Filters",
       "tag": "Tag",
       "allTags": "All tags",
       "dateRange": "Date range",

@@ -80,8 +80,16 @@
     "backToBlog": "Volver al blog",
     "readArticle": "Leer artículo",
     "readingTimeFallback": "Artículo en markdown",
+    "search": {
+      "title": "Buscar artículos",
+      "label": "Buscar por título",
+      "placeholder": "Escribe al menos 3 letras",
+      "clear": "Limpiar",
+      "minChars": "Escribe al menos 3 letras para ver sugerencias.",
+      "empty": "No hay artículos que coincidan con esa búsqueda."
+    },
     "filters": {
-      "title": "Filtrar artículos",
+      "title": "Filtros",
       "tag": "Tag",
       "allTags": "Todos los tags",
       "dateRange": "Rango de fechas",

@@ -19,30 +19,80 @@
         <p>{{ 'blog.subheadline' | translate }}</p>
       </section>
 
+      <section class="blog-search" *ngIf="vm.status === 'ready'">
+        <div class="search-copy">
+          <span class="featured-label">{{ 'blog.search.title' | translate }}</span>
+        </div>
+
+        <div class="search-box">
+          <mat-form-field appearance="outline" class="blog-control-field blog-search-field">
+            <mat-label>{{ 'blog.search.label' | translate }}</mat-label>
+            <input
+              matInput
+              [formControl]="searchControl"
+              [placeholder]="'blog.search.placeholder' | translate">
+          </mat-form-field>
+
+          <button
+            *ngIf="vm.searchTerm"
+            type="button"
+            class="search-clear-button"
+            (click)="clearSearch()"
+            [attr.aria-label]="'blog.search.clear' | translate">
+            {{ 'blog.search.clear' | translate }}
+          </button>
+
+          <div class="search-results" *ngIf="showSearchResults(vm.searchTerm, vm.searchResults.length)">
+            <a
+              *ngFor="let article of vm.searchResults"
+              [routerLink]="getSearchLink(article.slug)"
+              class="search-result-item">
+              <strong>{{ article.title }}</strong>
+              <span *ngIf="article.date">{{ formatDate(article.date) }}</span>
+            </a>
+          </div>
+
+          <div class="search-hint" *ngIf="hasShortSearch(vm.searchTerm)">
+            {{ 'blog.search.minChars' | translate }}
+          </div>
+
+          <div class="search-hint" *ngIf="vm.searchTerm.length >= 3 && !vm.searchResults.length">
+            {{ 'blog.search.empty' | translate }}
+          </div>
+        </div>
+      </section>
+
       <div class="blog-index-grid" *ngIf="vm.status === 'ready'; else stateBlock">
         <section class="blog-main-column">
           <section class="blog-filters">
-            <div class="filters-copy">
-              <span class="featured-label">{{ 'blog.filters.title' | translate }}</span>
-              <p>{{ getFilterSummary(vm.filteredCount, vm.totalCount) }}</p>
-            </div>
+            <button type="button" class="filters-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersExpanded">
+              <div class="filters-copy">
+                <span class="featured-label">{{ 'blog.filters.title' | translate }}</span>
+                <p>{{ getFilterSummary(vm.filteredCount, vm.totalCount) }}</p>
+              </div>
+              <span class="filters-chevron" [class.open]="filtersExpanded" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M7 10L12 15L17 10"></path>
+                </svg>
+              </span>
+            </button>
 
-            <form class="filters-form" [formGroup]="filterForm">
-              <mat-form-field appearance="outline" class="filter-field">
+            <form class="filters-form" [formGroup]="filterForm" *ngIf="filtersExpanded">
+              <mat-form-field appearance="outline" class="blog-control-field filter-field">
                 <mat-label>{{ 'blog.filters.tag' | translate }}</mat-label>
-                <mat-select formControlName="tag">
+                <mat-select formControlName="tag" panelClass="blog-select-panel">
                   <mat-option value="">{{ 'blog.filters.allTags' | translate }}</mat-option>
                   <mat-option *ngFor="let tag of vm.availableTags" [value]="tag">{{ tag }}</mat-option>
                 </mat-select>
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="filter-field filter-field-range">
+              <mat-form-field appearance="outline" class="blog-control-field filter-field filter-field-range">
                 <mat-label>{{ 'blog.filters.dateRange' | translate }}</mat-label>
                 <mat-date-range-input [rangePicker]="picker">
                   <input matStartDate formControlName="startDate" [placeholder]="'blog.filters.from' | translate">
                   <input matEndDate formControlName="endDate" [placeholder]="'blog.filters.to' | translate">
                 </mat-date-range-input>
-                <mat-date-range-picker #picker></mat-date-range-picker>
+                <mat-date-range-picker #picker panelClass="blog-date-panel"></mat-date-range-picker>
               </mat-form-field>
 
               <div class="filter-actions">

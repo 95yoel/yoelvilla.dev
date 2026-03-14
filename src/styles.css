@@ -135,3 +135,78 @@ html, body {
 .cdk-overlay-pane {
   z-index: 999999 !important;
 }
+
+.cdk-overlay-pane .blog-select-panel {
+  border-radius: 18px !important;
+  background: #fffaf6 !important;
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.blog-select-panel .mat-mdc-select-panel {
+  background: #fffaf6 !important;
+}
+
+.blog-select-panel .mat-mdc-option {
+  min-height: 44px;
+  color: var(--color-text-darkest) !important;
+  background: #fffaf6 !important;
+}
+
+.blog-select-panel .mat-mdc-option:hover,
+.blog-select-panel .mat-mdc-option.mdc-list-item--selected,
+.blog-select-panel .mat-mdc-option.mdc-list-item--activated {
+  background: #f6eee7 !important;
+}
+
+.blog-date-panel {
+  --mat-datepicker-calendar-container-background-color: #fffaf6;
+  --mat-datepicker-calendar-container-text-color: var(--color-text-darkest);
+  --mat-datepicker-calendar-header-text-color: var(--color-text-slate);
+  --mat-datepicker-calendar-period-button-text-color: var(--color-text-darkest);
+  --mat-datepicker-calendar-period-button-icon-color: var(--color-text-darkest);
+  --mat-datepicker-calendar-navigation-button-icon-color: var(--color-text-darkest);
+  --mat-datepicker-calendar-body-label-text-color: var(--color-text-slate);
+  --mat-datepicker-calendar-date-text-color: var(--color-text-darkest);
+  --mat-datepicker-calendar-date-disabled-state-text-color: rgba(17, 24, 39, 0.38);
+  --mat-datepicker-calendar-date-today-outline-color: rgba(64, 87, 79, 0.35);
+  --mat-datepicker-calendar-date-today-selected-state-outline-color: #fffaf6;
+  --mat-datepicker-calendar-date-hover-state-background-color: rgba(84, 110, 100, 0.12);
+  --mat-datepicker-calendar-date-focus-state-background-color: rgba(84, 110, 100, 0.16);
+}
+
+.cdk-overlay-pane:has(.blog-date-panel) .mat-datepicker-content,
+.cdk-overlay-pane:has(.blog-date-panel) .mat-mdc-datepicker-content,
+.cdk-overlay-pane:has(.blog-date-panel) .mat-datepicker-content-container,
+.cdk-overlay-pane:has(.blog-date-panel) .mat-calendar {
+  background: #fffaf6 !important;
+}
+
+.cdk-overlay-pane:has(.blog-date-panel) .mat-datepicker-content,
+.cdk-overlay-pane:has(.blog-date-panel) .mat-mdc-datepicker-content {
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: 22px;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.blog-date-panel .mat-calendar-body-cell-content,
+.blog-date-panel .mat-calendar-body-label,
+.blog-date-panel .mat-calendar-table-header th,
+.blog-date-panel .mat-calendar-period-button,
+.blog-date-panel .mat-calendar-previous-button,
+.blog-date-panel .mat-calendar-next-button {
+  color: var(--color-text-darkest) !important;
+}
+
+.blog-date-panel .mat-calendar-body-selected {
+  background-color: #546e64 !important;
+  color: #fffaf6 !important;
+}
+
+.blog-date-panel .mat-calendar-body-in-range::before,
+.blog-date-panel .mat-calendar-body-preview-end .mat-calendar-body-cell-preview,
+.blog-date-panel .mat-calendar-body-preview-start .mat-calendar-body-cell-preview {
+  background: rgba(84, 110, 100, 0.18) !important;
+}
