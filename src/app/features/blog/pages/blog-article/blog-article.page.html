@@ -6,7 +6,6 @@
         <a [routerLink]="blogIndexLink" class="topbar-pill topbar-link">{{ 'blog.backToBlog' | translate }}</a>
       </div>
       <div class="topbar-actions" *ngIf="vm.status === 'ready'">
-        <a routerLink="/" class="topbar-pill topbar-link">yoelvilla.dev</a>
         <button type="button" class="topbar-pill topbar-button" (click)="toggleLanguagePanel()">
           <img src="/icons/idioma.png" alt="" aria-hidden="true">
           <span>{{ currentLanguage | uppercase }}</span>

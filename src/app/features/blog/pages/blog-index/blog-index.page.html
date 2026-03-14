@@ -4,7 +4,6 @@
       <a routerLink="/" class="topbar-pill topbar-link">{{ 'blog.backToPortfolio' | translate }}</a>
 
       <div class="topbar-actions">
-        <a routerLink="/" class="topbar-pill topbar-link">yoelvilla.dev</a>
         <button type="button" class="topbar-pill topbar-button" (click)="toggleLanguagePanel()">
           <img src="/icons/idioma.png" alt="" aria-hidden="true">
           <span>{{ currentLanguage | uppercase }}</span>
@@ -13,128 +12,128 @@
     </header>
 
     <main class="blog-index-layout">
-      <section class="blog-hero">
-        <span class="blog-eyebrow">{{ 'blog.eyebrow' | translate }}</span>
-        <h1>{{ 'blog.headline' | translate }}</h1>
-        <p>{{ 'blog.subheadline' | translate }}</p>
-      </section>
-
-      <section class="blog-search" *ngIf="vm.status === 'ready'">
-        <div class="search-copy">
-          <span class="featured-label">{{ 'blog.search.title' | translate }}</span>
-        </div>
-
-        <div class="search-box">
-          <mat-form-field
-            appearance="outline"
-            class="blog-control-field blog-search-field"
-            [class.filters-open]="filtersExpanded || showSearchResults(vm.searchTerm, vm.searchResults.length) || hasShortSearch(vm.searchTerm) || (vm.searchTerm.length >= 3 && !vm.searchResults.length)">
-            <input
-              matInput
-              [formControl]="searchControl"
-              (keydown.enter)="submitSearch(vm.searchResults)"
-              [placeholder]="'blog.search.placeholder' | translate">
-            <span matSuffix class="search-actions">
-              <button
-                *ngIf="vm.hasActiveFilters || vm.searchTerm"
-                type="button"
-                class="search-action-button"
-                (click)="clearSearchAndFilters()"
-                [attr.aria-label]="'blog.search.clear' | translate">
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="M7 7L17 17"></path>
-                  <path d="M17 7L7 17"></path>
-                </svg>
-              </button>
-
-              <button
-                type="button"
-                class="search-action-button"
-                (click)="submitSearch(vm.searchResults)"
-                [attr.aria-label]="'blog.search.placeholder' | translate">
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <circle cx="11" cy="11" r="6"></circle>
-                  <path d="M20 20L16.65 16.65"></path>
-                </svg>
-              </button>
-
-              <button
-                type="button"
-                class="search-action-button"
-                (click)="toggleFilters()"
-                [attr.aria-expanded]="filtersExpanded"
-                [attr.aria-label]="'blog.filters.title' | translate">
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="M4 7H20"></path>
-                  <path d="M7 12H17"></path>
-                  <path d="M10 17H14"></path>
-                </svg>
-              </button>
-            </span>
-          </mat-form-field>
-
-          <div class="search-results" *ngIf="!filtersExpanded && showSearchResults(vm.searchTerm, vm.searchResults.length)">
-            <a
-              *ngFor="let article of vm.searchResults"
-              [routerLink]="getSearchLink(article.slug)"
-              class="search-result-item">
-              <strong>{{ article.title }}</strong>
-              <span *ngIf="article.date">{{ formatDate(article.date) }}</span>
-            </a>
-          </div>
-
-          <div class="search-hint" *ngIf="!filtersExpanded && hasShortSearch(vm.searchTerm)">
-            {{ 'blog.search.minChars' | translate }}
-          </div>
-
-          <div class="search-hint" *ngIf="!filtersExpanded && vm.searchTerm.length >= 3 && !vm.searchResults.length">
-            {{ 'blog.search.empty' | translate }}
-          </div>
-
-          <form class="filters-form filters-panel" [formGroup]="filterForm" *ngIf="filtersExpanded">
-            <div class="filter-control">
-              <span class="control-caption">{{ 'blog.filters.tag' | translate }}</span>
-              <mat-form-field appearance="outline" class="blog-control-field filter-field">
-                <mat-select formControlName="tag" panelClass="blog-select-panel">
-                  <mat-option value="">{{ 'blog.filters.allTags' | translate }}</mat-option>
-                  <mat-option *ngFor="let tag of vm.availableTags" [value]="tag">{{ tag }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-
-            <div class="filter-control">
-              <span class="control-caption">{{ 'blog.filters.dateRange' | translate }}</span>
-              <mat-form-field appearance="outline" class="blog-control-field filter-field filter-field-range">
-                <mat-date-range-input [rangePicker]="picker">
-                  <input matStartDate formControlName="startDate" [placeholder]="'blog.filters.from' | translate">
-                  <input matEndDate formControlName="endDate" [placeholder]="'blog.filters.to' | translate">
-                </mat-date-range-input>
-                <button
-                  matSuffix
-                  type="button"
-                  class="date-trigger-button"
-                  (click)="picker.open()"
-                  [attr.aria-label]="'blog.filters.openCalendar' | translate">
-                  <svg viewBox="0 0 24 24" focusable="false">
-                    <rect x="4" y="5" width="16" height="15" rx="2"></rect>
-                    <path d="M8 3V7"></path>
-                    <path d="M16 3V7"></path>
-                    <path d="M4 10H20"></path>
-                  </svg>
-                </button>
-                <mat-date-range-picker #picker panelClass="blog-date-panel"></mat-date-range-picker>
-              </mat-form-field>
-            </div>
-
-            <div class="filter-actions">
-              <p class="filter-summary">{{ getFilterSummary(vm.filteredCount, vm.totalCount) }}</p>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <div class="blog-index-grid" *ngIf="vm.status === 'ready'; else stateBlock">
+      <div class="blog-overview" *ngIf="vm.status === 'ready'; else stateBlock">
         <section class="blog-main-column">
+          <section class="blog-hero">
+            <span class="blog-eyebrow">{{ 'blog.eyebrow' | translate }}</span>
+            <h1>{{ 'blog.headline' | translate }}</h1>
+            <p>{{ 'blog.subheadline' | translate }}</p>
+          </section>
+
+          <section class="blog-search">
+            <div class="search-copy">
+              <span class="featured-label">{{ 'blog.search.title' | translate }}</span>
+            </div>
+
+            <div class="search-box">
+              <mat-form-field
+                appearance="outline"
+                class="blog-control-field blog-search-field"
+                [class.filters-open]="filtersExpanded || showSearchResults(vm.searchTerm, vm.searchResults.length) || hasShortSearch(vm.searchTerm) || (vm.searchTerm.length >= 3 && !vm.searchResults.length)">
+                <input
+                  matInput
+                  [formControl]="searchControl"
+                  (keydown.enter)="submitSearch(vm.searchResults)"
+                  [placeholder]="'blog.search.placeholder' | translate">
+                <span matSuffix class="search-actions">
+                  <button
+                    *ngIf="vm.hasActiveFilters || vm.searchTerm"
+                    type="button"
+                    class="search-action-button"
+                    (click)="clearSearchAndFilters()"
+                    [attr.aria-label]="'blog.search.clear' | translate">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M7 7L17 17"></path>
+                      <path d="M17 7L7 17"></path>
+                    </svg>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="search-action-button"
+                    (click)="submitSearch(vm.searchResults)"
+                    [attr.aria-label]="'blog.search.placeholder' | translate">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <circle cx="11" cy="11" r="6"></circle>
+                      <path d="M20 20L16.65 16.65"></path>
+                    </svg>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="search-action-button"
+                    (click)="toggleFilters()"
+                    [attr.aria-expanded]="filtersExpanded"
+                    [attr.aria-label]="'blog.filters.title' | translate">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M4 7H20"></path>
+                      <path d="M7 12H17"></path>
+                      <path d="M10 17H14"></path>
+                    </svg>
+                  </button>
+                </span>
+              </mat-form-field>
+
+              <div class="search-results" *ngIf="!filtersExpanded && showSearchResults(vm.searchTerm, vm.searchResults.length)">
+                <a
+                  *ngFor="let article of vm.searchResults"
+                  [routerLink]="getSearchLink(article.slug)"
+                  class="search-result-item">
+                  <strong>{{ article.title }}</strong>
+                  <span *ngIf="article.date">{{ formatDate(article.date) }}</span>
+                </a>
+              </div>
+
+              <div class="search-hint" *ngIf="!filtersExpanded && hasShortSearch(vm.searchTerm)">
+                {{ 'blog.search.minChars' | translate }}
+              </div>
+
+              <div class="search-hint" *ngIf="!filtersExpanded && vm.searchTerm.length >= 3 && !vm.searchResults.length">
+                {{ 'blog.search.empty' | translate }}
+              </div>
+
+              <form class="filters-form filters-panel" [formGroup]="filterForm" *ngIf="filtersExpanded">
+                <div class="filter-control">
+                  <span class="control-caption">{{ 'blog.filters.tag' | translate }}</span>
+                  <mat-form-field appearance="outline" class="blog-control-field filter-field">
+                    <mat-select formControlName="tag" panelClass="blog-select-panel">
+                      <mat-option value="">{{ 'blog.filters.allTags' | translate }}</mat-option>
+                      <mat-option *ngFor="let tag of vm.availableTags" [value]="tag">{{ tag }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                <div class="filter-control">
+                  <span class="control-caption">{{ 'blog.filters.dateRange' | translate }}</span>
+                  <mat-form-field appearance="outline" class="blog-control-field filter-field filter-field-range">
+                    <mat-date-range-input [rangePicker]="picker">
+                      <input matStartDate formControlName="startDate" [placeholder]="'blog.filters.from' | translate">
+                      <input matEndDate formControlName="endDate" [placeholder]="'blog.filters.to' | translate">
+                    </mat-date-range-input>
+                    <button
+                      matSuffix
+                      type="button"
+                      class="date-trigger-button"
+                      (click)="picker.open()"
+                      [attr.aria-label]="'blog.filters.openCalendar' | translate">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <rect x="4" y="5" width="16" height="15" rx="2"></rect>
+                        <path d="M8 3V7"></path>
+                        <path d="M16 3V7"></path>
+                        <path d="M4 10H20"></path>
+                      </svg>
+                    </button>
+                    <mat-date-range-picker #picker panelClass="blog-date-panel"></mat-date-range-picker>
+                  </mat-form-field>
+                </div>
+
+                <div class="filter-actions">
+                  <p class="filter-summary">{{ getFilterSummary(vm.filteredCount, vm.totalCount) }}</p>
+                </div>
+              </form>
+            </div>
+          </section>
+
           <section class="featured-article" *ngIf="vm.featured; else emptyBlock">
             <div class="featured-label">{{ 'blog.featured' | translate }}</div>
             <span class="featured-date" *ngIf="vm.featured.date">{{ formatDate(vm.featured.date) }}</span>
