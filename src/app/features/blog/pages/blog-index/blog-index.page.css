@@ -128,6 +128,7 @@
 }
 
 .blog-filters {
+  position: relative;
   display: grid;
   gap: 0.9rem;
   padding: 1.1rem 1.2rem;
@@ -167,11 +168,29 @@
   grid-template-columns: minmax(180px, 240px) minmax(260px, 1fr) auto;
   gap: 1rem;
   align-items: start;
+  margin-top: 0.2rem;
+  padding: 1rem 0;
+  border-radius: 18px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .blog-control-field,
 .filter-field {
   width: 100%;
+}
+
+.filter-control {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.control-caption {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 247, 242, 0.7);
 }
 
 .filters-chevron {
@@ -208,7 +227,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  align-self: center;
+  align-self: end;
 }
 
 .filter-button {
@@ -235,11 +254,6 @@
   cursor: not-allowed;
 }
 
-.filter-button-secondary {
-  background: rgba(244, 178, 103, 0.18);
-  border-color: rgba(244, 178, 103, 0.32);
-}
-
 .search-clear-button {
   position: absolute;
   top: 0.7rem;
@@ -258,7 +272,11 @@
 
 .search-results,
 .search-hint {
-  margin-top: 0.55rem;
+  position: absolute;
+  top: calc(100% - 0.2rem);
+  left: 0;
+  right: 0;
+  z-index: 35;
   border-radius: 20px;
   border: 1px solid rgba(226, 232, 240, 0.82);
   background: #fffaf6;
@@ -267,6 +285,8 @@
 
 .search-results {
   overflow: hidden;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .search-result-item {
@@ -294,6 +314,8 @@
 .search-hint {
   padding: 0.85rem 1rem;
   color: var(--color-text-darker);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .featured-article {
@@ -408,13 +430,15 @@
 
 :host ::ng-deep .blog-control-field .mat-mdc-form-field-infix {
   min-height: auto;
-  padding-top: 0.78rem;
-  padding-bottom: 0.5rem;
+  padding-top: 0.64rem;
+  padding-bottom: 0.64rem;
+  display: flex;
+  align-items: center;
 }
 
 :host ::ng-deep .blog-control-field .mat-mdc-text-field-wrapper {
   background: #fffaf6;
-  border-radius: 18px;
+  border-radius: 14px;
   min-height: 52px;
   padding-left: 0.2rem;
   padding-right: 0.2rem;
@@ -432,13 +456,112 @@
   color: var(--color-text-darkest) !important;
 }
 
+:host ::ng-deep .blog-control-field .mat-mdc-select-trigger,
+:host ::ng-deep .blog-control-field .mat-date-range-input-container,
+:host ::ng-deep .blog-control-field .mat-date-range-input-wrapper,
+:host ::ng-deep .blog-control-field .mat-mdc-form-field-flex {
+  align-items: center;
+}
+
+:host ::ng-deep .blog-control-field .mat-date-range-input-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 0.25rem minmax(0, 1fr);
+  column-gap: 0.2rem;
+  width: 100%;
+}
+
+:host ::ng-deep .blog-control-field .mat-date-range-input-start-wrapper,
+:host ::ng-deep .blog-control-field .mat-date-range-input-end-wrapper {
+  min-width: 0;
+  width: 100%;
+}
+
+:host ::ng-deep .blog-control-field .mat-date-range-input-separator {
+  justify-self: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.74rem;
+}
+
+:host ::ng-deep .blog-control-field .mat-start-date,
+:host ::ng-deep .blog-control-field .mat-end-date,
+:host ::ng-deep .blog-control-field input[matStartDate],
+:host ::ng-deep .blog-control-field input[matEndDate] {
+  width: 100% !important;
+  min-width: 0;
+  font-size: 0.86rem;
+  letter-spacing: -0.02em;
+}
+
+:host ::ng-deep .blog-control-field input,
+:host ::ng-deep .blog-control-field .mat-mdc-select-value-text {
+  line-height: 1.35;
+}
+
+:host ::ng-deep .blog-search-field input {
+  padding-left: 0.45rem !important;
+  padding-right: 2.6rem !important;
+}
+
+.search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  margin-right: 0.15rem;
+  color: #40574f;
+}
+
+.search-icon svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 :host ::ng-deep .blog-control-field .mat-mdc-select-arrow,
 :host ::ng-deep .blog-control-field .mat-datepicker-toggle {
   color: #40574f;
 }
 
+:host ::ng-deep .blog-control-field .mdc-floating-label {
+  display: none !important;
+}
+
 :host ::ng-deep .blog-control-field .mat-mdc-form-field-subscript-wrapper {
   display: none;
+}
+
+.date-trigger-button {
+  width: 1.7rem;
+  height: 1.7rem;
+  margin-right: 0.15rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #40574f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.date-trigger-button svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.date-trigger-button:hover {
+  background: rgba(84, 110, 100, 0.1);
 }
 
 @media (max-width: 920px) {
@@ -481,6 +604,11 @@
   .search-clear-button {
     position: static;
     margin-top: 0.65rem;
+  }
+
+  .search-results,
+  .search-hint {
+    top: calc(100% + 0.2rem);
   }
 
   .filter-actions {

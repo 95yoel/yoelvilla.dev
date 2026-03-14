@@ -83,7 +83,7 @@
     "search": {
       "title": "Buscar artículos",
       "label": "Buscar por título",
-      "placeholder": "Escribe al menos 3 letras",
+      "placeholder": "Buscar artículos",
       "clear": "Limpiar",
       "minChars": "Escribe al menos 3 letras para ver sugerencias.",
       "empty": "No hay artículos que coincidan con esa búsqueda."

@@ -26,11 +26,16 @@
 
         <div class="search-box">
           <mat-form-field appearance="outline" class="blog-control-field blog-search-field">
-            <mat-label>{{ 'blog.search.label' | translate }}</mat-label>
             <input
               matInput
               [formControl]="searchControl"
               [placeholder]="'blog.search.placeholder' | translate">
+            <span matSuffix class="search-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <circle cx="11" cy="11" r="6"></circle>
+                <path d="M20 20L16.65 16.65"></path>
+              </svg>
+            </span>
           </mat-form-field>
 
           <button
@@ -78,27 +83,41 @@
             </button>
 
             <form class="filters-form" [formGroup]="filterForm" *ngIf="filtersExpanded">
-              <mat-form-field appearance="outline" class="blog-control-field filter-field">
-                <mat-label>{{ 'blog.filters.tag' | translate }}</mat-label>
-                <mat-select formControlName="tag" panelClass="blog-select-panel">
-                  <mat-option value="">{{ 'blog.filters.allTags' | translate }}</mat-option>
-                  <mat-option *ngFor="let tag of vm.availableTags" [value]="tag">{{ tag }}</mat-option>
-                </mat-select>
-              </mat-form-field>
+              <div class="filter-control">
+                <span class="control-caption">{{ 'blog.filters.tag' | translate }}</span>
+                <mat-form-field appearance="outline" class="blog-control-field filter-field">
+                  <mat-select formControlName="tag" panelClass="blog-select-panel">
+                    <mat-option value="">{{ 'blog.filters.allTags' | translate }}</mat-option>
+                    <mat-option *ngFor="let tag of vm.availableTags" [value]="tag">{{ tag }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
 
-              <mat-form-field appearance="outline" class="blog-control-field filter-field filter-field-range">
-                <mat-label>{{ 'blog.filters.dateRange' | translate }}</mat-label>
-                <mat-date-range-input [rangePicker]="picker">
-                  <input matStartDate formControlName="startDate" [placeholder]="'blog.filters.from' | translate">
-                  <input matEndDate formControlName="endDate" [placeholder]="'blog.filters.to' | translate">
-                </mat-date-range-input>
-                <mat-date-range-picker #picker panelClass="blog-date-panel"></mat-date-range-picker>
-              </mat-form-field>
+              <div class="filter-control">
+                <span class="control-caption">{{ 'blog.filters.dateRange' | translate }}</span>
+                <mat-form-field appearance="outline" class="blog-control-field filter-field filter-field-range">
+                  <mat-date-range-input [rangePicker]="picker">
+                    <input matStartDate formControlName="startDate" [placeholder]="'blog.filters.from' | translate">
+                    <input matEndDate formControlName="endDate" [placeholder]="'blog.filters.to' | translate">
+                  </mat-date-range-input>
+                  <button
+                    matSuffix
+                    type="button"
+                    class="date-trigger-button"
+                    (click)="picker.open()"
+                    [attr.aria-label]="'blog.filters.openCalendar' | translate">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <rect x="4" y="5" width="16" height="15" rx="2"></rect>
+                      <path d="M8 3V7"></path>
+                      <path d="M16 3V7"></path>
+                      <path d="M4 10H20"></path>
+                    </svg>
+                  </button>
+                  <mat-date-range-picker #picker panelClass="blog-date-panel"></mat-date-range-picker>
+                </mat-form-field>
+              </div>
 
               <div class="filter-actions">
-                <button type="button" class="filter-button filter-button-secondary" (click)="picker.open()">
-                  {{ 'blog.filters.openCalendar' | translate }}
-                </button>
                 <button
                   type="button"
                   class="filter-button"

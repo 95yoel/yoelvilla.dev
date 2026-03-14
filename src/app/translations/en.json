@@ -83,7 +83,7 @@
     "search": {
       "title": "Search articles",
       "label": "Search by title",
-      "placeholder": "Type at least 3 letters",
+      "placeholder": "Search articles",
       "clear": "Clear",
       "minChars": "Type at least 3 letters to see suggestions.",
       "empty": "No articles match that search."
