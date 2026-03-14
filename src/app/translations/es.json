@@ -80,6 +80,17 @@
     "backToBlog": "Volver al blog",
     "readArticle": "Leer artículo",
     "readingTimeFallback": "Artículo en markdown",
+    "filters": {
+      "title": "Filtrar artículos",
+      "tag": "Tag",
+      "allTags": "Todos los tags",
+      "dateRange": "Rango de fechas",
+      "from": "Desde",
+      "to": "Hasta",
+      "openCalendar": "Abrir calendario",
+      "clear": "Limpiar filtros",
+      "empty": "No hay artículos que coincidan con los filtros."
+    },
     "meta": {
       "publishedOn": "Publicado el"
     },

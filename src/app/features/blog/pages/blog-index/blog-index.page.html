@@ -20,19 +20,60 @@
       </section>
 
       <div class="blog-index-grid" *ngIf="vm.status === 'ready'; else stateBlock">
-        <section class="featured-article" *ngIf="vm.featured; else emptyBlock">
-          <div class="featured-label">{{ 'blog.featured' | translate }}</div>
-          <span class="featured-date" *ngIf="vm.featured.date">{{ formatDate(vm.featured.date) }}</span>
-          <h2>{{ vm.featured.title }}</h2>
-          <p>{{ vm.featured.description }}</p>
+        <section class="blog-main-column">
+          <section class="blog-filters">
+            <div class="filters-copy">
+              <span class="featured-label">{{ 'blog.filters.title' | translate }}</span>
+              <p>{{ getFilterSummary(vm.filteredCount, vm.totalCount) }}</p>
+            </div>
 
-          <div class="featured-tags" *ngIf="vm.featured.tags.length">
-            <span class="tag" *ngFor="let tag of vm.featured.tags">{{ tag }}</span>
-          </div>
+            <form class="filters-form" [formGroup]="filterForm">
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>{{ 'blog.filters.tag' | translate }}</mat-label>
+                <mat-select formControlName="tag">
+                  <mat-option value="">{{ 'blog.filters.allTags' | translate }}</mat-option>
+                  <mat-option *ngFor="let tag of vm.availableTags" [value]="tag">{{ tag }}</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-          <a [routerLink]="featuredLink(vm.featured.slug)" class="featured-link">
-            {{ 'blog.readArticle' | translate }} &rarr;
-          </a>
+              <mat-form-field appearance="outline" class="filter-field filter-field-range">
+                <mat-label>{{ 'blog.filters.dateRange' | translate }}</mat-label>
+                <mat-date-range-input [rangePicker]="picker">
+                  <input matStartDate formControlName="startDate" [placeholder]="'blog.filters.from' | translate">
+                  <input matEndDate formControlName="endDate" [placeholder]="'blog.filters.to' | translate">
+                </mat-date-range-input>
+                <mat-date-range-picker #picker></mat-date-range-picker>
+              </mat-form-field>
+
+              <div class="filter-actions">
+                <button type="button" class="filter-button filter-button-secondary" (click)="picker.open()">
+                  {{ 'blog.filters.openCalendar' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="filter-button"
+                  (click)="clearFilters()"
+                  [disabled]="!vm.hasActiveFilters">
+                  {{ 'blog.filters.clear' | translate }}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="featured-article" *ngIf="vm.featured; else emptyBlock">
+            <div class="featured-label">{{ 'blog.featured' | translate }}</div>
+            <span class="featured-date" *ngIf="vm.featured.date">{{ formatDate(vm.featured.date) }}</span>
+            <h2>{{ vm.featured.title }}</h2>
+            <p>{{ vm.featured.description }}</p>
+
+            <div class="featured-tags" *ngIf="vm.featured.tags.length">
+              <span class="tag" *ngFor="let tag of vm.featured.tags">{{ tag }}</span>
+            </div>
+
+            <a [routerLink]="featuredLink(vm.featured.slug)" class="featured-link">
+              {{ 'blog.readArticle' | translate }} &rarr;
+            </a>
+          </section>
         </section>
 
         <app-blog-sidebar
@@ -65,7 +106,7 @@
 
   <ng-template #emptyBlock>
     <div class="blog-state">
-      {{ 'blog.empty' | translate }}
+      {{ getEmptyStateMessage(vm.status === 'ready' && vm.hasActiveFilters) }}
     </div>
   </ng-template>
 

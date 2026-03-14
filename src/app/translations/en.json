@@ -80,6 +80,17 @@
     "backToBlog": "Back to blog",
     "readArticle": "Read article",
     "readingTimeFallback": "Markdown article",
+    "filters": {
+      "title": "Filter articles",
+      "tag": "Tag",
+      "allTags": "All tags",
+      "dateRange": "Date range",
+      "from": "From",
+      "to": "To",
+      "openCalendar": "Open calendar",
+      "clear": "Clear filters",
+      "empty": "No articles match the current filters."
+    },
     "meta": {
       "publishedOn": "Published on"
     },
