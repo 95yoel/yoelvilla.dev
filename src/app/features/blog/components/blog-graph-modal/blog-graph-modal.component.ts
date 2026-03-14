@@ -8,9 +8,11 @@ import { Language } from '../../../../translations/services/translation.service'
 import { BlogRoutingService } from '../../services/blog-routing.service';
 
 type SigmaRenderer = {
-  on(event: string, listener: (payload: { node?: string }) => void): SigmaRenderer;
-  off(event: string, listener: (payload: { node?: string }) => void): SigmaRenderer;
+  on(event: string, listener: (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
+  off(event: string, listener: (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
   getCamera(): { animatedReset(options?: { duration?: number }): void };
+  viewportToGraph(point: { x: number; y: number }): { x: number; y: number };
+  setSetting(key: string, value: unknown): SigmaRenderer;
   setSettings(settings: Record<string, unknown>): SigmaRenderer;
   refresh(): SigmaRenderer;
   kill(): void;
@@ -52,6 +54,8 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   private graphBuildResult: BlogGraphBuildResult | null = null;
   private hoveredSlug: string | null = null;
   private selectedSlug: string | null = null;
+  private draggingSlug: string | null = null;
+  private dragOffset: { x: number; y: number } | null = null;
   private previousBodyOverflow = '';
 
   readonly topLevelLimit = 8;
@@ -63,6 +67,10 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   loadError: string | null = null;
 
   private readonly handleEnterNode = (payload: { node?: string }) => {
+    if (this.draggingSlug) {
+      return;
+    }
+
     if (!payload.node) {
       return;
     }
@@ -73,6 +81,10 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   };
 
   private readonly handleLeaveNode = (payload: { node?: string }) => {
+    if (this.draggingSlug) {
+      return;
+    }
+
     if (payload.node && this.hoveredSlug !== payload.node) {
       return;
     }
@@ -83,6 +95,10 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   };
 
   private readonly handleClickNode = (payload: { node?: string }) => {
+    if (this.draggingSlug) {
+      return;
+    }
+
     if (!payload.node) {
       return;
     }
@@ -93,6 +109,10 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   };
 
   private readonly handleDoubleClickNode = (payload: { node?: string }) => {
+    if (this.draggingSlug) {
+      return;
+    }
+
     if (!payload.node || payload.node === this.currentSlug) {
       return;
     }
@@ -103,10 +123,56 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   };
 
   private readonly handleClickStage = () => {
+    if (this.draggingSlug) {
+      return;
+    }
+
     this.selectedSlug = null;
     this.hoveredSlug = null;
     this.syncInspector();
     this.applySigmaReducers();
+  };
+
+  private readonly handleDownNode = (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => {
+    if (!payload.node || !payload.event || !this.graphBuildResult || !this.sigma) {
+      return;
+    }
+
+    payload.preventSigmaDefault?.();
+    const graphPoint = this.sigma.viewportToGraph({ x: payload.event.x, y: payload.event.y });
+    const nodeData = this.graphBuildResult.graph.getNodeAttributes(payload.node);
+
+    this.draggingSlug = payload.node;
+    this.dragOffset = {
+      x: nodeData.x - graphPoint.x,
+      y: nodeData.y - graphPoint.y
+    };
+    this.sigma.setSetting('enableCameraPanning', false);
+    this.sigma.setSetting('enableCameraZooming', false);
+  };
+
+  private readonly handleMoveBody = (payload: { event?: { x: number; y: number } }) => {
+    if (!this.draggingSlug || !this.dragOffset || !payload.event || !this.graphBuildResult || !this.sigma) {
+      return;
+    }
+
+    const graphPoint = this.sigma.viewportToGraph({ x: payload.event.x, y: payload.event.y });
+    this.graphBuildResult.graph.mergeNodeAttributes(this.draggingSlug, {
+      x: graphPoint.x + this.dragOffset.x,
+      y: graphPoint.y + this.dragOffset.y
+    });
+    this.sigma.refresh();
+  };
+
+  private readonly handlePointerRelease = () => {
+    if (!this.draggingSlug || !this.sigma) {
+      return;
+    }
+
+    this.draggingSlug = null;
+    this.dragOffset = null;
+    this.sigma.setSetting('enableCameraPanning', true);
+    this.sigma.setSetting('enableCameraZooming', true);
   };
 
   ngAfterViewInit(): void {
@@ -212,6 +278,10 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       this.sigma.on('leaveNode', this.handleLeaveNode);
       this.sigma.on('clickNode', this.handleClickNode);
       this.sigma.on('doubleClickNode', this.handleDoubleClickNode);
+      this.sigma.on('downNode', this.handleDownNode);
+      this.sigma.on('moveBody', this.handleMoveBody);
+      this.sigma.on('upNode', this.handlePointerRelease);
+      this.sigma.on('upStage', this.handlePointerRelease);
       this.sigma.on('clickStage', this.handleClickStage);
 
       this.applySigmaReducers();
@@ -235,9 +305,15 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     this.sigma.off('leaveNode', this.handleLeaveNode);
     this.sigma.off('clickNode', this.handleClickNode);
     this.sigma.off('doubleClickNode', this.handleDoubleClickNode);
+    this.sigma.off('downNode', this.handleDownNode);
+    this.sigma.off('moveBody', this.handleMoveBody);
+    this.sigma.off('upNode', this.handlePointerRelease);
+    this.sigma.off('upStage', this.handlePointerRelease);
     this.sigma.off('clickStage', this.handleClickStage);
     this.sigma.kill();
     this.sigma = null;
+    this.draggingSlug = null;
+    this.dragOffset = null;
   }
 
   private applySigmaReducers(): void {
