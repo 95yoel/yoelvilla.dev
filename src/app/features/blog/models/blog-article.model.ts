@@ -15,4 +15,5 @@ export interface BlogArticleSummary {
 export interface BlogArticle extends BlogArticleSummary {
   markdown: string;
   html: string;
+  readingTimeMinutes: number;
 }

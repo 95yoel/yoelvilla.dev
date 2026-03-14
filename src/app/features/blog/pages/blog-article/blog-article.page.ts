@@ -22,6 +22,7 @@ type ArticleVm =
         title: string;
         description: string;
         date: string;
+        readingTimeMinutes: number;
         tags: string[];
         html: string;
       };
@@ -77,6 +78,7 @@ export class BlogArticlePage {
             title: article.title,
             description: article.description,
             date: article.date,
+            readingTimeMinutes: article.readingTimeMinutes,
             tags: article.tags,
             html: article.html
           },

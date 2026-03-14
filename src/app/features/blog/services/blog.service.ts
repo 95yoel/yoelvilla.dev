@@ -126,7 +126,8 @@ export class BlogService {
     return {
       ...summary,
       markdown: body,
-      html: marked.parse(body) as string
+      html: marked.parse(body) as string,
+      readingTimeMinutes: this.calculateReadingTimeMinutes(body)
     };
   }
 
@@ -268,6 +269,32 @@ export class BlogService {
       .replace(/[.\s_]+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
+  }
+
+  private calculateReadingTimeMinutes(markdown: string): number {
+    const wordsPerMinute = 180;
+    const wordCount = this.countWords(markdown);
+
+    return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+  }
+
+  private countWords(markdown: string): number {
+    const plainText = markdown
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`[^`]*`/g, ' ')
+      .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/[#>*_~\-]+/g, ' ')
+      .replace(/[^\p{L}\p{N}\s']/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!plainText) {
+      return 0;
+    }
+
+    return plainText.split(' ').filter(Boolean).length;
   }
 
   private resolvePath(path: string): string {

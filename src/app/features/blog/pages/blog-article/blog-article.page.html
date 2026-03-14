@@ -17,7 +17,9 @@
     <div class="article-layout" *ngIf="vm.status === 'ready'; else articleState">
       <article class="article-card">
         <div class="article-meta">
-          <span *ngIf="vm.article.date">{{ 'blog.meta.publishedOn' | translate }} {{ formatDate(vm.article.date) }}</span>
+          <span *ngIf="vm.article.date">
+            {{ 'blog.meta.publishedOn' | translate }} {{ formatDate(vm.article.date) }} · {{ vm.article.readingTimeMinutes }}min
+          </span>
         </div>
 
         <h1>{{ vm.article.title || ('blog.untitled' | translate) }}</h1>
