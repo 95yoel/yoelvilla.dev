@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Subject, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
+import { Subject, Subscription, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
+import gsap from 'gsap';
 import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
 import { BlogService } from '../../services/blog.service';
 import { BlogArticleSummary } from '../../models/blog-article.model';
@@ -36,6 +37,9 @@ type ArticleVm =
   styleUrl: './blog-article.page.css'
 })
 export class BlogArticlePage {
+  @ViewChild('articleCard', { read: ElementRef }) private articleCard?: ElementRef<HTMLElement>;
+  @ViewChild('articleSidebar', { read: ElementRef }) private articleSidebar?: ElementRef<HTMLElement>;
+
   private readonly route = inject(ActivatedRoute);
   private readonly blogService = inject(BlogService);
   private readonly translationService = inject(TranslationService);
@@ -46,10 +50,12 @@ export class BlogArticlePage {
   readonly layout$ = this.layoutService.layout$;
   showLanguagePanel = false;
   showScrollTopButton = false;
+  private viewStateSubscription: Subscription | null = null;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
   private scrollWatcherId: number | null = null;
+  private hasPlayedEntryAnimation = false;
   private readonly routeState$ = combineLatest([
     this.route.paramMap.pipe(map((params) => params.get('slug') || '')),
     this.route.data.pipe(map(() => this.blogRoutingService.getRouteLanguage()))
@@ -98,6 +104,18 @@ export class BlogArticlePage {
     this.doc.body.style.overflow = 'auto';
     this.doc.body.style.overflowX = 'hidden';
     this.doc.documentElement.style.overflow = 'auto';
+    this.viewStateSubscription = this.vm$.subscribe((vm) => {
+      if (vm.status !== 'ready') {
+        this.hasPlayedEntryAnimation = false;
+        return;
+      }
+
+      if (this.hasPlayedEntryAnimation) {
+        return;
+      }
+
+      requestAnimationFrame(() => this.animateEntry());
+    });
     this.updateScrollTopButtonVisibility();
     this.startScrollWatcher();
   }
@@ -106,6 +124,8 @@ export class BlogArticlePage {
     this.doc.body.style.overflow = this.previousBodyOverflow;
     this.doc.body.style.overflowX = this.previousBodyOverflowX;
     this.doc.documentElement.style.overflow = this.previousHtmlOverflow;
+    this.viewStateSubscription?.unsubscribe();
+    this.viewStateSubscription = null;
     this.stopScrollWatcher();
   }
 
@@ -199,5 +219,34 @@ export class BlogArticlePage {
       window.clearInterval(this.scrollWatcherId);
       this.scrollWatcherId = null;
     }
+  }
+
+  private animateEntry(): void {
+    const articleCard = this.articleCard?.nativeElement;
+    const articleSidebar = this.articleSidebar?.nativeElement;
+
+    if (!articleCard || !articleSidebar) {
+      return;
+    }
+
+    this.hasPlayedEntryAnimation = true;
+
+    gsap.killTweensOf([articleCard, articleSidebar]);
+    gsap.set(articleCard, { opacity: 0, x: -50 });
+    gsap.set(articleSidebar, { opacity: 0, x: 50 });
+
+    gsap.to(articleCard, {
+      opacity: 1,
+      x: 0,
+      duration: 0.8,
+      ease: 'power2.out'
+    });
+
+    gsap.to(articleSidebar, {
+      opacity: 1,
+      x: 0,
+      duration: 0.8,
+      ease: 'power2.out'
+    });
   }
 }

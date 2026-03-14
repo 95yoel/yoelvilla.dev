@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, Subscription, catchError, combineLatest, distinctUntilChanged, map, of, startWith, switchMap, tap, timer } from 'rxjs';
+import gsap from 'gsap';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -59,6 +60,9 @@ interface BlogFiltersFormValue {
   styleUrl: './blog-index.page.css'
 })
 export class BlogIndexPage {
+  @ViewChild('blogHero', { read: ElementRef }) private blogHero?: ElementRef<HTMLElement>;
+  @ViewChild('blogSidebar', { read: ElementRef }) private blogSidebar?: ElementRef<HTMLElement>;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly blogService = inject(BlogService);
@@ -78,10 +82,12 @@ export class BlogIndexPage {
   showScrollTopButton = false;
   filtersExpanded = false;
   private searchInteractionSubscription: Subscription | null = null;
+  private viewStateSubscription: Subscription | null = null;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
   private scrollWatcherId: number | null = null;
+  private hasPlayedEntryAnimation = false;
   private readonly lang$ = this.route.data.pipe(
     map(() => this.blogRoutingService.getRouteLanguage()),
     map((routeLang) => this.blogRoutingService.resolveLanguage(routeLang)),
@@ -125,6 +131,18 @@ export class BlogIndexPage {
         this.filtersExpanded = false;
       }
     });
+    this.viewStateSubscription = this.vm$.subscribe((vm) => {
+      if (vm.status !== 'ready') {
+        this.hasPlayedEntryAnimation = false;
+        return;
+      }
+
+      if (this.hasPlayedEntryAnimation) {
+        return;
+      }
+
+      requestAnimationFrame(() => this.animateEntry());
+    });
     this.updateScrollTopButtonVisibility();
     this.startScrollWatcher();
   }
@@ -135,6 +153,8 @@ export class BlogIndexPage {
     this.doc.documentElement.style.overflow = this.previousHtmlOverflow;
     this.searchInteractionSubscription?.unsubscribe();
     this.searchInteractionSubscription = null;
+    this.viewStateSubscription?.unsubscribe();
+    this.viewStateSubscription = null;
     this.stopScrollWatcher();
   }
 
@@ -391,5 +411,24 @@ export class BlogIndexPage {
       window.clearInterval(this.scrollWatcherId);
       this.scrollWatcherId = null;
     }
+  }
+
+  private animateEntry(): void {
+    const hero = this.blogHero?.nativeElement;
+    const sidebar = this.blogSidebar?.nativeElement;
+
+    if (!hero || !sidebar) {
+      return;
+    }
+
+    this.hasPlayedEntryAnimation = true;
+
+    gsap.killTweensOf([hero, sidebar]);
+
+    gsap.set(hero, { opacity: 0, x: -140 });
+    gsap.set(sidebar, { opacity: 0, x: 140 });
+
+    gsap.to(hero, { opacity: 1, x: 0, duration: 1.2, ease: 'power2.out' });
+    gsap.to(sidebar, { opacity: 1, x: 0, duration: 1.2, ease: 'power2.out' });
   }
 }

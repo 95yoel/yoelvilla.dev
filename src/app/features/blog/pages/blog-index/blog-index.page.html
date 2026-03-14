@@ -14,7 +14,7 @@
     <main class="blog-index-layout">
       <div class="blog-overview" *ngIf="vm.status === 'ready'; else stateBlock">
         <section class="blog-main-column">
-          <section class="blog-hero">
+          <section class="blog-hero" #blogHero>
             <span class="blog-eyebrow">{{ 'blog.eyebrow' | translate }}</span>
             <h1>{{ 'blog.headline' | translate }}</h1>
             <p>{{ 'blog.subheadline' | translate }}</p>
@@ -151,6 +151,7 @@
         </section>
 
         <app-blog-sidebar
+          #blogSidebar
           [articles]="vm.rest.length ? vm.rest : (vm.featured ? [vm.featured] : [])"
           [lang]="currentLanguage"></app-blog-sidebar>
       </div>
