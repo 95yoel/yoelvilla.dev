@@ -1,0 +1,250 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 10010;
+}
+
+.graph-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(7, 10, 20, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+.graph-modal {
+  width: min(1320px, 100%);
+  max-height: min(88vh, 920px);
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.4rem;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(circle at top left, rgba(244, 178, 103, 0.14), transparent 24%),
+    linear-gradient(155deg, rgba(20, 27, 45, 0.98), rgba(41, 23, 31, 0.96));
+  color: var(--color-text-light);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.48);
+  overflow: hidden;
+}
+
+.graph-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.graph-modal-copy {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 760px;
+}
+
+.graph-modal-kicker,
+.inspector-kicker {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 247, 242, 0.68);
+}
+
+.graph-modal-copy h2,
+.graph-empty-state h3,
+.inspector-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.graph-modal-copy h2 {
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+}
+
+.graph-modal-copy p,
+.graph-empty-state p,
+.inspector-card p,
+.inspector-line {
+  margin: 0;
+  line-height: 1.65;
+  color: rgba(255, 247, 242, 0.88);
+}
+
+.graph-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.graph-action-button {
+  min-height: 44px;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-light);
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--transition-medium), background var(--transition-medium), border-color var(--transition-medium);
+}
+
+.graph-action-button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.graph-action-button.subtle {
+  background: rgba(123, 194, 165, 0.08);
+}
+
+.graph-action-button.full-width {
+  width: 100%;
+}
+
+.graph-modal-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 360px);
+  gap: 1rem;
+  align-items: start;
+}
+
+.graph-stage-shell,
+.graph-inspector,
+.graph-empty-state {
+  min-height: 0;
+}
+
+.graph-stage-shell {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.graph-stage-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  color: rgba(255, 247, 242, 0.75);
+  font-size: 0.88rem;
+}
+
+.graph-stage {
+  position: relative;
+  min-height: 520px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(circle at center, rgba(123, 194, 165, 0.09), transparent 34%),
+    linear-gradient(180deg, rgba(10, 16, 29, 0.92), rgba(15, 23, 42, 0.82));
+  overflow: hidden;
+}
+
+.graph-stage canvas {
+  outline: none;
+}
+
+.graph-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 247, 242, 0.76);
+}
+
+.graph-inspector {
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+  margin-top: -0.35rem;
+}
+
+.inspector-card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.inspector-card.tone-secondary {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.inspector-card h3 {
+  font-size: 1.3rem;
+  line-height: 1.15;
+}
+
+.inspector-line + .inspector-line {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.55rem;
+}
+
+.inspector-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.inspector-tag {
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-light);
+  font-size: 0.84rem;
+}
+
+.legend-card p + p {
+  margin-top: 0.15rem;
+}
+
+.graph-empty-state {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  padding: 1.6rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 1040px) {
+  .graph-modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-stage {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 720px) {
+  .graph-modal-backdrop {
+    padding: 0.75rem;
+  }
+
+  .graph-modal {
+    max-height: 92vh;
+    padding: 1rem;
+  }
+
+  .graph-modal-header {
+    flex-direction: column;
+  }
+
+  .graph-modal-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .graph-action-button {
+    flex: 1 1 0;
+  }
+
+  .graph-stage {
+    min-height: 360px;
+  }
+}

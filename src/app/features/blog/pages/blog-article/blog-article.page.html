@@ -15,7 +15,31 @@
 
     <div class="article-layout" *ngIf="vm.status === 'ready'; else articleState">
       <article class="article-card" #articleCard>
-        <div class="article-meta">
+        <div class="article-header-row">
+          <div class="article-meta">
+            <span *ngIf="vm.article.date">
+              {{ 'blog.meta.publishedOn' | translate }} {{ formatDate(vm.article.date) }} · {{ vm.article.readingTimeMinutes }}min
+            </span>
+          </div>
+
+          <button
+            type="button"
+            class="article-graph-button"
+            (click)="openGraphModal()"
+            [attr.aria-label]="currentLanguage === 'es' ? 'Abrir grafo de articulos relacionados' : 'Open related articles graph'">
+            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <circle cx="6" cy="12" r="2"></circle>
+              <circle cx="18" cy="7" r="2"></circle>
+              <circle cx="18" cy="17" r="2"></circle>
+              <path d="M8 12H16"></path>
+              <path d="M16.5 8.5L8.2 11.4"></path>
+              <path d="M16.5 15.5L8.2 12.6"></path>
+            </svg>
+            <span>{{ currentLanguage === 'es' ? 'Grafo' : 'Graph' }}</span>
+          </button>
+        </div>
+
+        <div class="article-meta article-meta-mobile">
           <span *ngIf="vm.article.date">
             {{ 'blog.meta.publishedOn' | translate }} {{ formatDate(vm.article.date) }} · {{ vm.article.readingTimeMinutes }}min
           </span>
@@ -39,6 +63,14 @@
     *ngIf="showLanguagePanel && vm.status === 'ready'"
     (close)="showLanguagePanel = false"
     (languageChange)="onLanguageChange($event, vm.article.slug)"></app-language-panel>
+
+  <app-blog-graph-modal
+    *ngIf="showGraphModal && vm.status === 'ready'"
+    [graphData]="vm.graph"
+    [currentSlug]="vm.article.slug"
+    [lang]="currentLanguage"
+    (close)="closeGraphModal()"
+    (navigateToArticle)="navigateFromGraph($event)"></app-blog-graph-modal>
 
   <ng-template #articleLinksFallback>
     <div class="article-links">

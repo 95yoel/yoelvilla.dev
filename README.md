@@ -169,9 +169,15 @@ src/app/
 // src/environments/environment.ts
 export const environment = {
   CONTACT_API: "https://oa2o9zdgzc.execute-api.eu-west-3.amazonaws.com/prod",
-  CONTACT_ENDPOINT: "/contact"
+  CONTACT_ENDPOINT: "/contact",
+  BLOG_BASE_URL: "https://raw.githubusercontent.com/95yoel/yoelvilla.dev-articles/main"
 }
 ```
+
+### Blog Content Source
+- In production, the frontend reads `index.json` and article markdown from the `main` branch of `yoelvilla.dev-articles`.
+- For branch testing, `BLOG_BASE_URL` can be pointed temporarily to another branch such as `graph-navigation`.
+- If blog changes do not appear in the frontend, first verify which remote branch `BLOG_BASE_URL` is targeting.
 
 ### TypeScript Config
 - `resolveJsonModule: true` - To import JSON
@@ -472,9 +478,15 @@ src/app/
 // src/environments/environment.ts
 export const environment = {
   CONTACT_API: "https://oa2o9zdgzc.execute-api.eu-west-3.amazonaws.com/prod",
-  CONTACT_ENDPOINT: "/contact"
+  CONTACT_ENDPOINT: "/contact",
+  BLOG_BASE_URL: "https://raw.githubusercontent.com/95yoel/yoelvilla.dev-articles/main"
 };
 ```
+
+### Origen del Contenido del Blog
+- En produccion, el frontend lee `index.json` y los markdown de articulos desde la rama `main` de `yoelvilla.dev-articles`.
+- Para pruebas por rama, `BLOG_BASE_URL` puede apuntarse temporalmente a otra rama como `graph-navigation`.
+- Si cambios del blog no aparecen en el frontend, lo primero que hay que revisar es a que rama remota esta apuntando `BLOG_BASE_URL`.
 
 ### TypeScript Config
 - `resolveJsonModule: true` - Para importar JSON

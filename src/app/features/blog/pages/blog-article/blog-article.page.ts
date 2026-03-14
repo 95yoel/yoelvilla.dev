@@ -3,9 +3,10 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, Subscription, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
 import gsap from 'gsap';
+import { BlogGraphModalComponent } from '../../components/blog-graph-modal/blog-graph-modal.component';
 import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
 import { BlogService } from '../../services/blog.service';
-import { BlogArticleSummary } from '../../models/blog-article.model';
+import { BlogArticleGraphData, BlogArticleSummary } from '../../models/blog-article.model';
 import { TranslatePipe } from '../../../../translations/pipes/translate.pipe';
 import { Language, TranslationService } from '../../../../translations/services/translation.service';
 import { LayoutService } from '../../../../services/layout.service';
@@ -28,11 +29,12 @@ type ArticleVm =
         html: string;
       };
       articles: BlogArticleSummary[];
+      graph: BlogArticleGraphData;
     };
 
 @Component({
   selector: 'app-blog-article-page',
-  imports: [CommonModule, RouterLink, BlogSidebarComponent, TranslatePipe, CustomCursorComponent, LanguagePanelComponent],
+  imports: [CommonModule, RouterLink, BlogSidebarComponent, BlogGraphModalComponent, TranslatePipe, CustomCursorComponent, LanguagePanelComponent],
   templateUrl: './blog-article.page.html',
   styleUrl: './blog-article.page.css'
 })
@@ -50,6 +52,7 @@ export class BlogArticlePage {
   readonly layout$ = this.layoutService.layout$;
   showLanguagePanel = false;
   showScrollTopButton = false;
+  showGraphModal = false;
   private viewStateSubscription: Subscription | null = null;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
@@ -75,9 +78,10 @@ export class BlogArticlePage {
     switchMap(([state]) =>
       combineLatest([
         this.blogService.getIndex(state.lang),
-        this.blogService.getArticle(state.slug, state.lang)
+        this.blogService.getArticle(state.slug, state.lang),
+        this.blogService.getGraphData(state.lang)
       ]).pipe(
-        map(([articles, article]): ArticleVm => ({
+        map(([articles, article, graph]): ArticleVm => ({
           status: 'ready',
           article: {
             slug: article.slug,
@@ -88,7 +92,8 @@ export class BlogArticlePage {
             tags: article.tags,
             html: article.html
           },
-          articles
+          articles,
+          graph
         })),
         startWith({ status: 'loading' } as ArticleVm),
         catchError(() => of({ status: 'error' } as ArticleVm))
@@ -135,11 +140,29 @@ export class BlogArticlePage {
 
   retry(): void {
     this.blogService.clearCaches();
+    this.showGraphModal = false;
     this.reload$.next();
   }
 
   toggleLanguagePanel(): void {
     this.showLanguagePanel = !this.showLanguagePanel;
+  }
+
+  openGraphModal(): void {
+    this.showGraphModal = true;
+  }
+
+  closeGraphModal(): void {
+    this.showGraphModal = false;
+  }
+
+  navigateFromGraph(slug: string): void {
+    this.showGraphModal = false;
+    this.blogRoutingService.goToArticle(slug, this.currentLanguage);
+  }
+
+  hasGraphRelations(graph: BlogArticleGraphData, slug: string): boolean {
+    return (graph.relatedBySlug[slug] || []).length > 0;
   }
 
   onLanguageChange(lang: Language, slug: string): void {

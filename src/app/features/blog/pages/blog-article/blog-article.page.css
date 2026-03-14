@@ -90,13 +90,65 @@
   box-shadow: var(--shadow-panel);
 }
 
+.article-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .article-meta {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
   font-size: 0.9rem;
   color: var(--color-text-slate);
+}
+
+.article-meta-mobile {
+  display: none;
+}
+
+.article-graph-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  justify-content: center;
+  min-width: 46px;
+  min-height: 46px;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(64, 87, 79, 0.2);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(84, 110, 100, 0.12), rgba(123, 194, 165, 0.2));
+  color: #40574f;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(64, 87, 79, 0.12);
+  transition: transform var(--transition-medium), background var(--transition-medium), border-color var(--transition-medium), box-shadow var(--transition-medium);
+}
+
+.article-graph-button:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(84, 110, 100, 0.18), rgba(123, 194, 165, 0.3));
+  border-color: rgba(64, 87, 79, 0.32);
+  box-shadow: 0 14px 28px rgba(64, 87, 79, 0.18);
+}
+
+.article-graph-button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.article-graph-button span {
+  white-space: nowrap;
 }
 
 .article-card h1 {
@@ -282,6 +334,24 @@
 
   .topbar-actions {
     justify-content: space-between;
+    width: 100%;
+  }
+
+  .article-header-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .article-header-row .article-meta {
+    display: none;
+  }
+
+  .article-meta-mobile {
+    display: flex;
+  }
+
+  .article-graph-button {
+    justify-content: center;
     width: 100%;
   }
 

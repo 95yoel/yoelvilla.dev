@@ -4,7 +4,7 @@ import { Observable, map, shareReplay, switchMap, tap } from 'rxjs';
 import { marked } from 'marked';
 import { environment } from '../../../../environments/environment';
 import { Language } from '../../../translations/services/translation.service';
-import { BlogArticle, BlogArticleSummary } from '../models/blog-article.model';
+import { BlogArticle, BlogArticleGraphData, BlogArticleSummary, BlogGraphArticleNode, BlogGraphRelation, BlogGraphRelationType, BlogGraphShared } from '../models/blog-article.model';
 
 interface FrontmatterData {
   title?: string;
@@ -19,19 +19,32 @@ interface LocalizedFields {
   [key: string]: unknown;
 }
 
+interface BlogIndexResource {
+  articles: BlogArticleSummary[];
+  graph: BlogArticleGraphData;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class BlogService {
   private readonly http = inject(HttpClient);
   private readonly articleCache = new Map<string, Observable<BlogArticle>>();
-  private readonly indexCache = new Map<Language, Observable<BlogArticleSummary[]>>();
+  private readonly indexCache = new Map<Language, Observable<BlogIndexResource>>();
   private readonly lastArticleKey = 'blog-last-article';
   private readonly lastLanguageKey = 'blog-last-language';
   // Future extension point: mirror hot articles into IndexedDB without changing the service contract.
   private readonly blogBaseUrl = environment.BLOG_BASE_URL.replace(/\/+$/, '');
 
   getIndex(lang: Language): Observable<BlogArticleSummary[]> {
+    return this.getIndexResource(lang).pipe(map((resource) => resource.articles));
+  }
+
+  getGraphData(lang: Language): Observable<BlogArticleGraphData> {
+    return this.getIndexResource(lang).pipe(map((resource) => resource.graph));
+  }
+
+  private getIndexResource(lang: Language): Observable<BlogIndexResource> {
     const cached = this.indexCache.get(lang);
     if (cached) {
       return cached;
@@ -131,13 +144,18 @@ export class BlogService {
     };
   }
 
-  private normalizeIndexPayload(payload: unknown, lang: Language): BlogArticleSummary[] {
-    return this.unwrapEntries(payload)
+  private normalizeIndexPayload(payload: unknown, lang: Language): BlogIndexResource {
+    const articles = this.unwrapEntries(payload)
       .map((entry) => this.normalizeSummary(entry, lang))
       .filter((entry): entry is BlogArticleSummary => !!entry)
       .filter((entry) => entry.published !== false)
       .filter((entry) => entry.lang === lang)
       .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    return {
+      articles,
+      graph: this.normalizeGraphPayload(payload, articles)
+    };
   }
 
   private unwrapEntries(payload: unknown): unknown[] {
@@ -192,6 +210,163 @@ export class BlogService {
       coverImage: this.toNullableStringValue(entry['coverImage']) || undefined,
       published: entry['published'] !== false
     };
+  }
+
+  private normalizeGraphPayload(payload: unknown, articles: BlogArticleSummary[]): BlogArticleGraphData {
+    const articlesBySlug = articles.reduce<Record<string, BlogGraphArticleNode>>((acc, article) => {
+      acc[article.slug] = {
+        ...article,
+        summary: article.description
+      };
+      return acc;
+    }, {});
+
+    if (!payload || typeof payload !== 'object') {
+      return {
+        minScore: 0,
+        maxRelated: 0,
+        articlesBySlug,
+        edges: [],
+        relatedBySlug: {}
+      };
+    }
+
+    const graph = (payload as Record<string, unknown>)['graph'];
+    if (!graph || typeof graph !== 'object') {
+      return {
+        minScore: 0,
+        maxRelated: 0,
+        articlesBySlug,
+        edges: [],
+        relatedBySlug: {}
+      };
+    }
+
+    const rawGraph = graph as Record<string, unknown>;
+    const edges = this.toGraphRelations(rawGraph['edges']);
+    const edgeLookup = this.createEdgeLookup(edges);
+    const relatedBySlug = this.normalizeRelatedBySlug(rawGraph['relatedBySlug'], edgeLookup, articlesBySlug);
+
+    return {
+      minScore: this.toNumberValue((rawGraph['thresholds'] as Record<string, unknown> | null)?.['minScore']),
+      maxRelated: this.toNumberValue(rawGraph['maxRelated']),
+      articlesBySlug,
+      edges,
+      relatedBySlug
+    };
+  }
+
+  private createEdgeLookup(edges: BlogGraphRelation[]): Map<string, BlogGraphRelation> {
+    return edges.reduce((acc, edge) => {
+      acc.set(this.toEdgeKey(edge.source, edge.target), edge);
+      return acc;
+    }, new Map<string, BlogGraphRelation>());
+  }
+
+  private normalizeRelatedBySlug(
+    value: unknown,
+    edgeLookup: Map<string, BlogGraphRelation>,
+    articlesBySlug: Record<string, BlogGraphArticleNode>
+  ): Record<string, BlogGraphRelation[]> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    const rawMap = value as Record<string, unknown>;
+    const normalized: Record<string, BlogGraphRelation[]> = {};
+
+    for (const [slug, entries] of Object.entries(rawMap)) {
+      if (!articlesBySlug[slug] || !Array.isArray(entries)) {
+        continue;
+      }
+
+      normalized[slug] = entries
+        .map((entry) => this.normalizeGraphRelation(entry, slug))
+        .filter((entry): entry is BlogGraphRelation => !!entry && !!articlesBySlug[entry.target])
+        .sort((left, right) => right.score - left.score);
+    }
+
+    for (const edge of edgeLookup.values()) {
+      if (!articlesBySlug[edge.source] || !articlesBySlug[edge.target]) {
+        continue;
+      }
+
+      normalized[edge.source] = normalized[edge.source] || [];
+      normalized[edge.target] = normalized[edge.target] || [];
+
+      if (!normalized[edge.source].some((relation) => relation.target === edge.target)) {
+        normalized[edge.source].push(edge);
+      }
+
+      if (!normalized[edge.target].some((relation) => relation.target === edge.source)) {
+        normalized[edge.target].push({
+          ...edge,
+          source: edge.target,
+          target: edge.source
+        });
+      }
+    }
+
+    for (const slug of Object.keys(normalized)) {
+      normalized[slug].sort((left, right) => right.score - left.score);
+    }
+
+    return normalized;
+  }
+
+  private toGraphRelations(value: unknown): BlogGraphRelation[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((entry) => this.normalizeGraphRelation(entry))
+      .filter((entry): entry is BlogGraphRelation => !!entry);
+  }
+
+  private normalizeGraphRelation(value: unknown, fallbackSource = ''): BlogGraphRelation | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return null;
+    }
+
+    const relation = value as Record<string, unknown>;
+    const source = this.normalizeRouteSlug(this.toStringValue(relation['source']) || fallbackSource);
+    const target = this.normalizeRouteSlug(this.toStringValue(relation['target']));
+    if (!source || !target || source === target) {
+      return null;
+    }
+
+    return {
+      source,
+      target,
+      score: this.toNumberValue(relation['score']),
+      label: this.toStringValue(relation['label']),
+      dominantType: this.toRelationType(relation['dominantType']),
+      shared: this.normalizeSharedTags(relation['shared'])
+    };
+  }
+
+  private normalizeSharedTags(value: unknown): BlogGraphShared {
+    const raw = value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : {};
+
+    return {
+      domain: this.toStringArray(raw['domain']),
+      technology: this.toStringArray(raw['technology']),
+      topic: this.toStringArray(raw['topic']),
+      context: this.toStringArray(raw['context'])
+    };
+  }
+
+  private toRelationType(value: unknown): BlogGraphRelationType {
+    return value === 'domain' || value === 'technology' || value === 'topic' || value === 'context'
+      ? value
+      : 'mixed';
+  }
+
+  private toEdgeKey(source: string, target: string): string {
+    return [source, target].sort().join('::');
   }
 
   private extractFrontmatter(markdown: string): { frontmatter: FrontmatterData; body: string } {
@@ -319,6 +494,10 @@ export class BlogService {
 
   private toStringArray(value: unknown): string[] {
     return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+  }
+
+  private toNumberValue(value: unknown): number {
+    return typeof value === 'number' && Number.isFinite(value) ? value : 0;
   }
 
   private pickLocalizedTags(entry: Record<string, unknown>, lang: Language): string[] {

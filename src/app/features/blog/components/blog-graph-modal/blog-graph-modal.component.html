@@ -1,0 +1,81 @@
+<div class="graph-modal-backdrop" (click)="onBackdropClick($event)">
+  <section
+    class="graph-modal"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="lang === 'es' ? 'Grafo de articulos relacionados' : 'Related articles graph'"
+    cdkTrapFocus>
+    <header class="graph-modal-header">
+      <div class="graph-modal-copy">
+        <span class="graph-modal-kicker">{{ lang === 'es' ? 'Navegacion por grafo' : 'Graph navigation' }}</span>
+        <h2>{{ lang === 'es' ? 'Explora conexiones entre articulos' : 'Explore article connections' }}</h2>
+        <p>{{ lang === 'es' ? 'Cercania = similitud, tamano = importancia exploratoria, linea = fuerza de relacion.' : 'Closeness = similarity, size = exploratory importance, line = relationship strength.' }}</p>
+      </div>
+
+      <div class="graph-modal-actions">
+        <button type="button" class="graph-action-button subtle" (click)="resetView()">
+          {{ lang === 'es' ? 'Recentrar' : 'Reset view' }}
+        </button>
+        <button #closeButton type="button" class="graph-action-button" (click)="closeModal()">
+          {{ lang === 'es' ? 'Cerrar' : 'Close' }}
+        </button>
+      </div>
+    </header>
+
+    <div class="graph-modal-body" *ngIf="hasRelations; else emptyState">
+      <div class="graph-stage-shell">
+        <div class="graph-stage-toolbar">
+          <span>{{ visibleNodeCount }} {{ lang === 'es' ? 'nodos visibles' : 'visible nodes' }}</span>
+          <span>{{ visibleEdgeCount }} {{ lang === 'es' ? 'relaciones' : 'connections' }}</span>
+        </div>
+
+        <div class="graph-stage" #graphContainer>
+          <div class="graph-loading" *ngIf="!isReady">{{ lang === 'es' ? 'Preparando grafo...' : 'Preparing graph...' }}</div>
+        </div>
+      </div>
+
+      <aside class="graph-inspector">
+        <div class="inspector-card">
+          <span class="inspector-kicker">{{ lang === 'es' ? 'Articulo en foco' : 'Focused article' }}</span>
+          <h3>{{ inspector.title }}</h3>
+          <p>{{ inspector.summary }}</p>
+        </div>
+
+        <div class="inspector-card tone-secondary" *ngIf="inspector.relationLabel || inspector.relationType || inspector.scoreText">
+          <div class="inspector-line" *ngIf="inspector.relationLabel">{{ inspector.relationLabel }}</div>
+          <div class="inspector-line" *ngIf="inspector.relationType">{{ inspector.relationType }}</div>
+          <div class="inspector-line" *ngIf="inspector.scoreText">{{ inspector.scoreText }}</div>
+        </div>
+
+        <div class="inspector-card tone-secondary" *ngIf="inspector.sharedTags.length">
+          <span class="inspector-kicker">{{ lang === 'es' ? 'Tags compartidos' : 'Shared tags' }}</span>
+          <div class="inspector-tags">
+            <span class="inspector-tag" *ngFor="let tag of inspector.sharedTags">{{ tag }}</span>
+          </div>
+        </div>
+
+        <div class="inspector-card legend-card">
+          <span class="inspector-kicker">{{ lang === 'es' ? 'Lectura visual' : 'Visual reading' }}</span>
+          <p>{{ lang === 'es' ? 'La distancia al centro indica similitud con el articulo abierto.' : 'Distance from the center shows similarity to the open article.' }}</p>
+          <p>{{ lang === 'es' ? 'El tamano del nodo combina similitud y peso dentro del subgrafo visible.' : 'Node size combines similarity and weight inside the visible subgraph.' }}</p>
+          <p>{{ lang === 'es' ? 'El grosor de la linea refleja la fuerza de la relacion.' : 'Line thickness reflects relationship strength.' }}</p>
+        </div>
+
+        <button
+          *ngIf="inspector.canNavigate"
+          type="button"
+          class="graph-action-button full-width"
+          (click)="onInspectorAction()">
+          {{ lang === 'es' ? 'Abrir articulo' : 'Open article' }}
+        </button>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<ng-template #emptyState>
+  <div class="graph-empty-state">
+    <h3>{{ lang === 'es' ? 'Aun no hay suficientes relaciones' : 'There are not enough relationships yet' }}</h3>
+    <p>{{ lang === 'es' ? 'Este articulo todavia no tiene conexiones precalculadas para construir un subgrafo util.' : 'This article does not yet have enough precomputed connections to build a useful subgraph.' }}</p>
+  </div>
+</ng-template>
