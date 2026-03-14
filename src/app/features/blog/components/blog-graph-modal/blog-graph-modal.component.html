@@ -30,7 +30,8 @@
         </div>
 
         <div class="graph-stage" #graphContainer>
-          <div class="graph-loading" *ngIf="!isReady">{{ lang === 'es' ? 'Preparando grafo...' : 'Preparing graph...' }}</div>
+          <div class="graph-loading" *ngIf="!isReady && !loadError">{{ lang === 'es' ? 'Preparando grafo...' : 'Preparing graph...' }}</div>
+          <div class="graph-loading graph-error" *ngIf="loadError">{{ loadError }}</div>
         </div>
       </div>
 
@@ -53,21 +54,6 @@
             <span class="inspector-tag" *ngFor="let tag of inspector.sharedTags">{{ tag }}</span>
           </div>
         </div>
-
-        <div class="inspector-card legend-card">
-          <span class="inspector-kicker">{{ lang === 'es' ? 'Lectura visual' : 'Visual reading' }}</span>
-          <p>{{ lang === 'es' ? 'La distancia al centro indica similitud con el articulo abierto.' : 'Distance from the center shows similarity to the open article.' }}</p>
-          <p>{{ lang === 'es' ? 'El tamano del nodo combina similitud y peso dentro del subgrafo visible.' : 'Node size combines similarity and weight inside the visible subgraph.' }}</p>
-          <p>{{ lang === 'es' ? 'El grosor de la linea refleja la fuerza de la relacion.' : 'Line thickness reflects relationship strength.' }}</p>
-        </div>
-
-        <button
-          *ngIf="inspector.canNavigate"
-          type="button"
-          class="graph-action-button full-width"
-          (click)="onInspectorAction()">
-          {{ lang === 'es' ? 'Abrir articulo' : 'Open article' }}
-        </button>
       </aside>
     </div>
   </section>

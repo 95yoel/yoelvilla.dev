@@ -153,6 +153,12 @@
   color: rgba(255, 247, 242, 0.76);
 }
 
+.graph-error {
+  padding: 1.25rem;
+  text-align: center;
+  color: rgba(255, 247, 242, 0.92);
+}
+
 .graph-inspector {
   display: grid;
   gap: 0.85rem;

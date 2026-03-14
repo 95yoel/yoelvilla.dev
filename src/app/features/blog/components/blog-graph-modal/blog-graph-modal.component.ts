@@ -1,9 +1,11 @@
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, PLATFORM_ID, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { Router } from '@angular/router';
 import { BlogArticleGraphData, BlogGraphRelationType } from '../../models/blog-article.model';
-import { buildArticleGraph, BlogGraphBuildResult, BlogGraphNodeAttributes, BlogGraphNodeMeta, BlogGraphEdgeAttributes, collectSharedTags, createEdgeKey, withAlpha } from '../../utils/blog-graph.utils';
+import { buildArticleGraph, BlogGraphBuildResult, BlogGraphNodeAttributes, BlogGraphNodeMeta, BlogGraphEdgeAttributes, collectSharedTags, withAlpha } from '../../utils/blog-graph.utils';
 import { Language } from '../../../../translations/services/translation.service';
+import { BlogRoutingService } from '../../services/blog-routing.service';
 
 type SigmaRenderer = {
   on(event: string, listener: (payload: { node?: string }) => void): SigmaRenderer;
@@ -44,6 +46,8 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   private readonly doc = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
+  private readonly blogRoutingService = inject(BlogRoutingService);
   private sigma: SigmaRenderer | null = null;
   private graphBuildResult: BlogGraphBuildResult | null = null;
   private hoveredSlug: string | null = null;
@@ -56,6 +60,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   visibleEdgeCount = 0;
   hasRelations = false;
   isReady = false;
+  loadError: string | null = null;
 
   private readonly handleEnterNode = (payload: { node?: string }) => {
     if (!payload.node) {
@@ -85,6 +90,16 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     this.selectedSlug = payload.node === this.selectedSlug ? null : payload.node;
     this.syncInspector();
     this.applySigmaReducers();
+  };
+
+  private readonly handleDoubleClickNode = (payload: { node?: string }) => {
+    if (!payload.node || payload.node === this.currentSlug) {
+      return;
+    }
+
+    const urlTree = this.router.createUrlTree(this.blogRoutingService.buildArticleLink(payload.node, this.lang));
+    const url = this.router.serializeUrl(urlTree);
+    window.open(url, '_blank', 'noopener');
   };
 
   private readonly handleClickStage = () => {
@@ -131,12 +146,6 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     }
   }
 
-  onInspectorAction(): void {
-    if (this.inspector.slug && this.inspector.canNavigate) {
-      this.navigateToArticle.emit(this.inspector.slug);
-    }
-  }
-
   resetView(): void {
     this.sigma?.getCamera().animatedReset({ duration: 350 });
     this.selectedSlug = null;
@@ -147,6 +156,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
 
   private async rebuildGraph(): Promise<void> {
     this.isReady = false;
+    this.loadError = null;
     this.destroySigma();
 
     this.graphBuildResult = buildArticleGraph(this.graphData, this.currentSlug, this.topLevelLimit);
@@ -162,46 +172,58 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       return;
     }
 
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const container = this.graphContainer?.nativeElement;
+    const container = await this.waitForGraphContainer();
     if (!container) {
+      this.loadError = this.lang === 'es'
+        ? 'El contenedor del grafo no estuvo listo a tiempo.'
+        : 'The graph container was not ready in time.';
+      this.cdr.detectChanges();
       return;
     }
 
-    const { default: Sigma } = await import('sigma');
+    try {
+      const { default: Sigma } = await import('sigma');
 
-    this.sigma = new Sigma(this.graphBuildResult.graph, container, {
-      allowInvalidContainer: true,
-      renderLabels: true,
-      renderEdgeLabels: true,
-      labelFont: 'Inter, sans-serif',
-      labelSize: 13,
-      labelWeight: '500',
-      labelDensity: 0.06,
-      labelRenderedSizeThreshold: 14,
-      edgeLabelFont: 'Inter, sans-serif',
-      edgeLabelSize: 11,
-      edgeLabelWeight: '600',
-      edgeLabelColor: { color: '#fff7f2' },
-      defaultEdgeColor: 'rgba(255, 247, 242, 0.36)',
-      defaultNodeColor: '#fff7f2',
-      defaultNodeType: 'point',
-      stagePadding: 32,
-      hideEdgesOnMove: false,
-      hideLabelsOnMove: false,
-      zIndex: true,
-      minCameraRatio: 0.65,
-      maxCameraRatio: 2.8
-    }) as SigmaRenderer;
+      this.sigma = new Sigma(this.graphBuildResult.graph, container, {
+        allowInvalidContainer: true,
+        renderLabels: true,
+        renderEdgeLabels: true,
+        labelFont: 'Inter, sans-serif',
+        labelSize: 13,
+        labelWeight: '500',
+        labelDensity: 0.06,
+        labelRenderedSizeThreshold: 14,
+        edgeLabelFont: 'Inter, sans-serif',
+        edgeLabelSize: 11,
+        edgeLabelWeight: '600',
+        edgeLabelColor: { color: '#fff7f2' },
+        defaultEdgeColor: 'rgba(255, 247, 242, 0.36)',
+        defaultNodeColor: '#fff7f2',
+        defaultNodeType: 'circle',
+        stagePadding: 32,
+        hideEdgesOnMove: false,
+        hideLabelsOnMove: false,
+        zIndex: true,
+        minCameraRatio: 0.65,
+        maxCameraRatio: 2.8
+      }) as SigmaRenderer;
 
-    this.sigma.on('enterNode', this.handleEnterNode);
-    this.sigma.on('leaveNode', this.handleLeaveNode);
-    this.sigma.on('clickNode', this.handleClickNode);
-    this.sigma.on('clickStage', this.handleClickStage);
+      this.sigma.on('enterNode', this.handleEnterNode);
+      this.sigma.on('leaveNode', this.handleLeaveNode);
+      this.sigma.on('clickNode', this.handleClickNode);
+      this.sigma.on('doubleClickNode', this.handleDoubleClickNode);
+      this.sigma.on('clickStage', this.handleClickStage);
 
-    this.applySigmaReducers();
-    this.isReady = true;
-    this.cdr.detectChanges();
+      this.applySigmaReducers();
+      this.isReady = true;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error(error);
+      this.loadError = this.lang === 'es'
+        ? 'Sigma no pudo inicializar el grafo en este modal.'
+        : 'Sigma could not initialize the graph in this modal.';
+      this.cdr.detectChanges();
+    }
   }
 
   private destroySigma(): void {
@@ -212,6 +234,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     this.sigma.off('enterNode', this.handleEnterNode);
     this.sigma.off('leaveNode', this.handleLeaveNode);
     this.sigma.off('clickNode', this.handleClickNode);
+    this.sigma.off('doubleClickNode', this.handleDoubleClickNode);
     this.sigma.off('clickStage', this.handleClickStage);
     this.sigma.kill();
     this.sigma = null;
@@ -230,8 +253,14 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       nodeReducer: (node: string, data: BlogGraphNodeAttributes) => {
         if (!activeSlug) {
           return {
+            x: data.x,
+            y: data.y,
+            size: data.size,
             color: data.color,
             label: data.label,
+            hidden: false,
+            highlighted: node === this.currentSlug,
+            type: data.type,
             forceLabel: data.forceLabel || node === this.currentSlug,
             zIndex: data.zIndex
           };
@@ -241,8 +270,14 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
         const isConnected = highlightedNodes.has(node);
 
         return {
+          x: data.x,
+          y: data.y,
+          size: data.size,
           color: isConnected ? data.color : withAlpha('#cbd5e1', 0.2),
           label: isConnected ? data.label : '',
+          hidden: false,
+          highlighted: isActive || node === this.currentSlug,
+          type: data.type,
           forceLabel: isActive || node === this.currentSlug,
           zIndex: isActive ? 15 : data.zIndex
         };
@@ -250,18 +285,24 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       edgeReducer: (edge: string, data: BlogGraphEdgeAttributes) => {
         if (!activeSlug) {
           return {
+            size: data.size,
             color: data.color,
+            hidden: false,
+            type: data.type,
             forceLabel: false,
-            size: data.size
+            label: data.label
           };
         }
 
         const isHighlighted = highlightedEdges.has(edge);
 
         return {
+          size: isHighlighted ? data.size + 0.7 : Math.max(0.8, data.size * 0.45),
           color: isHighlighted ? withAlpha(typeColor(data.dominantType), 0.88) : withAlpha('#94a3b8', 0.1),
+          hidden: false,
+          type: data.type,
           forceLabel: isHighlighted,
-          size: isHighlighted ? data.size + 0.7 : Math.max(0.8, data.size * 0.45)
+          label: isHighlighted ? data.label : ''
         };
       }
     });
@@ -303,16 +344,10 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       return {
         title: meta.article.title,
         summary: meta.article.summary || meta.article.description,
-        relationLabel: this.lang === 'es'
-          ? `Centro del grafo · ${meta.visibleNeighborCount} conexiones visibles`
-          : `Graph center · ${meta.visibleNeighborCount} visible connections`,
-        relationType: this.lang === 'es'
-          ? 'Explora articulos relacionados a partir del actual.'
-          : 'Explore related articles starting from the current one.',
+        relationLabel: '',
+        relationType: '',
         sharedTags: meta.article.tags.slice(0, 5),
-        scoreText: this.lang === 'es'
-          ? 'La distancia se calcula con la similitud frente al articulo abierto.'
-          : 'Distance is driven by similarity to the current article.',
+        scoreText: '',
         canNavigate: false,
         slug: null
       };
@@ -322,20 +357,12 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     return {
       title: meta.article.title,
       summary: meta.article.summary || meta.article.description,
-      relationLabel: relation?.label
-        ? `${this.lang === 'es' ? 'Conexion principal' : 'Primary connection'}: ${relation.label}`
-        : this.lang === 'es'
-          ? 'Conexion relacionada'
-          : 'Related connection',
-      relationType: this.lang === 'es'
-        ? `Tipo dominante: ${translateType(relation?.dominantType || 'mixed', this.lang)}`
-        : `Dominant type: ${translateType(relation?.dominantType || 'mixed', this.lang)}`,
+      relationLabel: '',
+      relationType: '',
       sharedTags: collectSharedTags(relation?.shared || { domain: [], technology: [], topic: [], context: [] }),
-      scoreText: relation
-        ? `${this.lang === 'es' ? 'Score de similitud' : 'Similarity score'}: ${relation.score.toFixed(2)}`
-        : '',
-      canNavigate: true,
-      slug: meta.article.slug
+      scoreText: '',
+      canNavigate: false,
+      slug: null
     };
   }
 
@@ -351,18 +378,19 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       slug: null
     };
   }
-}
 
-function translateType(type: BlogGraphRelationType, lang: Language): string {
-  const translations: Record<BlogGraphRelationType, { es: string; en: string }> = {
-    domain: { es: 'dominio', en: 'domain' },
-    technology: { es: 'tecnologia', en: 'technology' },
-    topic: { es: 'tema', en: 'topic' },
-    context: { es: 'contexto', en: 'context' },
-    mixed: { es: 'mixto', en: 'mixed' }
-  };
+  private async waitForGraphContainer(maxFrames = 10): Promise<HTMLDivElement | null> {
+    for (let attempt = 0; attempt < maxFrames; attempt += 1) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-  return translations[type][lang];
+      const container = this.graphContainer?.nativeElement;
+      if (container && container.clientWidth > 0 && container.clientHeight > 0) {
+        return container;
+      }
+    }
+
+    return null;
+  }
 }
 
 function typeColor(type: BlogGraphRelationType): string {

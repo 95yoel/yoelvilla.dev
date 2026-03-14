@@ -25,6 +25,9 @@ export interface BlogGraphNodeAttributes {
   size: number;
   label: string;
   color: string;
+  type: 'circle';
+  hidden: boolean;
+  highlighted: boolean;
   forceLabel: boolean;
   zIndex: number;
   nodeType: 'center' | 'related';
@@ -36,6 +39,8 @@ export interface BlogGraphEdgeAttributes {
   size: number;
   color: string;
   label: string;
+  type: 'line';
+  hidden: boolean;
   forceLabel: boolean;
   score: number;
   dominantType: BlogGraphRelationType;
@@ -102,6 +107,9 @@ export function buildArticleGraph(
     size: CENTER_NODE_SIZE,
     label: truncateLabel(centerArticle.title, 38),
     color: '#fff7f2',
+    type: 'circle',
+    hidden: false,
+    highlighted: false,
     forceLabel: true,
     zIndex: 10,
     nodeType: 'center',
@@ -135,7 +143,7 @@ export function buildArticleGraph(
     const importance = clamp(0.65 * similarity + 0.35 * weight, 0, 1);
     const size = interpolate(RELATED_MIN_NODE_SIZE, RELATED_MAX_NODE_SIZE, importance);
     const radius = interpolate(OUTER_RADIUS, INNER_RADIUS, similarity);
-    const angle = (-Math.PI / 2) + (index * ((Math.PI * 2) / Math.max(1, orderedRelations.length)));
+    const angle = resolveNodeAngle(index, orderedRelations.length);
 
     graph.addNode(article.slug, {
       x: Math.cos(angle) * radius,
@@ -143,6 +151,9 @@ export function buildArticleGraph(
       size,
       label: truncateLabel(article.title, 24),
       color: TYPE_COLORS[relation.dominantType] || TYPE_COLORS.mixed,
+      type: 'circle',
+      hidden: false,
+      highlighted: false,
       forceLabel: importance > 0.72,
       zIndex: 5,
       nodeType: 'related',
@@ -173,6 +184,8 @@ export function buildArticleGraph(
       size: edgeSize,
       color: withAlpha(TYPE_COLORS[edge.dominantType] || TYPE_COLORS.mixed, edge.source === centerSlug || edge.target === centerSlug ? 0.72 : 0.42),
       label: edge.label,
+      type: 'line',
+      hidden: false,
       forceLabel: false,
       score: edge.score,
       dominantType: edge.dominantType
@@ -304,4 +317,22 @@ function interpolate(min: number, max: number, ratio: number): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function resolveNodeAngle(index: number, total: number): number {
+  if (total <= 1) {
+    return -Math.PI / 2;
+  }
+
+  if (total === 2) {
+    return index === 0 ? -2.35 : -0.8;
+  }
+
+  if (total === 3) {
+    return [-2.45, -Math.PI / 2, -0.7][index];
+  }
+
+  const start = -2.35;
+  const end = -0.8;
+  return start + ((end - start) * index) / (total - 1);
 }
