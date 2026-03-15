@@ -262,7 +262,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
         edgeLabelFont: 'Inter, sans-serif',
         edgeLabelSize: 11,
         edgeLabelWeight: '600',
-        edgeLabelColor: { color: '#fff7f2' },
+        edgeLabelColor: { color: '#111827' },
         defaultEdgeColor: 'rgba(255, 247, 242, 0.36)',
         defaultNodeColor: '#fff7f2',
         defaultNodeType: 'circle',

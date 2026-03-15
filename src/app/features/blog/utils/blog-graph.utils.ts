@@ -4,8 +4,8 @@ import { BlogArticleGraphData, BlogGraphArticleNode, BlogGraphRelation, BlogGrap
 const CENTER_NODE_SIZE = 24;
 const RELATED_MIN_NODE_SIZE = 11;
 const RELATED_MAX_NODE_SIZE = 18;
-const EDGE_MIN_SIZE = 1.4;
-const EDGE_MAX_SIZE = 4.6;
+const EDGE_MIN_SIZE = 2.25;
+const EDGE_MAX_SIZE = 5.4;
 const INNER_RADIUS = 2;
 const OUTER_RADIUS = 3.5;
 const ELLIPSE_RATIO = 0.8;
