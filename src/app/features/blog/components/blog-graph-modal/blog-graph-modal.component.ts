@@ -213,11 +213,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   }
 
   resetView(): void {
-    this.sigma?.getCamera().animatedReset({ duration: 350 });
-    this.selectedSlug = null;
-    this.hoveredSlug = null;
-    this.syncInspector();
-    this.applySigmaReducers();
+    void this.rebuildGraph();
   }
 
   private async rebuildGraph(): Promise<void> {
