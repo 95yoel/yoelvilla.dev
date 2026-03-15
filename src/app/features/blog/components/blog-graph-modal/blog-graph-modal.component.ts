@@ -10,7 +10,10 @@ import { BlogRoutingService } from '../../services/blog-routing.service';
 type SigmaRenderer = {
   on(event: string, listener: (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
   off(event: string, listener: (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
-  getCamera(): { animatedReset(options?: { duration?: number }): void };
+  getCamera(): {
+    animatedReset(options?: { duration?: number }): void;
+    setState(state: { ratio?: number; x?: number; y?: number; angle?: number }): void;
+  };
   viewportToGraph(point: { x: number; y: number }): { x: number; y: number };
   setCustomBBox(bbox: { x: [number, number]; y: [number, number] } | null): SigmaRenderer;
   setSetting(key: string, value: unknown): SigmaRenderer;
@@ -294,6 +297,8 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       this.sigma.on('upNode', this.handlePointerRelease);
       this.sigma.on('upStage', this.handlePointerRelease);
       this.sigma.on('clickStage', this.handleClickStage);
+
+      this.sigma.getCamera().setState({ ratio: 0.8 });
 
       this.applySigmaReducers();
       this.isReady = true;

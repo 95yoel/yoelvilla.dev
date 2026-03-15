@@ -6,8 +6,8 @@ const RELATED_MIN_NODE_SIZE = 11;
 const RELATED_MAX_NODE_SIZE = 18;
 const EDGE_MIN_SIZE = 2.25;
 const EDGE_MAX_SIZE = 5.4;
-const INNER_RADIUS = 2;
-const OUTER_RADIUS = 3.5;
+const INNER_RADIUS = 2.4;
+const OUTER_RADIUS = 4.2;
 const ELLIPSE_RATIO = 0.8;
 const TYPE_ORDER: BlogGraphRelationType[] = ['topic', 'technology', 'domain', 'context', 'mixed'];
 
