@@ -22,11 +22,17 @@ export class CustomCursorComponent {
   private readonly doc = inject(DOCUMENT);
   private readonly cursorConfig = inject(CursorConfigService);
   private readonly destroyRef = inject(DestroyRef);
+  private rootEl?: HTMLElement;
+  private cursorEl?: HTMLElement;
+  private circleEl?: HTMLElement;
+  private dotEl?: HTMLElement;
+  private isGraphMode = false;
 
   private onPointerDown = (e: PointerEvent) => this.spawnClickPulse(e.clientX, e.clientY);
   private onMouseMove = (e: MouseEvent) => {
     this.mouseX = e.clientX;
     this.mouseY = e.clientY;
+    this.syncModeFromTarget(e.target);
   };
   private animationFrameId?: number;
   private mouseX = 0;
@@ -62,10 +68,16 @@ export class CustomCursorComponent {
   ngAfterViewInit(): void {
     this.renderer.appendChild(this.doc.body, this.elRef.nativeElement);
 
-    const root = this.elRef.nativeElement as HTMLElement;
-    const cursor = root.querySelector('.custom-cursor') as HTMLElement;
-    const circle = root.querySelector('.cursor-circle') as HTMLElement;
-    const dot = root.querySelector('.cursor-dot') as HTMLElement;
+    this.rootEl = this.elRef.nativeElement as HTMLElement;
+    this.cursorEl = this.rootEl.querySelector('.custom-cursor') as HTMLElement;
+    this.circleEl = this.rootEl.querySelector('.cursor-circle') as HTMLElement;
+    this.dotEl = this.rootEl.querySelector('.cursor-dot') as HTMLElement;
+    const cursor = this.cursorEl;
+    const dot = this.dotEl;
+
+    if (!cursor || !dot) {
+      return;
+    }
 
     let circleX = 0, circleY = 0;
     let dotX = 0, dotY = 0;
@@ -76,13 +88,20 @@ export class CustomCursorComponent {
       const circleDelay = this.delay;
       const dotDelay = circleDelay * 1.5;
 
-      circleX += (this.mouseX - circleX) * circleDelay;
-      circleY += (this.mouseY - circleY) * circleDelay;
+      if (this.isGraphMode) {
+        circleX = this.mouseX;
+        circleY = this.mouseY;
+        dotX = this.mouseX;
+        dotY = this.mouseY;
+      } else {
+        circleX += (this.mouseX - circleX) * circleDelay;
+        circleY += (this.mouseY - circleY) * circleDelay;
+        dotX += (this.mouseX - dotX) * dotDelay;
+        dotY += (this.mouseY - dotY) * dotDelay;
+      }
+
       cursor.style.left = `${circleX}px`;
       cursor.style.top = `${circleY}px`;
-
-      dotX += (this.mouseX - dotX) * dotDelay;
-      dotY += (this.mouseY - dotY) * dotDelay;
 
       const dx = dotX - circleX;
       const dy = dotY - circleY;
@@ -97,33 +116,38 @@ export class CustomCursorComponent {
   }
 
   private updateCursorStyle() {
-    const root = this.elRef.nativeElement as HTMLElement;
-    const cursor = root.querySelector('.custom-cursor') as HTMLElement;
-    const circle = root.querySelector('.cursor-circle') as HTMLElement;
-    const dot = root.querySelector('.cursor-dot') as HTMLElement;
-
-    if (cursor) {
-      cursor.style.filter = '';
+    if (this.cursorEl) {
+      this.cursorEl.style.filter = '';
     }
 
-    if (circle) {
-      circle.style.width = `${this.cursorSize}px`;
-      circle.style.height = `${this.cursorSize}px`;
-      circle.style.border = `2px solid ${this.cursorColor}`;
+    if (this.circleEl) {
+      this.circleEl.style.width = `${this.cursorSize}px`;
+      this.circleEl.style.height = `${this.cursorSize}px`;
+      this.circleEl.style.border = `2px solid ${this.cursorColor}`;
 
       const blur = '3px';
-      circle.style.setProperty('--blur', blur);
-      circle.style.setProperty('backdrop-filter', `blur(${blur})`);
-      circle.style.setProperty('-webkit-backdrop-filter', `blur(${blur})`);
+      this.circleEl.style.setProperty('--blur', blur);
+      this.circleEl.style.setProperty('backdrop-filter', `blur(${blur})`);
+      this.circleEl.style.setProperty('-webkit-backdrop-filter', `blur(${blur})`);
 
-      circle.style.filter = `brightness(${this.brightness})`;
+      this.circleEl.style.filter = `brightness(${this.brightness})`;
     }
 
-    if (dot) {
-      dot.style.width = `${this.dotSize}px`;
-      dot.style.height = `${this.dotSize}px`;
-      dot.style.background = this.cursorColor;
+    if (this.dotEl) {
+      this.dotEl.style.width = `${this.dotSize}px`;
+      this.dotEl.style.height = `${this.dotSize}px`;
+      this.dotEl.style.background = this.cursorColor;
     }
+  }
+
+  private syncModeFromTarget(target: EventTarget | null): void {
+    const nextGraphMode = target instanceof Element && !!target.closest('.graph-stage');
+    if (nextGraphMode === this.isGraphMode || !this.rootEl) {
+      return;
+    }
+
+    this.isGraphMode = nextGraphMode;
+    this.rootEl.classList.toggle('graph-cursor-mode', nextGraphMode);
   }
 
   private spawnClickPulse(x: number, y: number) {
