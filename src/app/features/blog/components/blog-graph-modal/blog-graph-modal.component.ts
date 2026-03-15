@@ -12,9 +12,17 @@ type SigmaRenderer = {
   off(event: string, listener: (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
   getCamera(): { animatedReset(options?: { duration?: number }): void };
   viewportToGraph(point: { x: number; y: number }): { x: number; y: number };
+  setCustomBBox(bbox: { x: [number, number]; y: [number, number] } | null): SigmaRenderer;
   setSetting(key: string, value: unknown): SigmaRenderer;
   setSettings(settings: Record<string, unknown>): SigmaRenderer;
-  refresh(): SigmaRenderer;
+  refresh(opts?: {
+    partialGraph?: {
+      nodes?: string[];
+      edges?: string[];
+    };
+    skipIndexation?: boolean;
+    schedule?: boolean;
+  }): SigmaRenderer;
   kill(): void;
 };
 
@@ -161,7 +169,12 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       x: graphPoint.x + this.dragOffset.x,
       y: graphPoint.y + this.dragOffset.y
     });
-    this.sigma.refresh();
+      this.sigma.refresh({
+        partialGraph: {
+          nodes: [this.draggingSlug]
+        },
+        skipIndexation: true
+      });
   };
 
   private readonly handlePointerRelease = () => {
@@ -269,6 +282,8 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
         minCameraRatio: 0.65,
         maxCameraRatio: 2.8
       }) as SigmaRenderer;
+
+      this.sigma.setCustomBBox(this.createStableBBox());
 
       this.sigma.on('enterNode', this.handleEnterNode);
       this.sigma.on('leaveNode', this.handleLeaveNode);
@@ -462,6 +477,33 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     }
 
     return null;
+  }
+
+  private createStableBBox(): { x: [number, number]; y: [number, number] } | null {
+    if (!this.graphBuildResult) {
+      return null;
+    }
+
+    const positions = this.graphBuildResult.graph.mapNodes((_, attributes) => ({
+      x: attributes.x,
+      y: attributes.y,
+      size: attributes.size
+    }));
+
+    if (!positions.length) {
+      return null;
+    }
+
+    const padding = 1.2;
+    const minX = Math.min(...positions.map((node) => node.x - node.size / 10)) - padding;
+    const maxX = Math.max(...positions.map((node) => node.x + node.size / 10)) + padding;
+    const minY = Math.min(...positions.map((node) => node.y - node.size / 10)) - padding;
+    const maxY = Math.max(...positions.map((node) => node.y + node.size / 10)) + padding;
+
+    return {
+      x: [minX, maxX],
+      y: [minY, maxY]
+    };
   }
 }
 
