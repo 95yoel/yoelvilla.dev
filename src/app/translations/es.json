@@ -105,7 +105,16 @@
     "actions": {
       "open": "Abrir blog",
       "retry": "Reintentar",
-      "scrollTop": "Subir arriba"
+      "scrollTop": "Subir arriba",
+      "share": "Compartir",
+      "shareCopied": "Enlace copiado",
+      "shareShared": "Compartido",
+      "shareUnavailable": "No se pudo compartir"
+    },
+    "seo": {
+      "siteTitle": "Yoel Villa",
+      "defaultDescription": "FullStack developer focused on Angular and Java. Aplicated AI, Python and cloud.",
+      "articleTitleSuffix": "Yoel Villa Blog"
     }
   },
   "tooltips": {
