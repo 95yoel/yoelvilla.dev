@@ -1,8 +1,9 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, ElementRef, PLATFORM_ID, ViewChild, inject } from '@angular/core';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, Subscription, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
 import gsap from 'gsap';
+import { Meta, Title } from '@angular/platform-browser';
 import { BlogGraphModalComponent } from '../../components/blog-graph-modal/blog-graph-modal.component';
 import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
 import { BlogService } from '../../services/blog.service';
@@ -13,6 +14,7 @@ import { LayoutService } from '../../../../services/layout.service';
 import { CustomCursorComponent } from '../../../../components/shared/custom-cursor/custom-cursor.component';
 import { LanguagePanelComponent } from '../../../../components/shared/language-panel/language-panel.component';
 import { BlogRoutingService } from '../../services/blog-routing.service';
+import { environment } from '../../../../../environments/environment';
 
 type ArticleVm =
   | { status: 'loading' }
@@ -26,11 +28,14 @@ type ArticleVm =
         date: string;
         readingTimeMinutes: number;
         tags: string[];
+        coverImage?: string;
         html: string;
       };
       articles: BlogArticleSummary[];
       graph: BlogArticleGraphData;
     };
+
+type ArticleViewData = Extract<ArticleVm, { status: 'ready' }>['article'];
 
 @Component({
   selector: 'app-blog-article-page',
@@ -48,16 +53,21 @@ export class BlogArticlePage {
   private readonly blogRoutingService = inject(BlogRoutingService);
   private readonly layoutService = inject(LayoutService);
   private readonly doc = inject(DOCUMENT);
+  private readonly meta = inject(Meta);
+  private readonly title = inject(Title);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly reload$ = new Subject<void>();
   readonly layout$ = this.layoutService.layout$;
   showLanguagePanel = false;
   showScrollTopButton = false;
   showGraphModal = false;
+  private shareFeedbackKey = 'blog.actions.share';
   private viewStateSubscription: Subscription | null = null;
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
   private scrollWatcherId: number | null = null;
+  private shareFeedbackTimeoutId: number | null = null;
   private hasPlayedEntryAnimation = false;
   private readonly routeState$ = combineLatest([
     this.route.paramMap.pipe(map((params) => params.get('slug') || '')),
@@ -90,6 +100,7 @@ export class BlogArticlePage {
             date: article.date,
             readingTimeMinutes: article.readingTimeMinutes,
             tags: article.tags,
+            coverImage: article.coverImage,
             html: article.html
           },
           articles,
@@ -112,8 +123,11 @@ export class BlogArticlePage {
     this.viewStateSubscription = this.vm$.subscribe((vm) => {
       if (vm.status !== 'ready') {
         this.hasPlayedEntryAnimation = false;
+        this.resetSeo();
         return;
       }
+
+      this.applyArticleSeo(vm.article);
 
       if (this.hasPlayedEntryAnimation) {
         return;
@@ -132,6 +146,8 @@ export class BlogArticlePage {
     this.viewStateSubscription?.unsubscribe();
     this.viewStateSubscription = null;
     this.stopScrollWatcher();
+    this.clearShareFeedbackTimeout();
+    this.resetSeo();
   }
 
   scrollToTop(): void {
@@ -156,6 +172,36 @@ export class BlogArticlePage {
     this.showGraphModal = false;
   }
 
+  async shareArticle(article: ArticleViewData): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const url = this.buildArticleUrl(article.slug);
+    const shareData = {
+      title: article.title,
+      text: article.description,
+      url
+    };
+
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share(shareData);
+        this.setShareFeedback('blog.actions.shareShared');
+        return;
+      }
+
+      await this.copyToClipboard(url);
+      this.setShareFeedback('blog.actions.shareCopied');
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
+      this.setShareFeedback('blog.actions.shareUnavailable');
+    }
+  }
+
   navigateFromGraph(slug: string): void {
     this.showGraphModal = false;
     this.blogRoutingService.goToArticle(slug, this.currentLanguage);
@@ -177,6 +223,10 @@ export class BlogArticlePage {
     return this.blogRoutingService.buildIndexLink(this.currentLanguage);
   }
 
+  get shareButtonLabel(): string {
+    return this.translationService.translate(this.shareFeedbackKey);
+  }
+
   formatDate(date: string): string {
     return this.formatBlogDate(date, this.currentLanguage);
   }
@@ -196,6 +246,134 @@ export class BlogArticlePage {
       month: 'short',
       year: 'numeric'
     }).format(parsedDate);
+  }
+
+  private applyArticleSeo(article: ArticleViewData): void {
+    const articleUrl = this.buildArticleUrl(article.slug);
+    const articleTitle = `${article.title} | ${this.translationService.translate('blog.seo.articleTitleSuffix')}`;
+    const description = article.description || this.translationService.translate('blog.seo.defaultDescription');
+    const image = this.resolveAbsoluteUrl(article.coverImage) || environment.DEFAULT_OG_IMAGE;
+
+    this.title.setTitle(articleTitle);
+    this.updateMetaTag('name', 'description', description);
+    this.updateMetaTag('name', 'robots', 'index, follow');
+    this.updateMetaTag('name', 'keywords', article.tags.length
+      ? article.tags.join(', ')
+      : 'Yoel Villa, Full Stack, Angular, Java, Python, Cloud, Development, Desarrollo, Software, IA');
+    this.updateMetaTag('property', 'og:title', articleTitle);
+    this.updateMetaTag('property', 'og:description', description);
+    this.updateMetaTag('property', 'og:type', 'article');
+    this.updateMetaTag('property', 'og:url', articleUrl);
+    this.updateMetaTag('property', 'og:image', image);
+    this.updateMetaTag('property', 'og:locale', this.currentLanguage === 'es' ? 'es_ES' : 'en_US');
+    this.updateMetaTag('name', 'twitter:card', 'summary_large_image');
+    this.updateMetaTag('name', 'twitter:title', articleTitle);
+    this.updateMetaTag('name', 'twitter:description', description);
+    this.updateMetaTag('name', 'twitter:image', image);
+
+    if (article.date) {
+      this.updateMetaTag('property', 'article:published_time', article.date);
+    } else {
+      this.removeMetaTag('property', 'article:published_time');
+    }
+
+    this.updateCanonicalLink(articleUrl);
+  }
+
+  private resetSeo(): void {
+    const siteTitle = this.translationService.translate('blog.seo.siteTitle');
+    const description = this.translationService.translate('blog.seo.defaultDescription');
+
+    this.title.setTitle(siteTitle);
+    this.updateMetaTag('name', 'description', description);
+    this.updateMetaTag('name', 'keywords', 'Yoel Villa, Full Stack, Angular, Java, Python, Cloud, Development, Desarrollo, Software, IA');
+    this.updateMetaTag('name', 'robots', 'index, follow');
+    this.updateMetaTag('property', 'og:title', siteTitle);
+    this.updateMetaTag('property', 'og:description', description);
+    this.updateMetaTag('property', 'og:type', 'website');
+    this.updateMetaTag('property', 'og:url', environment.SITE_URL);
+    this.updateMetaTag('property', 'og:image', environment.DEFAULT_OG_IMAGE);
+    this.updateMetaTag('property', 'og:locale', this.currentLanguage === 'es' ? 'es_ES' : 'en_US');
+    this.updateMetaTag('name', 'twitter:card', 'summary_large_image');
+    this.updateMetaTag('name', 'twitter:title', siteTitle);
+    this.updateMetaTag('name', 'twitter:description', description);
+    this.updateMetaTag('name', 'twitter:image', environment.DEFAULT_OG_IMAGE);
+    this.removeMetaTag('property', 'article:published_time');
+    this.updateCanonicalLink(environment.SITE_URL);
+  }
+
+  private updateMetaTag(attribute: 'name' | 'property', selectorValue: string, content: string): void {
+    this.meta.updateTag({ [attribute]: selectorValue, content }, `${attribute}="${selectorValue}"`);
+  }
+
+  private removeMetaTag(attribute: 'name' | 'property', selectorValue: string): void {
+    this.meta.removeTag(`${attribute}="${selectorValue}"`);
+  }
+
+  private updateCanonicalLink(url: string): void {
+    let link = this.doc.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+
+    if (!link) {
+      link = this.doc.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      this.doc.head.appendChild(link);
+    }
+
+    link.setAttribute('href', url);
+  }
+
+  private buildArticleUrl(slug: string): string {
+    return `${environment.SITE_URL}/blog/${this.currentLanguage}/${slug}`;
+  }
+
+  private resolveAbsoluteUrl(value?: string): string {
+    if (!value) {
+      return '';
+    }
+
+    try {
+      return new URL(value, environment.SITE_URL).toString();
+    } catch {
+      return '';
+    }
+  }
+
+  private async copyToClipboard(text: string): Promise<void> {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = this.doc.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', 'true');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    this.doc.body.appendChild(textarea);
+    textarea.select();
+
+    const copied = this.doc.execCommand('copy');
+    this.doc.body.removeChild(textarea);
+
+    if (!copied) {
+      throw new Error('Copy command failed');
+    }
+  }
+
+  private setShareFeedback(translationKey: string): void {
+    this.shareFeedbackKey = translationKey;
+    this.clearShareFeedbackTimeout();
+    this.shareFeedbackTimeoutId = window.setTimeout(() => {
+      this.shareFeedbackKey = 'blog.actions.share';
+      this.shareFeedbackTimeoutId = null;
+    }, 2200);
+  }
+
+  private clearShareFeedbackTimeout(): void {
+    if (this.shareFeedbackTimeoutId !== null) {
+      window.clearTimeout(this.shareFeedbackTimeoutId);
+      this.shareFeedbackTimeoutId = null;
+    }
   }
 
   private updateScrollTopButtonVisibility(): void {
