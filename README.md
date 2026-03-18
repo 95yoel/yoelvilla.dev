@@ -91,6 +91,12 @@ Shared state has been extracted into services where it matters:
 
 The blog is loaded from markdown plus an index file hosted in a separate content repository.
 
+Related project:
+
+- blog content repository:
+  [yoelvilla.dev-articles](https://github.com/95yoel/yoelvilla.dev-articles)
+  This repository acts as the editorial/content side of the blog: article markdown, index data, and graph relationship data consumed by this frontend.
+
 Main capabilities:
 
 - localized routes:
@@ -111,7 +117,7 @@ Current environment values in `src/environments/environment.ts` and `src/environ
 export const environment = {
   CONTACT_API: "https://oa2o9zdgzc.execute-api.eu-west-3.amazonaws.com/prod",
   CONTACT_ENDPOINT: "/contact",
-  BLOG_BASE_URL: "https://raw.githubusercontent.com/95yoel/yoelvilla.dev-articles/graph-navigation",
+  BLOG_BASE_URL: "https://raw.githubusercontent.com/95yoel/yoelvilla.dev-articles/main",
   SITE_URL: "https://yoelvilla.dev",
   DEFAULT_OG_IMAGE: "https://yoelvilla.dev/preview.png"
 }
@@ -119,7 +125,7 @@ export const environment = {
 
 Important note:
 
-- `BLOG_BASE_URL` currently points to the `graph-navigation` branch of `yoelvilla.dev-articles`
+- `BLOG_BASE_URL` currently points to the `main` branch of `yoelvilla.dev-articles`
 - if production content should come from another branch, update that value before deploying
 
 ## Scripts
