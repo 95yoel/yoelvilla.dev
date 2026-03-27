@@ -16,6 +16,7 @@ export class CustomCursorComponent {
   dotSize = 6;
   brightness = 1;
   delay = 0.1;
+  showOuterCircle = true;
 
   private readonly elRef = inject(ElementRef);
   private readonly renderer = inject(Renderer2);
@@ -48,6 +49,7 @@ export class CustomCursorComponent {
         this.dotSize = cfg.dotSize;
         this.brightness = cfg.brightness;
         this.delay = cfg.delay;
+        this.showOuterCircle = cfg.showOuterCircle;
         this.updateCursorStyle();
       });
   }
@@ -116,6 +118,8 @@ export class CustomCursorComponent {
   }
 
   private updateCursorStyle() {
+    this.rootEl?.classList.toggle('hide-outer-circle', !this.showOuterCircle);
+
     if (this.cursorEl) {
       this.cursorEl.style.filter = '';
     }

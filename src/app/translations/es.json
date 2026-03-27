@@ -128,8 +128,14 @@
     "cursorPanel": {
       "title": "Configuraci\u00f3n del Cursor",
       "size": "Tama\u00f1o",
+      "dotSize": "Tama\u00f1o del punto",
+      "brightness": "Brillo",
       "lag": "Retraso",
-      "color": "Color"
+      "color": "Color",
+      "showOuterCircle": "Mostrar c\u00edrculo externo",
+      "hideOuterCircle": "Ocultar c\u00edrculo externo",
+      "outerCircleHint": "Mantiene el mismo comportamiento especial dentro del grafo.",
+      "reset": "Restablecer valores por defecto"
     },
     "languagePanel": {
       "title": "Seleccionar Idioma",

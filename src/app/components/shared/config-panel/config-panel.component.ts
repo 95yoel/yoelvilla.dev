@@ -39,6 +39,7 @@ export class ConfigPanelComponent {
   dotSize = 6
   brightness = 1
   delay = 0.1
+  showOuterCircle = true
 
   // Validation limits
   private readonly limits = {
@@ -70,6 +71,7 @@ export class ConfigPanelComponent {
         this.dotSize = cfg.dotSize
         this.brightness = cfg.brightness
         this.delay = cfg.delay
+        this.showOuterCircle = cfg.showOuterCircle
       });
   }
 
@@ -85,9 +87,16 @@ export class ConfigPanelComponent {
       size: this.cursorSize,
       dotSize: this.dotSize,
       brightness: this.brightness,
-      delay: this.delay
+      delay: this.delay,
+      showOuterCircle: this.showOuterCircle
     };
     this.cursorConfig.setConfig(cfg)
+  }
+
+  get outerCircleActionKey(): string {
+    return this.showOuterCircle
+      ? 'config.cursorPanel.hideOuterCircle'
+      : 'config.cursorPanel.showOuterCircle'
   }
 
   private clamp(value: number, min: number, max: number): number {
@@ -118,7 +127,8 @@ export class ConfigPanelComponent {
       size: 40,
       dotSize: 6,
       brightness: 1,
-      delay: 0.1
+      delay: 0.1,
+      showOuterCircle: true
     };
     this.cursorConfig.setConfig(defaults)
   }

@@ -7,6 +7,7 @@ export interface CursorConfig {
   dotSize: number;
   brightness: number;
   delay: number;
+  showOuterCircle: boolean;
 }
 
 @Injectable({
@@ -21,7 +22,8 @@ export class CursorConfigService {
     size: 40,
     dotSize: 6,
     brightness: 1,
-    delay: 0.1
+    delay: 0.1,
+    showOuterCircle: true
   }
 
   private configSubject = new BehaviorSubject<CursorConfig>(this.defaultConfig);

@@ -128,8 +128,14 @@
     "cursorPanel": {
       "title": "Cursor Configuration",
       "size": "Size",
+      "dotSize": "Dot Size",
+      "brightness": "Brightness",
       "lag": "Lag",
-      "color": "Color"
+      "color": "Color",
+      "showOuterCircle": "Show outer circle",
+      "hideOuterCircle": "Hide outer circle",
+      "outerCircleHint": "The graph keeps its own special cursor behavior.",
+      "reset": "Reset to Default"
     },
     "languagePanel": {
       "title": "Select Language",

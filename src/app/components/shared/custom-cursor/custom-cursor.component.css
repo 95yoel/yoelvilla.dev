@@ -23,6 +23,16 @@
   animation: none;
 }
 
+:host(.hide-outer-circle) .cursor-circle {
+  opacity: 0;
+  transform: scale(0.7);
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  animation: none;
+}
+
 :host(.graph-cursor-mode) .cursor-dot {
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-surface) 72%, transparent);
 }
@@ -32,7 +42,10 @@
   height: 40px;
   border: 1px solid var(--color-accent);
   border-radius: 50%;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   animation: pulse 3s ease-in-out infinite;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
