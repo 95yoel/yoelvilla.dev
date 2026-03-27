@@ -22,6 +22,20 @@
           <small *ngIf="!theme.available">{{ 'config.themePanel.comingSoon' | translate }}</small>
         </div>
       </button>
+
+      <hr>
+
+      <div class="performance-section">
+        <h5>{{ 'config.performancePanel.title' | translate }}</h5>
+
+        <label class="toggle-row">
+          <span>{{ animationsActionKey | translate }}</span>
+          <input
+            type="checkbox"
+            [ngModel]="animationsEnabled"
+            (ngModelChange)="updateAnimations($event)">
+        </label>
+      </div>
     </section>
 
     <section *ngIf="isDesktop" class="panel-column cursor-column">

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { gsap } from 'gsap';
 import { Language, TranslationService } from '../../../translations/services/translation.service';
 import { TranslatePipe } from '../../../translations/pipes/translate.pipe';
+import { PerformanceConfigService } from '../../../services/performance-config.service';
 
 @Component({
   selector: 'app-language-panel',
@@ -17,6 +18,7 @@ export class LanguagePanelComponent {
 
   private closing = false;
   private readonly translationService = inject(TranslationService);
+  private readonly performanceConfig = inject(PerformanceConfigService);
   private ctx!: gsap.Context;
 
   currentLang: Language = 'es';
@@ -41,6 +43,12 @@ export class LanguagePanelComponent {
   }
 
   ngAfterViewInit(): void {
+    if (!this.performanceConfig.animationsEnabled) {
+      this.panel.nativeElement.style.transform = 'translateX(0)'
+      this.panel.nativeElement.style.opacity = '1'
+      return;
+    }
+
     this.ctx = gsap.context(() => {
       gsap.from(this.panel.nativeElement, {
         x: 100,
@@ -61,6 +69,12 @@ export class LanguagePanelComponent {
   private startCloseAnimation() {
     if (this.closing) return;
     this.closing = true;
+
+    if (!this.performanceConfig.animationsEnabled) {
+      this.close.emit();
+      this.closing = false;
+      return;
+    }
 
     gsap.to(this.panel.nativeElement, {
       x: 100,

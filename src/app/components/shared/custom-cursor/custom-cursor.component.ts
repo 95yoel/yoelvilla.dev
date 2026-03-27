@@ -2,6 +2,7 @@ import { Component, DestroyRef, ElementRef, inject, Renderer2 } from '@angular/c
 import { CursorConfigService } from '../../../services/cursor-config.service';
 import { DOCUMENT } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PerformanceConfigService } from '../../../services/performance-config.service';
 
 @Component({
   selector: 'custom-cursor',
@@ -23,12 +24,14 @@ export class CustomCursorComponent {
   private readonly renderer = inject(Renderer2);
   private readonly doc = inject(DOCUMENT);
   private readonly cursorConfig = inject(CursorConfigService);
+  private readonly performanceConfig = inject(PerformanceConfigService);
   private readonly destroyRef = inject(DestroyRef);
   private rootEl?: HTMLElement;
   private cursorEl?: HTMLElement;
   private circleEl?: HTMLElement;
   private dotEl?: HTMLElement;
   private isGraphMode = false;
+  private animationsEnabled = true;
 
   private onPointerDown = (e: PointerEvent) => this.spawnClickPulse(e.clientX, e.clientY);
   private onMouseMove = (e: MouseEvent) => {
@@ -42,6 +45,14 @@ export class CustomCursorComponent {
 
   ngOnInit(): void {
     this.cursorConfig.loadConfig();
+    this.performanceConfig.loadConfig();
+
+    this.performanceConfig.config$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(cfg => {
+        this.animationsEnabled = cfg.animationsEnabled;
+      });
+
     this.cursorConfig.config$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(cfg => {
@@ -92,7 +103,7 @@ export class CustomCursorComponent {
       const circleDelay = this.delay;
       const dotDelay = circleDelay * 1.5;
 
-      if (this.isGraphMode) {
+      if (this.isGraphMode || !this.animationsEnabled) {
         circleX = this.mouseX;
         circleY = this.mouseY;
         dotX = this.mouseX;
@@ -160,6 +171,10 @@ export class CustomCursorComponent {
   }
 
   private spawnClickPulse(x: number, y: number) {
+    if (!this.animationsEnabled) {
+      return;
+    }
+
     const el = this.doc.createElement('span');
 
     Object.assign(el.style, {

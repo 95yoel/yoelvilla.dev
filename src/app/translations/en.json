@@ -147,6 +147,11 @@
       "darkTheme": "Dark",
       "comingSoon": "Coming Soon"
     },
+    "performancePanel": {
+      "title": "Performance",
+      "disableAnimations": "Disable animations",
+      "enableAnimations": "Enable animations"
+    },
     "languagePanel": {
       "title": "Select Language",
       "spanish": "Espa\u00f1ol",

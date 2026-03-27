@@ -18,6 +18,7 @@ import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar
 import { BlogArticleSummary } from '../../models/blog-article.model';
 import { BlogRoutingService } from '../../services/blog-routing.service';
 import { BlogService } from '../../services/blog.service';
+import { PerformanceConfigService } from '../../../../services/performance-config.service';
 
 type IndexViewState =
   | { status: 'loading' }
@@ -70,6 +71,7 @@ export class BlogIndexPage {
   private readonly blogRoutingService = inject(BlogRoutingService);
   private readonly layoutService = inject(LayoutService);
   private readonly doc = inject(DOCUMENT);
+  private readonly performanceConfig = inject(PerformanceConfigService);
   private readonly reload$ = new Subject<void>();
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly filterForm = new FormGroup({
@@ -384,11 +386,11 @@ export class BlogIndexPage {
     ].filter((target): target is HTMLElement => !!target);
 
     for (const target of scrollTargets) {
-      target.scrollTo({ top: 0, behavior: 'smooth' });
+      target.scrollTo({ top: 0, behavior: this.performanceConfig.getScrollBehavior() });
       target.scrollTop = 0;
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: this.performanceConfig.getScrollBehavior() });
 
     requestAnimationFrame(() => {
       for (const target of scrollTargets) {
@@ -422,6 +424,11 @@ export class BlogIndexPage {
     }
 
     this.hasPlayedEntryAnimation = true;
+
+    if (!this.performanceConfig.animationsEnabled) {
+      gsap.set([hero, sidebar], { opacity: 1, x: 0 });
+      return;
+    }
 
     gsap.killTweensOf([hero, sidebar]);
 
