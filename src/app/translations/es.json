@@ -126,8 +126,8 @@
   },
   "config": {
     "cursorPanel": {
-      "title": "Configuraci\u00f3n del Cursor",
-      "colorsSection": "Colors",
+      "title": "CONFIGURACI\u00d3N",
+      "colorsSection": "CURSOR",
       "paramsSection": "Params",
       "primaryColor": "Primary",
       "secondaryColor": "Gradient",
@@ -139,6 +139,13 @@
       "hideOuterCircle": "Ocultar c\u00edrculo externo",
       "outerCircleHint": "Mantiene el mismo comportamiento especial dentro del grafo.",
       "reset": "Restablecer valores por defecto"
+    },
+    "themePanel": {
+      "title": "Temas",
+      "defaultTheme": "Default",
+      "lightTheme": "Light",
+      "darkTheme": "Dark",
+      "comingSoon": "Pr\u00f3ximamente"
     },
     "languagePanel": {
       "title": "Seleccionar Idioma",

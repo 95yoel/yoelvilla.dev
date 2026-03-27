@@ -22,7 +22,8 @@
 
 <app-config-panel 
   #configPanel
-  *ngIf="showConfigPanel && layout === 'desktop'" 
+  *ngIf="showConfigPanel"
+  [layout]="layout"
   (close)="showConfigPanel = false">
 </app-config-panel>
 
@@ -33,4 +34,7 @@
 </app-language-panel>
 
 <villayoel-desktop *ngIf="layout === 'desktop'"></villayoel-desktop>
-<villayoel-mobile *ngIf="layout === 'mobile'" (openLanguagePanel)="toggleLanguagePanel()"></villayoel-mobile>
+<villayoel-mobile
+  *ngIf="layout === 'mobile'"
+  (openLanguagePanel)="toggleLanguagePanel()"
+  (openConfigPanel)="toggleConfigPanel()"></villayoel-mobile>

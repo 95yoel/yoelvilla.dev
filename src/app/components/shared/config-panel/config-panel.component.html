@@ -1,69 +1,90 @@
 <div #panel class="config-panel">
-  <button class="close-btn" (click)="onCloseClick()">✕</button>
+  <button class="close-btn" (click)="onCloseClick()">x</button>
   <h4>{{ 'config.cursorPanel.title' | translate }}</h4>
 
-  <div class="content">
-    <h5>{{ 'config.cursorPanel.colorsSection' | translate }}</h5>
+  <div class="panel-grid" [class.mobile-only]="!isDesktop">
+    <section class="panel-column theme-column">
+      <h5>{{ 'config.themePanel.title' | translate }}</h5>
 
-    <div class="color-row">
-      <label>
-        {{ 'config.cursorPanel.primaryColor' | translate }}
-        <input type="color" [(ngModel)]="primaryColor" (input)="onLiveChange()">
-      </label>
+      <button
+        *ngFor="let theme of themeOptions"
+        type="button"
+        class="theme-card"
+        [class.active]="activeTheme === theme.id"
+        [class.disabled]="!theme.available"
+        [disabled]="!theme.available"
+        (click)="selectTheme(theme.id)">
+        <div class="theme-swatches">
+          <span *ngFor="let swatch of theme.swatches" class="theme-swatch" [style.background]="swatch"></span>
+        </div>
+        <div class="theme-copy">
+          <strong>{{ theme.nameKey | translate }}</strong>
+          <small *ngIf="!theme.available">{{ 'config.themePanel.comingSoon' | translate }}</small>
+        </div>
+      </button>
+    </section>
 
-      <label>
-        {{ 'config.cursorPanel.secondaryColor' | translate }}
-        <input type="color" [(ngModel)]="secondaryColor" (input)="onLiveChange()">
-      </label>
-    </div>
+    <section *ngIf="isDesktop" class="panel-column cursor-column">
+      <div class="content">
+        <h5>{{ 'config.cursorPanel.colorsSection' | translate }}</h5>
 
-    <hr>
+        <div class="color-row">
+          <label>
+            {{ 'config.cursorPanel.primaryColor' | translate }}
+            <input type="color" [(ngModel)]="primaryColor" (input)="onLiveChange()">
+          </label>
 
-    <h5>{{ 'config.cursorPanel.paramsSection' | translate }}</h5>
+          <label>
+            {{ 'config.cursorPanel.secondaryColor' | translate }}
+            <input type="color" [(ngModel)]="secondaryColor" (input)="onLiveChange()">
+          </label>
+        </div>
 
-    <label>
-      {{ 'config.cursorPanel.size' | translate }}
-      <div class="range-wrapper">
-        <input type="range" min="10" max="200" step="1"
-               [(ngModel)]="cursorSize" (input)="onLiveChange()">
-        <span>{{ cursorSize }}</span>
+        <hr>
+
+        <h5>{{ 'config.cursorPanel.paramsSection' | translate }}</h5>
+
+        <label>
+          {{ 'config.cursorPanel.size' | translate }}
+          <div class="range-wrapper">
+            <input type="range" min="10" max="200" step="1" [(ngModel)]="cursorSize" (input)="onLiveChange()">
+            <span>{{ cursorSize }}</span>
+          </div>
+        </label>
+
+        <label>
+          {{ 'config.cursorPanel.dotSize' | translate }}
+          <div class="range-wrapper">
+            <input type="range" min="2" max="50" step="1" [(ngModel)]="dotSize" (input)="onLiveChange()">
+            <span>{{ dotSize }}</span>
+          </div>
+        </label>
+
+        <label>
+          {{ 'config.cursorPanel.brightness' | translate }}
+          <div class="range-wrapper">
+            <input type="range" min="0.5" max="1.5" step="0.05" [(ngModel)]="brightness" (input)="onLiveChange()">
+            <span>{{ brightness | number:'1.2-2' }}</span>
+          </div>
+        </label>
+
+        <label>
+          {{ 'config.cursorPanel.lag' | translate }}
+          <div class="range-wrapper">
+            <input type="range" min="0.05" max="0.30" step="0.01" [(ngModel)]="delay" (input)="onLiveChange()">
+            <span>{{ delay | number:'1.2-2' }}</span>
+          </div>
+        </label>
+
+        <label class="toggle-row">
+          <span>{{ outerCircleActionKey | translate }}</span>
+          <input type="checkbox" [(ngModel)]="showOuterCircle" (change)="onLiveChange()">
+        </label>
       </div>
-    </label>
 
-    <label>
-      {{ 'config.cursorPanel.dotSize' | translate }}
-      <div class="range-wrapper">
-        <input type="range" min="2" max="50" step="1"
-               [(ngModel)]="dotSize" (input)="onLiveChange()">
-        <span>{{ dotSize }}</span>
+      <div class="actions">
+        <button type="button" class="btn-ghost" (click)="resetConfig()">{{ 'config.cursorPanel.reset' | translate }}</button>
       </div>
-    </label>
-
-    <label>
-      {{ 'config.cursorPanel.brightness' | translate }}
-      <div class="range-wrapper">
-        <input type="range" min="0.5" max="1.5" step="0.05"
-               [(ngModel)]="brightness" (input)="onLiveChange()">
-        <span>{{ brightness | number:'1.2-2' }}</span>
-      </div>
-    </label>
-
-    <label>
-      {{ 'config.cursorPanel.lag' | translate }}
-      <div class="range-wrapper">
-        <input type="range" min="0.05" max="0.30" step="0.01"
-               [(ngModel)]="delay" (input)="onLiveChange()">
-        <span>{{ delay | number:'1.2-2' }}</span>
-      </div>
-    </label>
-
-    <label class="toggle-row">
-      <span>{{ outerCircleActionKey | translate }}</span>
-      <input type="checkbox" [(ngModel)]="showOuterCircle" (change)="onLiveChange()">
-    </label>
-  </div>
-
-  <div class="actions">
-    <button type="button" class="btn-ghost" (click)="resetConfig()">{{ 'config.cursorPanel.reset' | translate }}</button>
+    </section>
   </div>
 </div>

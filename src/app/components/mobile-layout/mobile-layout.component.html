@@ -3,6 +3,10 @@
     {{ 'blog.title' | translate }}
   </a>
 
+  <button class="mobile-language-btn" type="button" (click)="toggleConfigPanel()">
+    <img src="/icons/config.svg" alt="Configuration" width="20" height="20">
+  </button>
+
   <button class="mobile-language-btn" type="button" (click)="toggleLanguagePanel()">
     <img src="/icons/idioma.png" alt="Language" width="20" height="20">
   </button>

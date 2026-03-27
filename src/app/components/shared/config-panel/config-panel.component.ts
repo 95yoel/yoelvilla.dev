@@ -1,10 +1,11 @@
-import { Component, DestroyRef, ElementRef, EventEmitter, HostListener, inject, Output, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject } from '@angular/core';
 import { gsap } from 'gsap';
 import { CursorConfig, CursorConfigService } from '../../../services/cursor-config.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../translations/pipes/translate.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ThemeConfigService, ThemeId, ThemePreview } from '../../../services/theme-config.service';
 
 @Component({
   selector: 'app-config-panel',
@@ -14,11 +15,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class ConfigPanelComponent {
   
+  @Input() layout: 'mobile' | 'desktop' = 'desktop';
   @ViewChild('panel', { static: true }) panel!: ElementRef<HTMLDivElement>;
   @Output() close = new EventEmitter<void>()
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly cursorConfig = inject(CursorConfigService);
+  private readonly themeConfig = inject(ThemeConfigService);
   private ctx!: gsap.Context;
 
   @HostListener('document:keydown.escape')
@@ -41,6 +44,8 @@ export class ConfigPanelComponent {
   brightness = 1
   delay = 0.1
   showOuterCircle = true
+  activeTheme: ThemeId = 'default'
+  themeOptions: ThemePreview[] = []
 
   // Validation limits
   private readonly limits = {
@@ -63,6 +68,14 @@ export class ConfigPanelComponent {
   }
 
   ngOnInit(): void {
+    this.themeOptions = this.themeConfig.getAvailableThemes()
+    this.themeConfig.loadTheme()
+    this.themeConfig.activeTheme$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(themeId => {
+        this.activeTheme = themeId
+      });
+
     this.cursorConfig.loadConfig();
     this.cursorConfig.config$
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -100,6 +113,14 @@ export class ConfigPanelComponent {
     return this.showOuterCircle
       ? 'config.cursorPanel.hideOuterCircle'
       : 'config.cursorPanel.showOuterCircle'
+  }
+
+  get isDesktop(): boolean {
+    return this.layout === 'desktop'
+  }
+
+  selectTheme(themeId: ThemeId): void {
+    this.themeConfig.setTheme(themeId)
   }
 
   private clamp(value: number, min: number, max: number): number {

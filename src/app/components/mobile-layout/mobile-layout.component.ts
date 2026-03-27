@@ -17,6 +17,7 @@ import { TranslationService } from '../../translations/services/translation.serv
 })
 export class MobileLayoutComponent implements AfterViewInit {
   @Output() openLanguagePanel = new EventEmitter<void>();
+  @Output() openConfigPanel = new EventEmitter<void>();
   @ViewChild('mobileScrollContainer') mobileScrollContainer?: ElementRef<HTMLDivElement>;
   @ViewChildren('mobileSection') mobileSections?: QueryList<ElementRef<HTMLElement>>;
   
@@ -81,6 +82,10 @@ export class MobileLayoutComponent implements AfterViewInit {
 
   toggleLanguagePanel() {
     this.openLanguagePanel.emit()
+  }
+
+  toggleConfigPanel() {
+    this.openConfigPanel.emit()
   }
 
   onContainerScroll(): void {
