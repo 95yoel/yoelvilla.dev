@@ -34,6 +34,7 @@
 }
 
 :host(.graph-cursor-mode) .cursor-dot {
+  background: #000 !important;
   box-shadow:
     0 0 0 5px color-mix(in srgb, var(--color-surface) 72%, transparent),
     0 0 18px color-mix(in srgb, var(--cursor-secondary, var(--color-accent)) 38%, transparent);

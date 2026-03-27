@@ -126,8 +126,8 @@
   },
   "config": {
     "cursorPanel": {
-      "title": "Cursor Configuration",
-      "colorsSection": "Colors",
+      "title": "CONFIGURATION",
+      "colorsSection": "CURSOR",
       "paramsSection": "Params",
       "primaryColor": "Primary Color",
       "secondaryColor": "Gradient",
@@ -139,6 +139,13 @@
       "hideOuterCircle": "Hide outer circle",
       "outerCircleHint": "The graph keeps its own special cursor behavior.",
       "reset": "Reset to Default"
+    },
+    "themePanel": {
+      "title": "Themes",
+      "defaultTheme": "Default",
+      "lightTheme": "Light",
+      "darkTheme": "Dark",
+      "comingSoon": "Coming Soon"
     },
     "languagePanel": {
       "title": "Select Language",

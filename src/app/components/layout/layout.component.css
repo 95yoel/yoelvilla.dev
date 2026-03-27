@@ -16,7 +16,7 @@ header {
   z-index: 99999;
 }
 
-img {
+.language-trigger-icon {
   height: 32px;
   width: auto;
   display: block;
@@ -29,6 +29,26 @@ img {
 .language-trigger {
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.config-icon {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.config-icon-glyph {
+  width: 32px;
+  height: 32px;
+  display: block;
+  background-color: var(--color-accent);
+  mask: url('/icons/config.svg') center / contain no-repeat;
+  -webkit-mask: url('/icons/config.svg') center / contain no-repeat;
+  opacity: 0.95;
 }
 
 .blog-link {

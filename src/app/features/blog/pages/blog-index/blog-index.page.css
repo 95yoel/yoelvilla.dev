@@ -1,4 +1,23 @@
 :host {
+  --color-accent: #7bc2a5;
+  --color-text-light: #fff7f2;
+  --color-text-muted: #f3d9c9;
+  --color-text-dark: #4b5563;
+  --color-text-darker: #374151;
+  --color-text-darkest: #111827;
+  --color-text-slate: #6b7280;
+  --color-bg-panel: #f3d9c9cc;
+  --color-bg-card: rgba(15, 23, 42, 0.18);
+  --color-bg-white: #fdfbfa;
+  --color-bg-light: #f9fafb;
+  --color-border-light: rgba(255, 255, 255, 0.18);
+  --color-border-medium: rgba(255, 255, 255, 0.28);
+  --color-border-strong: rgba(255, 255, 255, 0.45);
+  --color-border-subtle: #e5e0dc;
+  --color-border-slate: #e2e8f0;
+  --color-border-slate-dark: #cbd5e1;
+  --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.32);
+  --shadow-panel: 0 18px 40px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.14);
   display: block;
   min-height: 100vh;
   background:

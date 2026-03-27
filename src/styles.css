@@ -85,6 +85,70 @@
   --radius-full: 999px;
 }
 
+:root[data-theme='light'] {
+  --color-home: #cbd5e1;
+  --color-about: #e2e8f0;
+  --color-portfolio: #bfd0dc;
+  --color-contact: #dbe4ec;
+
+  --color-accent: #334155;
+
+  --color-text-light: #0f172a;
+  --color-text-muted: #334155;
+  --color-text-dark: #334155;
+  --color-text-darker: #1e293b;
+  --color-text-darkest: #020617;
+  --color-text-slate: #64748b;
+
+  --color-bg-panel: rgba(226, 232, 240, 0.82);
+  --color-bg-card: rgba(255, 255, 255, 0.42);
+  --color-bg-white: #ffffff;
+  --color-bg-light: #f8fafc;
+
+  --color-border-light: rgba(15, 23, 42, 0.08);
+  --color-border-medium: rgba(15, 23, 42, 0.16);
+  --color-border-strong: rgba(15, 23, 42, 0.24);
+  --color-border-subtle: #dbe4ec;
+  --color-border-slate: #cbd5e1;
+  --color-border-slate-dark: #94a3b8;
+
+  --shadow-text: 0 1px 2px rgba(255, 255, 255, 0.18);
+  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-panel: 0 18px 40px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme='dark'] {
+  --color-home: #0f172a;
+  --color-about: #111827;
+  --color-portfolio: #1e293b;
+  --color-contact: #0b1120;
+
+  --color-accent: #cbd5e1;
+
+  --color-text-light: #f8fafc;
+  --color-text-muted: #cbd5e1;
+  --color-text-dark: #cbd5e1;
+  --color-text-darker: #e2e8f0;
+  --color-text-darkest: #f8fafc;
+  --color-text-slate: #94a3b8;
+
+  --color-bg-panel: rgba(15, 23, 42, 0.78);
+  --color-bg-card: rgba(15, 23, 42, 0.52);
+  --color-bg-white: #111827;
+  --color-bg-light: #1f2937;
+
+  --color-border-light: rgba(255, 255, 255, 0.1);
+  --color-border-medium: rgba(255, 255, 255, 0.18);
+  --color-border-strong: rgba(255, 255, 255, 0.28);
+  --color-border-subtle: #334155;
+  --color-border-slate: #334155;
+  --color-border-slate-dark: #475569;
+
+  --shadow-text: 0 1px 2px rgba(2, 6, 23, 0.7);
+  --shadow-card: 0 10px 28px rgba(2, 6, 23, 0.42);
+  --shadow-panel: 0 18px 40px rgba(2, 6, 23, 0.42), 0 2px 8px rgba(2, 6, 23, 0.28);
+}
+
 /* 
    RESET AND BASE
 */
@@ -162,13 +226,13 @@ html, body {
 
 .blog-date-panel {
   --mat-datepicker-calendar-container-background-color: #fffaf6;
-  --mat-datepicker-calendar-container-text-color: var(--color-text-darkest);
-  --mat-datepicker-calendar-header-text-color: var(--color-text-slate);
-  --mat-datepicker-calendar-period-button-text-color: var(--color-text-darkest);
-  --mat-datepicker-calendar-period-button-icon-color: var(--color-text-darkest);
-  --mat-datepicker-calendar-navigation-button-icon-color: var(--color-text-darkest);
-  --mat-datepicker-calendar-body-label-text-color: var(--color-text-slate);
-  --mat-datepicker-calendar-date-text-color: var(--color-text-darkest);
+  --mat-datepicker-calendar-container-text-color: #111827;
+  --mat-datepicker-calendar-header-text-color: #6b7280;
+  --mat-datepicker-calendar-period-button-text-color: #111827;
+  --mat-datepicker-calendar-period-button-icon-color: #111827;
+  --mat-datepicker-calendar-navigation-button-icon-color: #111827;
+  --mat-datepicker-calendar-body-label-text-color: #6b7280;
+  --mat-datepicker-calendar-date-text-color: #111827;
   --mat-datepicker-calendar-date-disabled-state-text-color: rgba(17, 24, 39, 0.38);
   --mat-datepicker-calendar-date-today-outline-color: rgba(64, 87, 79, 0.35);
   --mat-datepicker-calendar-date-today-selected-state-outline-color: #fffaf6;
@@ -197,7 +261,7 @@ html, body {
 .blog-date-panel .mat-calendar-period-button,
 .blog-date-panel .mat-calendar-previous-button,
 .blog-date-panel .mat-calendar-next-button {
-  color: var(--color-text-darkest) !important;
+  color: #111827 !important;
 }
 
 .blog-date-panel .mat-calendar-body-selected {
