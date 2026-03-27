@@ -99,6 +99,11 @@ h5 {
   gap: 14px;
 }
 
+.performance-section {
+  display: grid;
+  gap: 14px;
+}
+
 .cursor-column {
   padding-left: 24px;
   border-left: 1px solid color-mix(in srgb, var(--color-border-slate) 88%, white);

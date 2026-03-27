@@ -9,6 +9,7 @@ import { TranslatePipe } from '../../translations/pipes/translate.pipe';
 import { ContactService } from '../../services/contact.service';
 import { PortfolioService, PortfolioTab } from '../../services/portfolio.service';
 import { SectionNavigationService } from '../../services/section-navigation.service';
+import { PerformanceConfigService } from '../../services/performance-config.service';
 
 @Component({
   selector: 'villayoel-desktop',
@@ -29,6 +30,7 @@ export class DesktopLayoutComponent {
   private contactService = inject(ContactService)
   private portfolioService = inject(PortfolioService)
   private sectionNavigationService = inject(SectionNavigationService)
+  private performanceConfig = inject(PerformanceConfigService)
   
   // Carousel navigation state
   canScrollCarouselNext = false
@@ -74,6 +76,10 @@ export class DesktopLayoutComponent {
     return this.sectionNavigationService.snapshot.currentSectionIndex
   }
 
+  private get animationsEnabled(): boolean {
+    return this.performanceConfig.animationsEnabled
+  }
+
   @HostListener('wheel', ['$event'])
   onWheel(event: WheelEvent) {
     event.preventDefault()
@@ -90,12 +96,16 @@ export class DesktopLayoutComponent {
 
     container.scrollTo({
       left: targetScrollLeft,
-      behavior: 'smooth'
+      behavior: this.performanceConfig.getScrollBehavior()
     })
 
-    setTimeout(() => {
+    if (this.animationsEnabled) {
+      setTimeout(() => {
+        this.isScrolling = false
+      }, 250)
+    } else {
       this.isScrolling = false
-    }, 250)
+    }
   }
 
   ngAfterViewInit(): void {
@@ -134,8 +144,12 @@ export class DesktopLayoutComponent {
         this.portfolioEl = element
         const work = this.getWorkRoot(element)
         if (work) {
-          gsap.set(work, { opacity: 0, y: 12 })
-          gsap.to(work, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
+          if (this.animationsEnabled) {
+            gsap.set(work, { opacity: 0, y: 12 })
+            gsap.to(work, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
+          } else {
+            gsap.set(work, { opacity: 1, y: 0 })
+          }
         }
         queueMicrotask(() => this.animateWorkTab(this.activeWorkTab, element))
         break
@@ -162,7 +176,13 @@ export class DesktopLayoutComponent {
       case 'portfolio':
         this.unanimateWorkTab(this.activeWorkTab, element)
         const work = this.getWorkRoot(element)
-        if (work) gsap.to(work, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.inOut' })
+        if (work) {
+          if (this.animationsEnabled) {
+            gsap.to(work, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.inOut' })
+          } else {
+            gsap.set(work, { opacity: 0, y: 12 })
+          }
+        }
         break
       case 'contact':
         this.unanimateContact(element)
@@ -176,6 +196,11 @@ export class DesktopLayoutComponent {
 
     if (!title || !subtitle) return
 
+    if (!this.animationsEnabled) {
+      gsap.set([title, subtitle], { opacity: 1, y: 0 })
+      return
+    }
+
     gsap.set(title, { opacity: 0, y: -500 })
     gsap.set(subtitle, { opacity: 0, y: 500 })
 
@@ -188,11 +213,15 @@ export class DesktopLayoutComponent {
     const subtitle = element.querySelector('.subtitle')
 
     if (title) {
-      gsap.to(title, { opacity: 0, duration: 0.5, ease: 'power2.inOut' })
+      this.animationsEnabled
+        ? gsap.to(title, { opacity: 0, duration: 0.5, ease: 'power2.inOut' })
+        : gsap.set(title, { opacity: 0 })
     }
 
     if (subtitle) {
-      gsap.to(subtitle, { opacity: 0, y: 60, duration: 0.5, ease: 'power2.inOut' })
+      this.animationsEnabled
+        ? gsap.to(subtitle, { opacity: 0, y: 60, duration: 0.5, ease: 'power2.inOut' })
+        : gsap.set(subtitle, { opacity: 0, y: 60 })
     }
   }
 
@@ -200,6 +229,11 @@ export class DesktopLayoutComponent {
     const aboutText = element.querySelector('.about')
 
     if (!aboutText) return
+
+    if (!this.animationsEnabled) {
+      gsap.set(aboutText, { opacity: 1, y: 0 })
+      return
+    }
 
     gsap.set(aboutText, { opacity: 0, y: -50 })
 
@@ -210,7 +244,9 @@ export class DesktopLayoutComponent {
     const aboutText = element.querySelector('.about')
 
     if (aboutText) {
-      gsap.to(aboutText, { opacity: 0, y: -50, duration: 0.5, ease: 'power2.inOut' })
+      this.animationsEnabled
+        ? gsap.to(aboutText, { opacity: 0, y: -50, duration: 0.5, ease: 'power2.inOut' })
+        : gsap.set(aboutText, { opacity: 0, y: -50 })
     }
   }
 
@@ -236,22 +272,34 @@ export class DesktopLayoutComponent {
       const cards = panel?.querySelectorAll('.card') ?? []
       if (!panel || !cards.length) return
 
-      gsap.set(panel, { opacity: 0, y: 8 })
-      gsap.to(panel, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+      if (this.animationsEnabled) {
+        gsap.set(panel, { opacity: 0, y: 8 })
+        gsap.to(panel, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
 
-      gsap.set(cards, { opacity: 0, y: 10 })
-      gsap.to(cards, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.08 })
+        gsap.set(cards, { opacity: 0, y: 10 })
+        gsap.to(cards, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.08 })
+      } else {
+        gsap.set(panel, { opacity: 1, y: 0 })
+        gsap.set(cards, { opacity: 1, y: 0 })
+      }
     } else {
       const panel = work.querySelector('#experiencia') as HTMLElement | null
       const items = panel?.querySelectorAll('.xp li') ?? []
       if (!panel) return
 
-      gsap.set(panel, { opacity: 0, y: 8 })
-      gsap.to(panel, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+      if (this.animationsEnabled) {
+        gsap.set(panel, { opacity: 0, y: 8 })
+        gsap.to(panel, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
 
-      if (items.length) {
-        gsap.set(items, { opacity: 0, x: -8 })
-        gsap.to(items, { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out', stagger: 0.06 })
+        if (items.length) {
+          gsap.set(items, { opacity: 0, x: -8 })
+          gsap.to(items, { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out', stagger: 0.06 })
+        }
+      } else {
+        gsap.set(panel, { opacity: 1, y: 0 })
+        if (items.length) {
+          gsap.set(items, { opacity: 1, x: 0 })
+        }
       }
     }
   }
@@ -263,7 +311,9 @@ export class DesktopLayoutComponent {
     const panel = work.querySelector(tab === 'proyectos' ? '#proyectos' : '#experiencia') as HTMLElement | null
     if (!panel) return
 
-    gsap.to(panel, { opacity: 0, y: 8, duration: 0.35, ease: 'power2.inOut' })
+    this.animationsEnabled
+      ? gsap.to(panel, { opacity: 0, y: 8, duration: 0.35, ease: 'power2.inOut' })
+      : gsap.set(panel, { opacity: 0, y: 8 })
   }
 
   private getWorkRoot(element?: HTMLElement): HTMLElement | null {
@@ -284,24 +334,36 @@ export class DesktopLayoutComponent {
     const el = this.carouselRef?.nativeElement
     if (!el) return
     const step = this.getCardStep()
-    gsap.to(el, { 
-      scrollLeft: el.scrollLeft + step, 
-      duration: 0.5, 
-      ease: 'power2.out',
-      onComplete: () => this.updateCarouselButtons()
-    })
+    if (this.animationsEnabled) {
+      gsap.to(el, { 
+        scrollLeft: el.scrollLeft + step, 
+        duration: 0.5, 
+        ease: 'power2.out',
+        onComplete: () => this.updateCarouselButtons()
+      })
+      return
+    }
+
+    el.scrollLeft += step
+    this.updateCarouselButtons()
   }
 
   public carouselPrev(): void {
     const el = this.carouselRef?.nativeElement
     if (!el) return
     const step = this.getCardStep()
-    gsap.to(el, { 
-      scrollLeft: el.scrollLeft - step, 
-      duration: 0.5, 
-      ease: 'power2.out',
-      onComplete: () => this.updateCarouselButtons()
-    })
+    if (this.animationsEnabled) {
+      gsap.to(el, { 
+        scrollLeft: el.scrollLeft - step, 
+        duration: 0.5, 
+        ease: 'power2.out',
+        onComplete: () => this.updateCarouselButtons()
+      })
+      return
+    }
+
+    el.scrollLeft -= step
+    this.updateCarouselButtons()
   }
 
   private updateCarouselButtons(): void {
@@ -320,6 +382,11 @@ export class DesktopLayoutComponent {
     const root = element.querySelector('.contact') as HTMLElement | null
     if (!root) return
 
+    if (!this.animationsEnabled) {
+      gsap.set(root, { opacity: 1, y: 0 })
+      return
+    }
+
     gsap.set(root, { opacity: 0, y: 12 })
     gsap.to(root, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
   }
@@ -327,7 +394,9 @@ export class DesktopLayoutComponent {
   private unanimateContact(element: HTMLElement) {
     const root = element.querySelector('.contact') as HTMLElement | null
     if (!root) return
-    gsap.to(root, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.inOut' })
+    this.animationsEnabled
+      ? gsap.to(root, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.inOut' })
+      : gsap.set(root, { opacity: 0, y: 12 })
   }
 
   
@@ -335,7 +404,7 @@ export class DesktopLayoutComponent {
     const targetSection = this.sectionNavigationService.findSectionByName(sectionName)
 
     if (targetSection) {
-      targetSection.scrollIntoView({ behavior: 'smooth', inline: 'start' })
+      targetSection.scrollIntoView({ behavior: this.performanceConfig.getScrollBehavior(), inline: 'start' })
     }
   }
 
@@ -348,7 +417,7 @@ export class DesktopLayoutComponent {
 
       container.scrollTo({
         left: offsetLeft,
-        behavior: 'smooth'
+        behavior: this.performanceConfig.getScrollBehavior()
       })
     }
   }
@@ -362,7 +431,7 @@ export class DesktopLayoutComponent {
 
       container.scrollTo({
         left: offsetLeft,
-        behavior: 'smooth'
+        behavior: this.performanceConfig.getScrollBehavior()
       })
     }
   }

@@ -15,6 +15,7 @@ import { CustomCursorComponent } from '../../../../components/shared/custom-curs
 import { LanguagePanelComponent } from '../../../../components/shared/language-panel/language-panel.component';
 import { BlogRoutingService } from '../../services/blog-routing.service';
 import { environment } from '../../../../../environments/environment';
+import { PerformanceConfigService } from '../../../../services/performance-config.service';
 
 type ArticleVm =
   | { status: 'loading' }
@@ -53,6 +54,7 @@ export class BlogArticlePage {
   private readonly blogRoutingService = inject(BlogRoutingService);
   private readonly layoutService = inject(LayoutService);
   private readonly doc = inject(DOCUMENT);
+  private readonly performanceConfig = inject(PerformanceConfigService);
   private readonly meta = inject(Meta);
   private readonly title = inject(Title);
   private readonly platformId = inject(PLATFORM_ID);
@@ -393,11 +395,11 @@ export class BlogArticlePage {
     ].filter((target): target is HTMLElement => !!target);
 
     for (const target of scrollTargets) {
-      target.scrollTo({ top: 0, behavior: 'smooth' });
+      target.scrollTo({ top: 0, behavior: this.performanceConfig.getScrollBehavior() });
       target.scrollTop = 0;
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: this.performanceConfig.getScrollBehavior() });
 
     requestAnimationFrame(() => {
       for (const target of scrollTargets) {
@@ -431,6 +433,11 @@ export class BlogArticlePage {
     }
 
     this.hasPlayedEntryAnimation = true;
+
+    if (!this.performanceConfig.animationsEnabled) {
+      gsap.set([articleCard, articleSidebar], { opacity: 1, x: 0 });
+      return;
+    }
 
     gsap.killTweensOf([articleCard, articleSidebar]);
     gsap.set(articleCard, { opacity: 0, x: -50 });

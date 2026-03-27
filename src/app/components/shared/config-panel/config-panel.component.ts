@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../translations/pipes/translate.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ThemeConfigService, ThemeId, ThemePreview } from '../../../services/theme-config.service';
+import { PerformanceConfigService } from '../../../services/performance-config.service';
 
 @Component({
   selector: 'app-config-panel',
@@ -22,6 +23,7 @@ export class ConfigPanelComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cursorConfig = inject(CursorConfigService);
   private readonly themeConfig = inject(ThemeConfigService);
+  private readonly performanceConfig = inject(PerformanceConfigService);
   private ctx!: gsap.Context;
 
   @HostListener('document:keydown.escape')
@@ -44,6 +46,7 @@ export class ConfigPanelComponent {
   brightness = 1
   delay = 0.1
   showOuterCircle = true
+  animationsEnabled = true
   activeTheme: ThemeId = 'default'
   themeOptions: ThemePreview[] = []
 
@@ -56,6 +59,12 @@ export class ConfigPanelComponent {
   };
 
   ngAfterViewInit() {
+    if (!this.performanceConfig.animationsEnabled) {
+      this.panel.nativeElement.style.transform = 'translateX(0%)'
+      this.panel.nativeElement.style.opacity = '1'
+      return
+    }
+
     requestAnimationFrame(() => {
       this.ctx = gsap.context(() => {
         gsap.fromTo(
@@ -69,11 +78,18 @@ export class ConfigPanelComponent {
 
   ngOnInit(): void {
     this.themeOptions = this.themeConfig.getAvailableThemes()
+    this.performanceConfig.loadConfig()
     this.themeConfig.loadTheme()
     this.themeConfig.activeTheme$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(themeId => {
         this.activeTheme = themeId
+      });
+
+    this.performanceConfig.config$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(cfg => {
+        this.animationsEnabled = cfg.animationsEnabled
       });
 
     this.cursorConfig.loadConfig();
@@ -115,6 +131,12 @@ export class ConfigPanelComponent {
       : 'config.cursorPanel.showOuterCircle'
   }
 
+  get animationsActionKey(): string {
+    return this.animationsEnabled
+      ? 'config.performancePanel.disableAnimations'
+      : 'config.performancePanel.enableAnimations'
+  }
+
   get isDesktop(): boolean {
     return this.layout === 'desktop'
   }
@@ -132,6 +154,11 @@ export class ConfigPanelComponent {
   }
 
   startCloseAnimation() {
+    if (!this.performanceConfig.animationsEnabled) {
+      this.close.emit()
+      return
+    }
+
     gsap.to(this.panel.nativeElement, {
       x: '100%',
       opacity: 0,
@@ -156,5 +183,10 @@ export class ConfigPanelComponent {
       showOuterCircle: true
     };
     this.cursorConfig.setConfig(defaults)
+  }
+
+  updateAnimations(enabled: boolean): void {
+    this.performanceConfig.setAnimationsEnabled(enabled)
+    this.animationsEnabled = enabled
   }
 }

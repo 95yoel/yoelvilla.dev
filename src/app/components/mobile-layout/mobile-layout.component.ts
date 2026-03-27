@@ -8,6 +8,7 @@ import { PortfolioService, PortfolioTab } from '../../services/portfolio.service
 import { RouterLink } from '@angular/router';
 import { BlogRoutingService } from '../../features/blog/services/blog-routing.service';
 import { TranslationService } from '../../translations/services/translation.service';
+import { PerformanceConfigService } from '../../services/performance-config.service';
 
 @Component({
   selector: 'villayoel-mobile',
@@ -27,6 +28,7 @@ export class MobileLayoutComponent implements AfterViewInit {
   private portfolioService = inject(PortfolioService)
   private translationService = inject(TranslationService)
   private blogRoutingService = inject(BlogRoutingService)
+  private performanceConfig = inject(PerformanceConfigService)
 
   get activeTab(): PortfolioTab {
     return this.portfolioService.snapshot.activeTab
@@ -95,7 +97,7 @@ export class MobileLayoutComponent implements AfterViewInit {
   scrollToTop(): void {
     this.mobileScrollContainer?.nativeElement.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: this.performanceConfig.getScrollBehavior()
     })
   }
 

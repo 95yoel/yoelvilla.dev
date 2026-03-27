@@ -149,6 +149,23 @@
   --shadow-panel: 0 18px 40px rgba(2, 6, 23, 0.42), 0 2px 8px rgba(2, 6, 23, 0.28);
 }
 
+:root[data-performance='reduced'] {
+  --transition-fast: 0s linear;
+  --transition-medium: 0s linear;
+  --transition-slow: 0s linear;
+}
+
+:root[data-performance='reduced'] *,
+:root[data-performance='reduced'] *::before,
+:root[data-performance='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
 /* 
    RESET AND BASE
 */
