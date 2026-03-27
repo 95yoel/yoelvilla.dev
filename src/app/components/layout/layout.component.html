@@ -12,12 +12,13 @@
     <img src="/icons/idioma.png" alt="" aria-hidden="true" class="language-trigger-icon">
     <span>{{ currentLanguage | uppercase }}</span>
   </button>
-  <img 
-    src="/icons/config.svg" 
-    alt="Configuration" 
-    class="config-icon" 
-    (click)="toggleConfigPanel()"
-  >
+  <button
+    type="button"
+    class="config-icon"
+    [attr.aria-label]="t('tooltips.cursorConfig')"
+    (click)="toggleConfigPanel()">
+    <span class="config-icon-glyph" aria-hidden="true"></span>
+  </button>
 </header>
 
 <app-config-panel 

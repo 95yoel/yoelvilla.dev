@@ -11,6 +11,7 @@ import { Language, TranslationService } from '../../translations/services/transl
 import { RouterLink } from '@angular/router';
 import { BlogRoutingService } from '../../features/blog/services/blog-routing.service';
 import { UpperCasePipe } from '@angular/common';
+import { ThemeConfigService } from '../../services/theme-config.service';
 
 @Component({
   selector: 'app-layout',
@@ -29,10 +30,13 @@ export class LayoutComponent {
   private destroyRef = inject(DestroyRef);
   private translationService = inject(TranslationService);
   private blogRoutingService = inject(BlogRoutingService);
+  private themeConfigService = inject(ThemeConfigService);
 
   constructor(private layoutService: LayoutService) {}
 
   ngOnInit() {
+    this.themeConfigService.loadTheme();
+
     this.layoutService.layout$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(l => {

@@ -31,6 +31,10 @@ export class CursorConfigService {
   private configSubject = new BehaviorSubject<CursorConfig>(this.defaultConfig);
   config$ = this.configSubject.asObservable()
 
+  getCurrentConfig(): CursorConfig {
+    return this.configSubject.getValue()
+  }
+
   setConfig(config: CursorConfig) {
     this.configSubject.next(config)
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(config))

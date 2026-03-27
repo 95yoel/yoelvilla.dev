@@ -61,6 +61,15 @@
   opacity: 0.9;
 }
 
+.mobile-config-glyph {
+  width: 20px;
+  height: 20px;
+  display: block;
+  background-color: var(--color-accent);
+  mask: url('/icons/config.svg') center / contain no-repeat;
+  -webkit-mask: url('/icons/config.svg') center / contain no-repeat;
+}
+
 .mobile-scroll-container {
   width: 100%;
   min-height: 100vh;
@@ -205,7 +214,7 @@
   appearance: none;
   border: 1px solid var(--color-border-medium);
   background: transparent;
-  color: #fff;
+  color: var(--color-text-light);
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
   cursor: pointer;
@@ -411,7 +420,7 @@
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, .1);
   background: rgba(255, 255, 255, .02);
-  color: #fff;
+  color: var(--color-text-light);
   outline: none;
   transition: border-color .3s ease, background .3s ease;
   resize: vertical;
@@ -421,7 +430,7 @@
 
 .contact-form input::placeholder,
 .contact-form textarea::placeholder {
-  color: rgba(255, 255, 255, .4);
+  color: color-mix(in srgb, var(--color-text-light) 42%, transparent);
 }
 
 .contact-form input:focus,
@@ -433,17 +442,17 @@
 .contact-form input:-webkit-autofill,
 .contact-form textarea:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, .02) inset !important;
-  -webkit-text-fill-color: #fff !important;
+  -webkit-text-fill-color: var(--color-text-light) !important;
   border: 1px solid rgba(255, 255, 255, .1);
   transition: background-color 5000s ease-in-out 0s;
-  caret-color: #fff;
+  caret-color: var(--color-text-light);
 }
 
 .contact-form input:-webkit-autofill:focus,
 .contact-form textarea:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, .05) inset !important;
-  -webkit-text-fill-color: #fff !important;
-  caret-color: #fff;
+  -webkit-text-fill-color: var(--color-text-light) !important;
+  caret-color: var(--color-text-light);
 }
 
 .btn-send {
@@ -451,7 +460,7 @@
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, .2);
   background: rgba(255, 255, 255, .05);
-  color: #fff;
+  color: var(--color-text-light);
   cursor: pointer;
   font-size: 1rem;
   font-family: "Inter", sans-serif;
@@ -495,7 +504,7 @@
 }
 
 .contact-cards .card a {
-  color: #fff;
+  color: var(--color-text-light);
   text-decoration: none;
   display: grid;
   gap: 4px;

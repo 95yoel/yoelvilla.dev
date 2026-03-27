@@ -3,8 +3,8 @@
     {{ 'blog.title' | translate }}
   </a>
 
-  <button class="mobile-language-btn" type="button" (click)="toggleConfigPanel()">
-    <img src="/icons/config.svg" alt="Configuration" width="20" height="20">
+  <button class="mobile-language-btn mobile-config-btn" type="button" (click)="toggleConfigPanel()">
+    <span class="mobile-config-glyph" aria-hidden="true"></span>
   </button>
 
   <button class="mobile-language-btn" type="button" (click)="toggleLanguagePanel()">
