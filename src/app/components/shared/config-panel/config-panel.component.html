@@ -3,15 +3,23 @@
   <h4>{{ 'config.cursorPanel.title' | translate }}</h4>
 
   <div class="content">
-    <label>
-      {{ 'config.cursorPanel.primaryColor' | translate }}
-      <input type="color" [(ngModel)]="primaryColor" (input)="onLiveChange()">
-    </label>
+    <h5>{{ 'config.cursorPanel.colorsSection' | translate }}</h5>
 
-    <label>
-      {{ 'config.cursorPanel.secondaryColor' | translate }}
-      <input type="color" [(ngModel)]="secondaryColor" (input)="onLiveChange()">
-    </label>
+    <div class="color-row">
+      <label>
+        {{ 'config.cursorPanel.primaryColor' | translate }}
+        <input type="color" [(ngModel)]="primaryColor" (input)="onLiveChange()">
+      </label>
+
+      <label>
+        {{ 'config.cursorPanel.secondaryColor' | translate }}
+        <input type="color" [(ngModel)]="secondaryColor" (input)="onLiveChange()">
+      </label>
+    </div>
+
+    <hr>
+
+    <h5>{{ 'config.cursorPanel.paramsSection' | translate }}</h5>
 
     <label>
       {{ 'config.cursorPanel.size' | translate }}

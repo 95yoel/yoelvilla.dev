@@ -127,8 +127,10 @@
   "config": {
     "cursorPanel": {
       "title": "Configuraci\u00f3n del Cursor",
-      "primaryColor": "Color principal",
-      "secondaryColor": "Color del degradado",
+      "colorsSection": "Colors",
+      "paramsSection": "Params",
+      "primaryColor": "Primary",
+      "secondaryColor": "Gradient",
       "size": "Tama\u00f1o",
       "dotSize": "Tama\u00f1o del punto",
       "brightness": "Brillo",

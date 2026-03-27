@@ -127,8 +127,10 @@
   "config": {
     "cursorPanel": {
       "title": "Cursor Configuration",
+      "colorsSection": "Colors",
+      "paramsSection": "Params",
       "primaryColor": "Primary Color",
-      "secondaryColor": "Gradient Color",
+      "secondaryColor": "Gradient",
       "size": "Size",
       "dotSize": "Dot Size",
       "brightness": "Brightness",
