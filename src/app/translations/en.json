@@ -142,7 +142,7 @@
     },
     "themePanel": {
       "title": "Themes",
-      "defaultTheme": "Default",
+      "defaultTheme": "System",
       "lightTheme": "Light",
       "darkTheme": "Dark",
       "comingSoon": "Coming Soon"
