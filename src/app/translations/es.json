@@ -127,11 +127,12 @@
   "config": {
     "cursorPanel": {
       "title": "Configuraci\u00f3n del Cursor",
+      "primaryColor": "Color principal",
+      "secondaryColor": "Color del degradado",
       "size": "Tama\u00f1o",
       "dotSize": "Tama\u00f1o del punto",
       "brightness": "Brillo",
       "lag": "Retraso",
-      "color": "Color",
       "showOuterCircle": "Mostrar c\u00edrculo externo",
       "hideOuterCircle": "Ocultar c\u00edrculo externo",
       "outerCircleHint": "Mantiene el mismo comportamiento especial dentro del grafo.",

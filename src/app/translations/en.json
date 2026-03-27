@@ -127,11 +127,12 @@
   "config": {
     "cursorPanel": {
       "title": "Cursor Configuration",
+      "primaryColor": "Primary Color",
+      "secondaryColor": "Gradient Color",
       "size": "Size",
       "dotSize": "Dot Size",
       "brightness": "Brightness",
       "lag": "Lag",
-      "color": "Color",
       "showOuterCircle": "Show outer circle",
       "hideOuterCircle": "Hide outer circle",
       "outerCircleHint": "The graph keeps its own special cursor behavior.",

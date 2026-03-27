@@ -34,19 +34,25 @@
 }
 
 :host(.graph-cursor-mode) .cursor-dot {
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-surface) 72%, transparent);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--color-surface) 72%, transparent),
+    0 0 18px color-mix(in srgb, var(--cursor-secondary, var(--color-accent)) 38%, transparent);
 }
 
 .cursor-circle {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--color-accent);
+  border: 1px solid var(--cursor-primary, var(--color-accent));
   border-radius: 50%;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   animation: pulse 3s ease-in-out infinite;
+  background:
+    radial-gradient(circle at 30% 30%,
+      color-mix(in srgb, var(--cursor-primary, var(--color-accent)) 12%, transparent),
+      color-mix(in srgb, var(--cursor-secondary, var(--color-accent)) 6%, transparent) 72%);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   box-sizing: border-box;
@@ -60,16 +66,23 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   will-change: transform;
+  background: linear-gradient(135deg, var(--cursor-primary, var(--color-accent)) 0%, var(--cursor-secondary, var(--color-accent)) 100%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cursor-secondary, var(--color-accent)) 32%, transparent);
 }
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 60%, transparent), inset 0 0 18px color-mix(in srgb, var(--color-accent) 20%, transparent);
+    box-shadow:
+      0 0 10px color-mix(in srgb, var(--cursor-primary, var(--color-accent)) 60%, transparent),
+      0 0 20px color-mix(in srgb, var(--cursor-secondary, var(--color-accent)) 26%, transparent),
+      inset 0 0 18px color-mix(in srgb, var(--cursor-secondary, var(--color-accent)) 20%, transparent);
     backdrop-filter: blur(1.3px);
     -webkit-backdrop-filter: blur(1.3px);
   }
   50% {
-    box-shadow: 0 0 12px color-mix(in srgb, var(--color-accent) 90%, transparent);
+    box-shadow:
+      0 0 12px color-mix(in srgb, var(--cursor-primary, var(--color-accent)) 90%, transparent),
+      0 0 22px color-mix(in srgb, var(--cursor-secondary, var(--color-accent)) 34%, transparent);
     backdrop-filter: blur(1px);
     -webkit-backdrop-filter: blur(1px);
   }

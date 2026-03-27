@@ -34,7 +34,8 @@ export class ConfigPanelComponent {
     }
   }
 
-  cursorColor = '#81b59d';
+  primaryColor = '#81b59d';
+  secondaryColor = '#6e9a85';
   cursorSize = 40
   dotSize = 6
   brightness = 1
@@ -66,7 +67,8 @@ export class ConfigPanelComponent {
     this.cursorConfig.config$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(cfg => {
-        this.cursorColor = cfg.color
+        this.primaryColor = cfg.primaryColor
+        this.secondaryColor = cfg.secondaryColor
         this.cursorSize = cfg.size
         this.dotSize = cfg.dotSize
         this.brightness = cfg.brightness
@@ -83,7 +85,8 @@ export class ConfigPanelComponent {
     this.delay = this.clamp(this.delay, this.limits.delay.min, this.limits.delay.max)
 
     const cfg: CursorConfig = {
-      color: this.cursorColor,
+      primaryColor: this.primaryColor,
+      secondaryColor: this.secondaryColor,
       size: this.cursorSize,
       dotSize: this.dotSize,
       brightness: this.brightness,
@@ -123,7 +126,8 @@ export class ConfigPanelComponent {
 
   resetConfig() {
     const defaults: CursorConfig = {
-      color: '#81b59d',
+      primaryColor: '#81b59d',
+      secondaryColor: '#6e9a85',
       size: 40,
       dotSize: 6,
       brightness: 1,

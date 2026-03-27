@@ -4,8 +4,13 @@
 
   <div class="content">
     <label>
-      {{ 'config.cursorPanel.color' | translate }}
-      <input type="color" [(ngModel)]="cursorColor" (input)="onLiveChange()">
+      {{ 'config.cursorPanel.primaryColor' | translate }}
+      <input type="color" [(ngModel)]="primaryColor" (input)="onLiveChange()">
+    </label>
+
+    <label>
+      {{ 'config.cursorPanel.secondaryColor' | translate }}
+      <input type="color" [(ngModel)]="secondaryColor" (input)="onLiveChange()">
     </label>
 
     <label>

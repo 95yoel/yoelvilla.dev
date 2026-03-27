@@ -11,7 +11,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class CustomCursorComponent {
 
-  cursorColor = '#81b59d';
+  primaryColor = '#81b59d';
+  secondaryColor = '#6e9a85';
   cursorSize = 40;
   dotSize = 6;
   brightness = 1;
@@ -44,7 +45,8 @@ export class CustomCursorComponent {
     this.cursorConfig.config$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(cfg => {
-        this.cursorColor = cfg.color;
+        this.primaryColor = cfg.primaryColor;
+        this.secondaryColor = cfg.secondaryColor;
         this.cursorSize = cfg.size;
         this.dotSize = cfg.dotSize;
         this.brightness = cfg.brightness;
@@ -127,7 +129,9 @@ export class CustomCursorComponent {
     if (this.circleEl) {
       this.circleEl.style.width = `${this.cursorSize}px`;
       this.circleEl.style.height = `${this.cursorSize}px`;
-      this.circleEl.style.border = `2px solid ${this.cursorColor}`;
+      this.circleEl.style.border = `2px solid ${this.primaryColor}`;
+      this.circleEl.style.setProperty('--cursor-primary', this.primaryColor);
+      this.circleEl.style.setProperty('--cursor-secondary', this.secondaryColor);
 
       const blur = '3px';
       this.circleEl.style.setProperty('--blur', blur);
@@ -140,7 +144,8 @@ export class CustomCursorComponent {
     if (this.dotEl) {
       this.dotEl.style.width = `${this.dotSize}px`;
       this.dotEl.style.height = `${this.dotSize}px`;
-      this.dotEl.style.background = this.cursorColor;
+      this.dotEl.style.setProperty('--cursor-primary', this.primaryColor);
+      this.dotEl.style.setProperty('--cursor-secondary', this.secondaryColor);
     }
   }
 
