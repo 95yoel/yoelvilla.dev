@@ -26,6 +26,16 @@
   color: var(--color-text-light);
 }
 
+:host ::selection {
+  background: rgba(255, 225, 92, 0.95);
+  color: var(--color-text-darkest);
+}
+
+:host ::-moz-selection {
+  background: rgba(255, 225, 92, 0.95);
+  color: var(--color-text-darkest);
+}
+
 .article-shell {
   min-height: 100vh;
   padding: 1.5rem;

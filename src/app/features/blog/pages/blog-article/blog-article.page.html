@@ -14,7 +14,7 @@
     </header>
 
     <div class="article-layout" *ngIf="vm.status === 'ready'; else articleState">
-      <article class="article-card" #articleCard>
+      <article class="article-card article-cursor-zone" #articleCard>
         <div class="article-header-row">
           <div class="article-meta">
             <span *ngIf="vm.article.date">

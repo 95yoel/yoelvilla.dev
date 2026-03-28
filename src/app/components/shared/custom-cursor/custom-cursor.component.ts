@@ -161,7 +161,8 @@ export class CustomCursorComponent {
   }
 
   private syncModeFromTarget(target: EventTarget | null): void {
-    const nextGraphMode = target instanceof Element && !!target.closest('.graph-stage');
+    const nextGraphMode = target instanceof Element
+      && !!target.closest('.graph-stage, .article-cursor-zone');
     if (nextGraphMode === this.isGraphMode || !this.rootEl) {
       return;
     }
