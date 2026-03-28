@@ -1,4 +1,5 @@
 :host {
+  --color-accent: #7bc2a5;
   --color-text-light: #fff7f2;
   --color-text-darkest: #111827;
   --color-text-darker: #374151;
@@ -85,6 +86,24 @@
 .explore-articles {
   min-height: 0;
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent) transparent;
+}
+
+.explore-insights::-webkit-scrollbar,
+.explore-articles::-webkit-scrollbar {
+  width: 7px;
+}
+
+.explore-insights::-webkit-scrollbar-track,
+.explore-articles::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.explore-insights::-webkit-scrollbar-thumb,
+.explore-articles::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--color-accent);
 }
 
 .explore-insights {
