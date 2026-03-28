@@ -63,6 +63,7 @@ export class BlogArticlePage {
   showLanguagePanel = false;
   showScrollTopButton = false;
   showGraphModal = false;
+  graphModalSlug: string | null = null;
   private shareFeedbackKey = 'blog.actions.share';
   private viewStateSubscription: Subscription | null = null;
   private previousBodyOverflow = '';
@@ -159,6 +160,7 @@ export class BlogArticlePage {
   retry(): void {
     this.blogService.clearCaches();
     this.showGraphModal = false;
+    this.graphModalSlug = null;
     this.reload$.next();
   }
 
@@ -166,12 +168,14 @@ export class BlogArticlePage {
     this.showLanguagePanel = !this.showLanguagePanel;
   }
 
-  openGraphModal(): void {
+  openGraphModal(slug?: string): void {
+    this.graphModalSlug = slug || this.route.snapshot.paramMap.get('slug') || null;
     this.showGraphModal = true;
   }
 
   closeGraphModal(): void {
     this.showGraphModal = false;
+    this.graphModalSlug = null;
   }
 
   async shareArticle(article: ArticleViewData): Promise<void> {
@@ -205,7 +209,7 @@ export class BlogArticlePage {
   }
 
   navigateFromGraph(slug: string): void {
-    this.showGraphModal = false;
+    this.closeGraphModal();
     this.blogRoutingService.goToArticle(slug, this.currentLanguage);
   }
 

@@ -276,6 +276,14 @@
   color: var(--color-text-slate);
 }
 
+.featured-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .featured-article h2 {
   margin: 0;
   font-family: var(--font-display);
@@ -323,6 +331,45 @@
 .state-button:hover {
   transform: translateY(-1px);
   background: rgba(84, 110, 100, 0.14);
+}
+
+.featured-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.featured-graph-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  justify-self: start;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid rgba(64, 87, 79, 0.18);
+  border-radius: 999px;
+  background: rgba(84, 110, 100, 0.08);
+  color: #40574f;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--transition-medium), background var(--transition-medium);
+}
+
+.featured-graph-button:hover {
+  transform: translateY(-1px);
+  background: rgba(84, 110, 100, 0.14);
+}
+
+.featured-graph-button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .blog-state {

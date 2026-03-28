@@ -56,9 +56,53 @@
   border-color: rgba(123, 194, 165, 0.35);
 }
 
+.sidebar-article-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .sidebar-date {
   font-size: 0.8rem;
   color: rgba(255, 247, 242, 0.7);
+}
+
+.sidebar-graph-button {
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 247, 242, 0.86);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-medium), transform var(--transition-medium), color var(--transition-medium);
+}
+
+.sidebar-graph-button:hover {
+  background: rgba(123, 194, 165, 0.18);
+  color: #dff6eb;
+  transform: translateY(-1px);
+}
+
+.sidebar-graph-button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar-article-link {
+  display: grid;
+  gap: 0.35rem;
+  color: inherit;
+  text-decoration: none;
 }
 
 .sidebar-article strong {

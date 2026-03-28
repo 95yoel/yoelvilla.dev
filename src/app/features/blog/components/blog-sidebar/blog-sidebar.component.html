@@ -8,13 +8,31 @@
     {{ 'blog.empty' | translate }}
   </div>
 
-  <a
+  <article
     *ngFor="let article of articles; trackBy: trackBySlug"
-    [routerLink]="getArticleLink(article.slug)"
     class="sidebar-article"
     [class.active]="article.slug === activeSlug">
-    <span class="sidebar-date" *ngIf="article.date">{{ formatDate(article.date) }}</span>
-    <strong>{{ article.title }}</strong>
-    <p *ngIf="article.description">{{ article.description }}</p>
-  </a>
+    <div class="sidebar-article-top">
+      <span class="sidebar-date" *ngIf="article.date">{{ formatDate(article.date) }}</span>
+      <button
+        type="button"
+        class="sidebar-graph-button"
+        (click)="emitOpenGraph($event, article.slug)"
+        [attr.aria-label]="'blog.actions.openGraph' | translate">
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <circle cx="6" cy="12" r="2"></circle>
+          <circle cx="18" cy="7" r="2"></circle>
+          <circle cx="18" cy="17" r="2"></circle>
+          <path d="M8 12H16"></path>
+          <path d="M16.5 8.5L8.2 11.4"></path>
+          <path d="M16.5 15.5L8.2 12.6"></path>
+        </svg>
+      </button>
+    </div>
+
+    <a [routerLink]="getArticleLink(article.slug)" class="sidebar-article-link">
+      <strong>{{ article.title }}</strong>
+      <p *ngIf="article.description">{{ article.description }}</p>
+    </a>
+  </article>
 </aside>

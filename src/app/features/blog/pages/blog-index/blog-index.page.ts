@@ -14,8 +14,9 @@ import { LanguagePanelComponent } from '../../../../components/shared/language-p
 import { LayoutService } from '../../../../services/layout.service';
 import { TranslatePipe } from '../../../../translations/pipes/translate.pipe';
 import { Language, TranslationService } from '../../../../translations/services/translation.service';
+import { BlogGraphModalComponent } from '../../components/blog-graph-modal/blog-graph-modal.component';
 import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
-import { BlogArticleSummary } from '../../models/blog-article.model';
+import { BlogArticleGraphData, BlogArticleSummary } from '../../models/blog-article.model';
 import { BlogRoutingService } from '../../services/blog-routing.service';
 import { BlogService } from '../../services/blog.service';
 import { PerformanceConfigService } from '../../../../services/performance-config.service';
@@ -30,6 +31,7 @@ type IndexViewState =
       availableTags: string[];
       filteredCount: number;
       totalCount: number;
+      graph: BlogArticleGraphData;
       hasActiveFilters: boolean;
       searchResults: BlogArticleSummary[];
       searchTerm: string;
@@ -48,6 +50,7 @@ interface BlogFiltersFormValue {
     RouterLink,
     ReactiveFormsModule,
     BlogSidebarComponent,
+    BlogGraphModalComponent,
     TranslatePipe,
     CustomCursorComponent,
     LanguagePanelComponent,
@@ -83,6 +86,8 @@ export class BlogIndexPage {
   showLanguagePanel = false;
   showScrollTopButton = false;
   filtersExpanded = false;
+  showGraphModal = false;
+  graphModalSlug: string | null = null;
   private searchInteractionSubscription: Subscription | null = null;
   private viewStateSubscription: Subscription | null = null;
   private previousBodyOverflow = '';
@@ -112,8 +117,11 @@ export class BlogIndexPage {
     this.searchTerm$
   ]).pipe(
     switchMap(([lang, _reload, filters, searchTerm]) =>
-      this.blogService.getIndex(lang).pipe(
-        map((articles): IndexViewState => this.buildViewState(articles, this.normalizeFilters(filters), searchTerm)),
+      combineLatest([
+        this.blogService.getIndex(lang),
+        this.blogService.getGraphData(lang)
+      ]).pipe(
+        map(([articles, graph]): IndexViewState => this.buildViewState(articles, graph, this.normalizeFilters(filters), searchTerm)),
         startWith({ status: 'loading' } as IndexViewState),
         catchError(() => of({ status: 'error' } as IndexViewState))
       )
@@ -173,6 +181,21 @@ export class BlogIndexPage {
     this.showLanguagePanel = !this.showLanguagePanel;
   }
 
+  openGraphModal(slug: string): void {
+    this.graphModalSlug = slug;
+    this.showGraphModal = true;
+  }
+
+  closeGraphModal(): void {
+    this.showGraphModal = false;
+    this.graphModalSlug = null;
+  }
+
+  navigateFromGraph(slug: string): void {
+    this.closeGraphModal();
+    this.blogRoutingService.goToArticle(slug, this.currentLanguage);
+  }
+
   toggleFilters(): void {
     this.filtersExpanded = !this.filtersExpanded;
   }
@@ -219,6 +242,10 @@ export class BlogIndexPage {
     return this.blogRoutingService.buildArticleLink(slug, this.currentLanguage);
   }
 
+  hasGraphRelations(graph: BlogArticleGraphData, slug: string): boolean {
+    return (graph.relatedBySlug[slug] || []).length > 0;
+  }
+
   formatDate(date: string): string {
     return this.formatBlogDate(date, this.currentLanguage);
   }
@@ -246,6 +273,7 @@ export class BlogIndexPage {
 
   private buildViewState(
     articles: BlogArticleSummary[],
+    graph: BlogArticleGraphData,
     filters: BlogFiltersFormValue,
     searchTerm: string
   ): IndexViewState {
@@ -260,6 +288,7 @@ export class BlogIndexPage {
       availableTags,
       filteredCount: filteredArticles.length,
       totalCount: articles.length,
+      graph,
       hasActiveFilters: Boolean(filters.tag || filters.startDate || filters.endDate),
       searchResults: this.findSearchResults(articles, normalizedSearchTerm),
       searchTerm: normalizedSearchTerm

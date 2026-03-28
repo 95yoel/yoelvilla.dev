@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BlogArticleSummary } from '../../models/blog-article.model';
@@ -16,6 +16,7 @@ export class BlogSidebarComponent {
   @Input() articles: BlogArticleSummary[] = [];
   @Input() activeSlug?: string;
   @Input() lang: Language = 'es';
+  @Output() openGraph = new EventEmitter<string>();
 
   constructor(private readonly blogRoutingService: BlogRoutingService) {}
 
@@ -25,6 +26,12 @@ export class BlogSidebarComponent {
 
   getArticleLink(slug: string): string[] {
     return this.blogRoutingService.buildArticleLink(slug, this.lang);
+  }
+
+  emitOpenGraph(event: Event, slug: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.openGraph.emit(slug);
   }
 
   formatDate(date: string): string {

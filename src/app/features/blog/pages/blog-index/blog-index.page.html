@@ -135,8 +135,10 @@
           </section>
 
           <section class="featured-article" *ngIf="vm.featured; else emptyBlock">
-            <div class="featured-label">{{ 'blog.featured' | translate }}</div>
-            <span class="featured-date" *ngIf="vm.featured.date">{{ formatDate(vm.featured.date) }}</span>
+            <div class="featured-top">
+              <div class="featured-label">{{ 'blog.featured' | translate }}</div>
+              <span class="featured-date" *ngIf="vm.featured.date">{{ formatDate(vm.featured.date) }}</span>
+            </div>
             <h2>{{ vm.featured.title }}</h2>
             <p>{{ vm.featured.description }}</p>
 
@@ -144,16 +146,36 @@
               <span class="tag" *ngFor="let tag of vm.featured.tags">{{ tag }}</span>
             </div>
 
-            <a [routerLink]="featuredLink(vm.featured.slug)" class="featured-link">
-              {{ 'blog.readArticle' | translate }} &rarr;
-            </a>
+            <div class="featured-actions">
+              <a [routerLink]="featuredLink(vm.featured.slug)" class="featured-link">
+                {{ 'blog.readArticle' | translate }} &rarr;
+              </a>
+
+              <button
+                *ngIf="hasGraphRelations(vm.graph, vm.featured.slug)"
+                type="button"
+                class="featured-graph-button"
+                (click)="openGraphModal(vm.featured.slug)"
+                [attr.aria-label]="'blog.actions.openGraph' | translate">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <circle cx="6" cy="12" r="2"></circle>
+                  <circle cx="18" cy="7" r="2"></circle>
+                  <circle cx="18" cy="17" r="2"></circle>
+                  <path d="M8 12H16"></path>
+                  <path d="M16.5 8.5L8.2 11.4"></path>
+                  <path d="M16.5 15.5L8.2 12.6"></path>
+                </svg>
+                <span>{{ 'blog.actions.exploreConnections' | translate }}</span>
+              </button>
+            </div>
           </section>
         </section>
 
         <app-blog-sidebar
           #blogSidebar
           [articles]="vm.rest.length ? vm.rest : (vm.featured ? [vm.featured] : [])"
-          [lang]="currentLanguage"></app-blog-sidebar>
+          [lang]="currentLanguage"
+          (openGraph)="openGraphModal($event)"></app-blog-sidebar>
       </div>
     </main>
   </div>
@@ -163,6 +185,14 @@
     *ngIf="showLanguagePanel"
     (close)="showLanguagePanel = false"
     (languageChange)="onLanguageChange($event)"></app-language-panel>
+
+  <app-blog-graph-modal
+    *ngIf="showGraphModal && vm.status === 'ready' && graphModalSlug"
+    [graphData]="vm.graph"
+    [currentSlug]="graphModalSlug"
+    [lang]="currentLanguage"
+    (close)="closeGraphModal()"
+    (navigateToArticle)="navigateFromGraph($event)"></app-blog-graph-modal>
 
   <ng-template #stateBlock>
     <div class="blog-state" *ngIf="vm.status === 'loading'; else errorBlock">

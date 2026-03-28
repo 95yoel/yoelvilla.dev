@@ -104,6 +104,8 @@
     },
     "actions": {
       "open": "Open blog",
+      "openGraph": "Open connection graph",
+      "exploreConnections": "Explore connections",
       "retry": "Try again",
       "scrollTop": "Scroll to top",
       "share": "Share",

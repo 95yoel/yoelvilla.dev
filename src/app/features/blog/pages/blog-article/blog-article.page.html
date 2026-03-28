@@ -72,7 +72,12 @@
         <div class="markdown-body" [innerHTML]="vm.article.html"></div>
       </article>
 
-      <app-blog-sidebar #articleSidebar [articles]="vm.articles" [activeSlug]="vm.article.slug" [lang]="currentLanguage"></app-blog-sidebar>
+      <app-blog-sidebar
+        #articleSidebar
+        [articles]="vm.articles"
+        [activeSlug]="vm.article.slug"
+        [lang]="currentLanguage"
+        (openGraph)="openGraphModal($event)"></app-blog-sidebar>
     </div>
   </div>
 
@@ -82,9 +87,9 @@
     (languageChange)="onLanguageChange($event, vm.article.slug)"></app-language-panel>
 
   <app-blog-graph-modal
-    *ngIf="showGraphModal && vm.status === 'ready'"
+    *ngIf="showGraphModal && vm.status === 'ready' && graphModalSlug"
     [graphData]="vm.graph"
-    [currentSlug]="vm.article.slug"
+    [currentSlug]="graphModalSlug"
     [lang]="currentLanguage"
     (close)="closeGraphModal()"
     (navigateToArticle)="navigateFromGraph($event)"></app-blog-graph-modal>
