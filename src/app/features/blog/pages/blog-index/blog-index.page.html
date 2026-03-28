@@ -4,6 +4,7 @@
       <a routerLink="/" class="topbar-pill topbar-link">{{ 'blog.backToPortfolio' | translate }}</a>
 
       <div class="topbar-actions">
+        <a [routerLink]="exploreLink" class="topbar-pill topbar-link">{{ 'explore.nav' | translate }}</a>
         <button type="button" class="topbar-pill topbar-button" (click)="toggleLanguagePanel()">
           <img src="/icons/idioma.png" alt="" aria-hidden="true">
           <span>{{ currentLanguage | uppercase }}</span>

@@ -20,6 +20,7 @@ import { BlogArticleGraphData, BlogArticleSummary } from '../../models/blog-arti
 import { BlogRoutingService } from '../../services/blog-routing.service';
 import { BlogService } from '../../services/blog.service';
 import { PerformanceConfigService } from '../../../../services/performance-config.service';
+import { ExploreRoutingService } from '../../../explore/services/explore-routing.service';
 
 type IndexViewState =
   | { status: 'loading' }
@@ -75,6 +76,7 @@ export class BlogIndexPage {
   private readonly layoutService = inject(LayoutService);
   private readonly doc = inject(DOCUMENT);
   private readonly performanceConfig = inject(PerformanceConfigService);
+  private readonly exploreRoutingService = inject(ExploreRoutingService);
   private readonly reload$ = new Subject<void>();
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly filterForm = new FormGroup({
@@ -240,6 +242,10 @@ export class BlogIndexPage {
 
   getSearchLink(slug: string): string[] {
     return this.blogRoutingService.buildArticleLink(slug, this.currentLanguage);
+  }
+
+  get exploreLink(): string[] {
+    return this.exploreRoutingService.buildExploreLink(this.currentLanguage);
   }
 
   hasGraphRelations(graph: BlogArticleGraphData, slug: string): boolean {

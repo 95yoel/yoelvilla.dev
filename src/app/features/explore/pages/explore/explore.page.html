@@ -1,0 +1,128 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <div class="explore-shell">
+    <header class="explore-topbar">
+      <div class="explore-links">
+        <a routerLink="/" class="topbar-pill topbar-link">{{ 'blog.backToPortfolio' | translate }}</a>
+        <a [routerLink]="blogIndexLink" class="topbar-pill topbar-link">{{ 'blog.backToBlog' | translate }}</a>
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" class="topbar-pill topbar-button" (click)="toggleLanguagePanel()">
+          <img src="/icons/idioma.png" alt="" aria-hidden="true">
+          <span>{{ currentLanguage | uppercase }}</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="explore-layout" *ngIf="vm.status === 'ready'; else exploreState">
+      <section class="explore-insights">
+        <div class="explore-hero">
+          <span class="explore-kicker">{{ 'explore.kicker' | translate }}</span>
+          <h1>{{ 'explore.headline' | translate }}</h1>
+          <p>{{ 'explore.subheadline' | translate }}</p>
+        </div>
+
+        <article class="explore-panel">
+          <div class="panel-header">
+            <div>
+              <span class="panel-kicker">{{ 'explore.tags.title' | translate }}</span>
+              <h2>{{ 'explore.tags.subtitle' | translate }}</h2>
+            </div>
+            <span class="panel-meta">{{ vm.topTags.length }} {{ 'explore.tags.meta' | translate }}</span>
+          </div>
+
+          <div
+            echarts
+            class="tags-chart"
+            [options]="vm.barChartOptions"
+            [autoResize]="true"
+            (chartClick)="onBarChartClick($event)"></div>
+        </article>
+
+        <article class="explore-panel">
+          <div class="panel-header">
+            <div>
+              <span class="panel-kicker">{{ 'explore.timeline.title' | translate }}</span>
+              <h2>{{ 'explore.timeline.subtitle' | translate }}</h2>
+            </div>
+            <button
+              *ngIf="vm.selectedTag"
+              type="button"
+              class="clear-filter-button"
+              (click)="clearSelectedTag()">
+              {{ 'explore.clearFilter' | translate }}
+            </button>
+          </div>
+
+          <div class="tag-chips">
+            <button
+              *ngFor="let entry of vm.topTags"
+              type="button"
+              class="tag-chip"
+              [class.active]="entry.tag === vm.selectedTag"
+              (click)="selectTag(entry.tag)">
+              <span>{{ entry.tag }}</span>
+              <small>{{ entry.count }}</small>
+            </button>
+          </div>
+
+          <div class="timeline-caption" *ngIf="vm.timelineTag as timelineTag">
+            {{ 'explore.timeline.showing' | translate }} <strong>{{ timelineTag }}</strong>
+          </div>
+
+          <div class="timeline-chart-shell">
+            <div #timelineChart class="timeline-chart"></div>
+          </div>
+        </article>
+      </section>
+
+      <aside class="explore-articles">
+        <div class="articles-header">
+          <span class="panel-kicker">{{ 'explore.articles.title' | translate }}</span>
+          <h2>{{ 'explore.articles.subtitle' | translate }}</h2>
+          <p>
+            {{ vm.filteredArticles.length }}
+            {{ 'explore.articles.of' | translate }}
+            {{ vm.totalArticles }}
+          </p>
+        </div>
+
+        <div class="article-cards">
+          <a
+            *ngFor="let article of vm.filteredArticles"
+            [routerLink]="getArticleLink(article.slug)"
+            class="article-card">
+            <span class="article-date" *ngIf="article.date">{{ formatDate(article.date) }}</span>
+            <strong>{{ article.title }}</strong>
+            <p *ngIf="article.description">{{ article.description }}</p>
+            <div class="article-tags" *ngIf="article.tags.length">
+              <span class="article-tag" *ngFor="let tag of article.tags">{{ tag }}</span>
+            </div>
+          </a>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <app-language-panel
+    *ngIf="showLanguagePanel"
+    (close)="showLanguagePanel = false"
+    (languageChange)="onLanguageChange($event)"></app-language-panel>
+
+  <ng-template #exploreState>
+    <div class="explore-state" *ngIf="vm.status === 'loading'; else exploreError">
+      {{ 'explore.loading' | translate }}
+    </div>
+  </ng-template>
+
+  <ng-template #exploreError>
+    <div class="explore-state error">
+      <p>{{ 'explore.error' | translate }}</p>
+      <button type="button" class="state-button" (click)="retry()">
+        {{ 'blog.actions.retry' | translate }}
+      </button>
+    </div>
+  </ng-template>
+
+  <custom-cursor *ngIf="(layout$ | async) === 'desktop'"></custom-cursor>
+</ng-container>

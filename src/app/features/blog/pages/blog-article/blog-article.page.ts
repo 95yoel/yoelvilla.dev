@@ -16,6 +16,7 @@ import { LanguagePanelComponent } from '../../../../components/shared/language-p
 import { BlogRoutingService } from '../../services/blog-routing.service';
 import { environment } from '../../../../../environments/environment';
 import { PerformanceConfigService } from '../../../../services/performance-config.service';
+import { ExploreRoutingService } from '../../../explore/services/explore-routing.service';
 
 type ArticleVm =
   | { status: 'loading' }
@@ -55,6 +56,7 @@ export class BlogArticlePage {
   private readonly layoutService = inject(LayoutService);
   private readonly doc = inject(DOCUMENT);
   private readonly performanceConfig = inject(PerformanceConfigService);
+  private readonly exploreRoutingService = inject(ExploreRoutingService);
   private readonly meta = inject(Meta);
   private readonly title = inject(Title);
   private readonly platformId = inject(PLATFORM_ID);
@@ -231,6 +233,10 @@ export class BlogArticlePage {
 
   get shareButtonLabel(): string {
     return this.translationService.translate(this.shareFeedbackKey);
+  }
+
+  get exploreLink(): string[] {
+    return this.exploreRoutingService.buildExploreLink(this.currentLanguage);
   }
 
   formatDate(date: string): string {

@@ -119,6 +119,30 @@
       "articleTitleSuffix": "Yoel Villa Blog"
     }
   },
+  "explore": {
+    "nav": "Explore",
+    "kicker": "Explore the archive",
+    "headline": "A visual overview of the blog.",
+    "subheadline": "Cross tags, time evolution and article lists to spot patterns, concentrations and content gaps.",
+    "loading": "Preparing the explore section...",
+    "error": "Explore data could not be loaded.",
+    "clearFilter": "Clear filter",
+    "tags": {
+      "title": "Dominant tags",
+      "subtitle": "Top 10 most common tags",
+      "meta": "visible tags"
+    },
+    "timeline": {
+      "title": "Time evolution",
+      "subtitle": "Monthly frequency",
+      "showing": "Showing evolution for"
+    },
+    "articles": {
+      "title": "Filtered articles",
+      "subtitle": "Related reading",
+      "of": "of"
+    }
+  },
   "tooltips": {
     "previous": "Previous",
     "next": "Next",

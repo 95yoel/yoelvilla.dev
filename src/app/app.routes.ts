@@ -3,6 +3,18 @@ import { LayoutComponent } from './components/layout/layout.component';
 
 export const routes: Routes = [
   {
+    path: 'explore/es',
+    loadComponent: () => import('./features/explore/pages/explore/explore.page').then((m) => m.ExplorePage)
+  },
+  {
+    path: 'explore/en',
+    loadComponent: () => import('./features/explore/pages/explore/explore.page').then((m) => m.ExplorePage)
+  },
+  {
+    path: 'explore',
+    loadComponent: () => import('./features/explore/pages/explore/explore.page').then((m) => m.ExplorePage)
+  },
+  {
     path: 'blog/es',
     loadComponent: () => import('./features/blog/pages/blog-index/blog-index.page').then((m) => m.BlogIndexPage)
   },

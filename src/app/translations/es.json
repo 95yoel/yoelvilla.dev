@@ -119,6 +119,30 @@
       "articleTitleSuffix": "Yoel Villa Blog"
     }
   },
+  "explore": {
+    "nav": "Explora",
+    "kicker": "Explora el archivo",
+    "headline": "Panorámica visual del blog.",
+    "subheadline": "Cruza tags, evolución temporal y lista de artículos para detectar patrones, concentraciones y huecos de contenido.",
+    "loading": "Preparando la sección de exploración...",
+    "error": "No se pudieron cargar los datos de exploración.",
+    "clearFilter": "Quitar filtro",
+    "tags": {
+      "title": "Tags dominantes",
+      "subtitle": "Top 10 tags más frecuentes",
+      "meta": "tags visibles"
+    },
+    "timeline": {
+      "title": "Evolución temporal",
+      "subtitle": "Frecuencia por mes",
+      "showing": "Mostrando evolución de"
+    },
+    "articles": {
+      "title": "Artículos filtrados",
+      "subtitle": "Lecturas relacionadas",
+      "of": "de"
+    }
+  },
   "tooltips": {
     "previous": "Anterior",
     "next": "Siguiente",
