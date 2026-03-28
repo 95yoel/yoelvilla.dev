@@ -2,14 +2,14 @@ import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, PLATFORM_ID, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Router } from '@angular/router';
-import { BlogArticleGraphData, BlogGraphRelationType } from '../../models/blog-article.model';
+import { BlogArticleGraphData, BlogGraphRelation, BlogGraphRelationType } from '../../models/blog-article.model';
 import { buildArticleGraph, BlogGraphBuildResult, BlogGraphNodeAttributes, BlogGraphNodeMeta, BlogGraphEdgeAttributes, collectSharedTags, withAlpha } from '../../utils/blog-graph.utils';
 import { Language } from '../../../../translations/services/translation.service';
 import { BlogRoutingService } from '../../services/blog-routing.service';
 
 type SigmaRenderer = {
-  on(event: string, listener: (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
-  off(event: string, listener: (payload: { node?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
+  on(event: string, listener: (payload: { node?: string; edge?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
+  off(event: string, listener: (payload: { node?: string; edge?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
   getCamera(): {
     animatedReset(options?: { duration?: number }): void;
     setState(state: { ratio?: number; x?: number; y?: number; angle?: number }): void;
@@ -40,6 +40,21 @@ interface BlogGraphInspectorState {
   slug: string | null;
 }
 
+interface BlogGraphEdgeHighlight {
+  label: string;
+  type: BlogGraphRelationType;
+}
+
+interface BlogGraphEdgeTooltipState {
+  visible: boolean;
+  x: number;
+  y: number;
+  sourceTitle: string;
+  targetTitle: string;
+  scoreText: string;
+  highlights: BlogGraphEdgeHighlight[];
+}
+
 @Component({
   selector: 'app-blog-graph-modal',
   imports: [CommonModule, CdkTrapFocus],
@@ -64,6 +79,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   private sigma: SigmaRenderer | null = null;
   private graphBuildResult: BlogGraphBuildResult | null = null;
   private hoveredSlug: string | null = null;
+  private hoveredEdgeKey: string | null = null;
   private selectedSlug: string | null = null;
   private draggingSlug: string | null = null;
   private dragOffset: { x: number; y: number } | null = null;
@@ -76,6 +92,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   hasRelations = false;
   isReady = false;
   loadError: string | null = null;
+  edgeTooltip: BlogGraphEdgeTooltipState = this.createEmptyEdgeTooltip();
 
   private readonly handleEnterNode = (payload: { node?: string }) => {
     if (this.draggingSlug) {
@@ -87,6 +104,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     }
 
     this.hoveredSlug = payload.node;
+    this.clearEdgeTooltip();
     this.syncInspector();
     this.applySigmaReducers();
   };
@@ -115,8 +133,30 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     }
 
     this.selectedSlug = payload.node === this.selectedSlug ? null : payload.node;
+    this.clearEdgeTooltip();
     this.syncInspector();
     this.applySigmaReducers();
+  };
+
+  private readonly handleEnterEdge = (payload: { edge?: string; event?: { x: number; y: number } }) => {
+    if (!payload.edge || !payload.event) {
+      return;
+    }
+
+    this.hoveredEdgeKey = payload.edge;
+    this.edgeTooltip = this.buildEdgeTooltip(payload.edge, payload.event.x, payload.event.y);
+    this.applySigmaReducers();
+    this.cdr.detectChanges();
+  };
+
+  private readonly handleLeaveEdge = (payload: { edge?: string }) => {
+    if (payload.edge && this.hoveredEdgeKey !== payload.edge) {
+      return;
+    }
+
+    this.clearEdgeTooltip();
+    this.applySigmaReducers();
+    this.cdr.detectChanges();
   };
 
   private readonly handleDoubleClickNode = (payload: { node?: string }) => {
@@ -140,6 +180,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
 
     this.selectedSlug = null;
     this.hoveredSlug = null;
+    this.clearEdgeTooltip();
     this.syncInspector();
     this.applySigmaReducers();
   };
@@ -158,11 +199,17 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       x: nodeData.x - graphPoint.x,
       y: nodeData.y - graphPoint.y
     };
+    this.clearEdgeTooltip();
     this.sigma.setSetting('enableCameraPanning', false);
     this.sigma.setSetting('enableCameraZooming', false);
   };
 
   private readonly handleMoveBody = (payload: { event?: { x: number; y: number } }) => {
+    if (this.hoveredEdgeKey && payload.event) {
+      this.edgeTooltip = this.buildEdgeTooltip(this.hoveredEdgeKey, payload.event.x, payload.event.y);
+      this.cdr.detectChanges();
+    }
+
     if (!this.draggingSlug || !this.dragOffset || !payload.event || !this.graphBuildResult || !this.sigma) {
       return;
     }
@@ -243,6 +290,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     this.hasRelations = (this.graphData.relatedBySlug[this.currentSlug] || []).length > 0;
     this.selectedSlug = null;
     this.hoveredSlug = null;
+    this.clearEdgeTooltip();
     this.syncInspector();
     this.cdr.detectChanges();
 
@@ -281,6 +329,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
         stagePadding: 32,
         hideEdgesOnMove: false,
         hideLabelsOnMove: false,
+        enableEdgeEvents: true,
         zIndex: true,
         minCameraRatio: 0.65,
         maxCameraRatio: 2.8
@@ -291,6 +340,8 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       this.sigma.on('enterNode', this.handleEnterNode);
       this.sigma.on('leaveNode', this.handleLeaveNode);
       this.sigma.on('clickNode', this.handleClickNode);
+      this.sigma.on('enterEdge', this.handleEnterEdge);
+      this.sigma.on('leaveEdge', this.handleLeaveEdge);
       this.sigma.on('doubleClickNode', this.handleDoubleClickNode);
       this.sigma.on('downNode', this.handleDownNode);
       this.sigma.on('moveBody', this.handleMoveBody);
@@ -320,6 +371,8 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     this.sigma.off('enterNode', this.handleEnterNode);
     this.sigma.off('leaveNode', this.handleLeaveNode);
     this.sigma.off('clickNode', this.handleClickNode);
+    this.sigma.off('enterEdge', this.handleEnterEdge);
+    this.sigma.off('leaveEdge', this.handleLeaveEdge);
     this.sigma.off('doubleClickNode', this.handleDoubleClickNode);
     this.sigma.off('downNode', this.handleDownNode);
     this.sigma.off('moveBody', this.handleMoveBody);
@@ -339,7 +392,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
 
     const activeSlug = this.hoveredSlug || this.selectedSlug;
     const highlightedNodes = this.getHighlightedNodes(activeSlug);
-    const highlightedEdges = this.getHighlightedEdges(activeSlug);
+    const highlightedEdges = this.getHighlightedEdges(activeSlug, this.hoveredEdgeKey);
 
     this.sigma.setSettings({
       nodeReducer: (node: string, data: BlogGraphNodeAttributes) => {
@@ -387,14 +440,19 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
         }
 
         const isHighlighted = highlightedEdges.has(edge);
+        const isHoveredEdge = edge === this.hoveredEdgeKey;
 
         return {
-          size: isHighlighted ? data.size + 0.7 : Math.max(0.8, data.size * 0.45),
-          color: isHighlighted ? withAlpha(typeColor(data.dominantType), 0.88) : withAlpha('#94a3b8', 0.1),
+          size: isHoveredEdge ? data.size + 1.2 : isHighlighted ? data.size + 0.7 : Math.max(0.8, data.size * 0.45),
+          color: isHoveredEdge
+            ? withAlpha(typeColor(data.dominantType), 0.98)
+            : isHighlighted
+              ? withAlpha(typeColor(data.dominantType), 0.88)
+              : withAlpha('#94a3b8', 0.1),
           hidden: false,
           type: data.type,
-          forceLabel: isHighlighted,
-          label: isHighlighted ? data.label : ''
+          forceLabel: isHighlighted || isHoveredEdge,
+          label: isHighlighted || isHoveredEdge ? data.label : ''
         };
       }
     });
@@ -417,12 +475,20 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     return nodes;
   }
 
-  private getHighlightedEdges(activeSlug: string | null): Set<string> {
-    if (!activeSlug || !this.graphBuildResult) {
-      return new Set<string>();
+  private getHighlightedEdges(activeSlug: string | null, activeEdgeKey: string | null): Set<string> {
+    const edges = new Set<string>();
+
+    if (activeSlug && this.graphBuildResult) {
+      for (const edgeKey of this.graphBuildResult.edgeKeysByNode.get(activeSlug) || []) {
+        edges.add(edgeKey);
+      }
     }
 
-    return new Set<string>(this.graphBuildResult.edgeKeysByNode.get(activeSlug) || []);
+    if (activeEdgeKey) {
+      edges.add(activeEdgeKey);
+    }
+
+    return edges;
   }
 
   private syncInspector(): void {
@@ -469,6 +535,109 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       canNavigate: false,
       slug: null
     };
+  }
+
+  private buildEdgeTooltip(edgeKey: string, x: number, y: number): BlogGraphEdgeTooltipState {
+    const relation = this.graphBuildResult?.edgeMetaByKey.get(edgeKey);
+    if (!relation) {
+      return this.createEmptyEdgeTooltip();
+    }
+
+    const sourceTitle = this.graphData.articlesBySlug[relation.source]?.title || relation.source;
+    const targetTitle = this.graphData.articlesBySlug[relation.target]?.title || relation.target;
+    const highlights = this.collectEdgeHighlights(relation);
+
+    return {
+      visible: true,
+      x,
+      y,
+      sourceTitle,
+      targetTitle,
+      scoreText: `${this.lang === 'es' ? 'Peso' : 'Weight'} ${relation.score.toFixed(2)}`,
+      highlights
+    };
+  }
+
+  private collectEdgeHighlights(relation: BlogGraphRelation): BlogGraphEdgeHighlight[] {
+    const sharedByType: Partial<Record<BlogGraphRelationType, string[]>> = {
+      domain: relation.shared.domain,
+      technology: relation.shared.technology,
+      topic: relation.shared.topic,
+      context: relation.shared.context
+    };
+    const priority = [
+      relation.dominantType,
+      ...(['topic', 'technology', 'domain', 'context', 'mixed'] as BlogGraphRelationType[]).filter((type) => type !== relation.dominantType)
+    ];
+    const used = new Set<string>();
+    const result: BlogGraphEdgeHighlight[] = [];
+
+    for (const type of priority) {
+      const tags = sharedByType[type] || [];
+      for (const tag of tags) {
+        const normalized = tag.trim().toLowerCase();
+        if (!normalized || used.has(normalized)) {
+          continue;
+        }
+
+        used.add(normalized);
+        result.push({
+          label: tag,
+          type
+        });
+
+        if (result.length === 3) {
+          return result;
+        }
+      }
+    }
+
+    if (!result.length) {
+      result.push({
+        label: this.lang === 'es' ? 'Relacion destacada' : 'Highlighted relation',
+        type: relation.dominantType
+      });
+    }
+
+    return result;
+  }
+
+  private clearEdgeTooltip(): void {
+    this.hoveredEdgeKey = null;
+    this.edgeTooltip = this.createEmptyEdgeTooltip();
+  }
+
+  private createEmptyEdgeTooltip(): BlogGraphEdgeTooltipState {
+    return {
+      visible: false,
+      x: 0,
+      y: 0,
+      sourceTitle: '',
+      targetTitle: '',
+      scoreText: '',
+      highlights: []
+    };
+  }
+
+  edgeTooltipTypeLabel(type: BlogGraphRelationType): string {
+    if (type === 'technology') {
+      return this.lang === 'es' ? 'Tecnologia' : 'Technology';
+    }
+    if (type === 'domain') {
+      return this.lang === 'es' ? 'Dominio' : 'Domain';
+    }
+    if (type === 'context') {
+      return this.lang === 'es' ? 'Contexto' : 'Context';
+    }
+    if (type === 'topic') {
+      return this.lang === 'es' ? 'Tema' : 'Topic';
+    }
+
+    return this.lang === 'es' ? 'Mixta' : 'Mixed';
+  }
+
+  edgeTooltipTypeColor(type: BlogGraphRelationType): string {
+    return typeColor(type);
   }
 
   private async waitForGraphContainer(maxFrames = 10): Promise<HTMLDivElement | null> {

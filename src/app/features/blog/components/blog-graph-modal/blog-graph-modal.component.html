@@ -32,6 +32,25 @@
         <div class="graph-stage" #graphContainer>
           <div class="graph-loading" *ngIf="!isReady && !loadError">{{ lang === 'es' ? 'Preparando grafo...' : 'Preparing graph...' }}</div>
           <div class="graph-loading graph-error" *ngIf="loadError">{{ loadError }}</div>
+          <div
+            class="graph-edge-tooltip"
+            *ngIf="edgeTooltip.visible"
+            [style.left.px]="edgeTooltip.x"
+            [style.top.px]="edgeTooltip.y">
+            <span class="graph-edge-tooltip-kicker">{{ lang === 'es' ? 'Relacion' : 'Relation' }}</span>
+            <strong>{{ edgeTooltip.sourceTitle }}</strong>
+            <strong>{{ edgeTooltip.targetTitle }}</strong>
+            <span class="graph-edge-tooltip-score">{{ edgeTooltip.scoreText }}</span>
+            <div class="graph-edge-tooltip-tags">
+              <div class="graph-edge-tooltip-tag" *ngFor="let item of edgeTooltip.highlights">
+                <span
+                  class="graph-edge-tooltip-dot"
+                  [style.background]="edgeTooltipTypeColor(item.type)"></span>
+                <span class="graph-edge-tooltip-label">{{ item.label }}</span>
+                <small>{{ edgeTooltipTypeLabel(item.type) }}</small>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
