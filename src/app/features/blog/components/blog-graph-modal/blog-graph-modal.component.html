@@ -37,9 +37,6 @@
             *ngIf="edgeTooltip.visible"
             [style.left.px]="edgeTooltip.x"
             [style.top.px]="edgeTooltip.y">
-            <span class="graph-edge-tooltip-kicker">{{ lang === 'es' ? 'Relacion' : 'Relation' }}</span>
-            <strong>{{ edgeTooltip.sourceTitle }}</strong>
-            <strong>{{ edgeTooltip.targetTitle }}</strong>
             <span class="graph-edge-tooltip-score">{{ edgeTooltip.scoreText }}</span>
             <div class="graph-edge-tooltip-tags">
               <div class="graph-edge-tooltip-tag" *ngFor="let item of edgeTooltip.highlights">

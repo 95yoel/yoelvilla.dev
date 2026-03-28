@@ -49,8 +49,6 @@ interface BlogGraphEdgeTooltipState {
   visible: boolean;
   x: number;
   y: number;
-  sourceTitle: string;
-  targetTitle: string;
   scoreText: string;
   highlights: BlogGraphEdgeHighlight[];
 }
@@ -276,7 +274,17 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   }
 
   resetView(): void {
-    void this.rebuildGraph();
+    if (!this.sigma) {
+      void this.rebuildGraph();
+      return;
+    }
+
+    this.selectedSlug = null;
+    this.hoveredSlug = null;
+    this.clearEdgeTooltip();
+    this.syncInspector();
+    this.applySigmaReducers();
+    this.sigma.getCamera().animatedReset({ duration: 220 });
   }
 
   private async rebuildGraph(): Promise<void> {
@@ -326,6 +334,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
         defaultEdgeColor: 'rgba(255, 247, 242, 0.36)',
         defaultNodeColor: '#fff7f2',
         defaultNodeType: 'circle',
+        minEdgeThickness: 7,
         stagePadding: 32,
         hideEdgesOnMove: false,
         hideLabelsOnMove: false,
@@ -443,9 +452,9 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
         const isHoveredEdge = edge === this.hoveredEdgeKey;
 
         return {
-          size: isHoveredEdge ? data.size + 1.2 : isHighlighted ? data.size + 0.7 : Math.max(0.8, data.size * 0.45),
+          size: isHoveredEdge ? data.size + 2.2 : isHighlighted ? data.size + 0.7 : Math.max(0.8, data.size * 0.45),
           color: isHoveredEdge
-            ? withAlpha(typeColor(data.dominantType), 0.98)
+            ? withAlpha(typeColor(data.dominantType), 1)
             : isHighlighted
               ? withAlpha(typeColor(data.dominantType), 0.88)
               : withAlpha('#94a3b8', 0.1),
@@ -543,16 +552,12 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       return this.createEmptyEdgeTooltip();
     }
 
-    const sourceTitle = this.graphData.articlesBySlug[relation.source]?.title || relation.source;
-    const targetTitle = this.graphData.articlesBySlug[relation.target]?.title || relation.target;
     const highlights = this.collectEdgeHighlights(relation);
 
     return {
       visible: true,
       x,
       y,
-      sourceTitle,
-      targetTitle,
       scoreText: `${this.lang === 'es' ? 'Peso' : 'Weight'} ${relation.score.toFixed(2)}`,
       highlights
     };
@@ -612,8 +617,6 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
       visible: false,
       x: 0,
       y: 0,
-      sourceTitle: '',
-      targetTitle: '',
       scoreText: '',
       highlights: []
     };
