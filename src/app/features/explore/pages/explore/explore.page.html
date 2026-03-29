@@ -33,7 +33,7 @@
 
           <div
             echarts
-            class="tags-chart"
+            class="tags-chart chart-cursor-zone"
             [options]="vm.barChartOptions"
             [autoResize]="true"
             (chartInit)="onBarChartInit($event)"
@@ -82,7 +82,7 @@
             {{ 'explore.timeline.showingMonthly' | translate }}
           </div>
 
-          <div class="timeline-chart-shell">
+          <div class="timeline-chart-shell chart-cursor-zone">
             <div #timelineChart class="timeline-chart"></div>
           </div>
         </article>
@@ -100,17 +100,36 @@
         </div>
 
         <div class="article-cards">
-          <a
+          <article
             *ngFor="let article of vm.filteredArticles"
-            [routerLink]="getArticleLink(article.slug)"
             class="article-card">
-            <span class="article-date" *ngIf="article.date">{{ formatDate(article.date) }}</span>
-            <strong>{{ article.title }}</strong>
-            <p *ngIf="article.description">{{ article.description }}</p>
-            <div class="article-tags" *ngIf="article.tags.length">
-              <span class="article-tag" *ngFor="let tag of article.tags">{{ tag }}</span>
+            <div class="article-card-top">
+              <span class="article-date" *ngIf="article.date">{{ formatDate(article.date) }}</span>
+              <button
+                *ngIf="hasGraphRelations(vm.graph, article.slug)"
+                type="button"
+                class="article-graph-button"
+                (click)="openGraphModal(article.slug)"
+                [attr.aria-label]="'blog.actions.openGraph' | translate">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <circle cx="6" cy="12" r="2"></circle>
+                  <circle cx="18" cy="7" r="2"></circle>
+                  <circle cx="18" cy="17" r="2"></circle>
+                  <path d="M8 12H16"></path>
+                  <path d="M16.5 8.5L8.2 11.4"></path>
+                  <path d="M16.5 15.5L8.2 12.6"></path>
+                </svg>
+              </button>
             </div>
-          </a>
+
+            <a [routerLink]="getArticleLink(article.slug)" class="article-card-link">
+              <strong>{{ article.title }}</strong>
+              <p *ngIf="article.description">{{ article.description }}</p>
+              <div class="article-tags" *ngIf="article.tags.length">
+                <span class="article-tag" *ngFor="let tag of article.tags">{{ tag }}</span>
+              </div>
+            </a>
+          </article>
         </div>
       </aside>
     </main>
@@ -120,6 +139,14 @@
     *ngIf="showLanguagePanel"
     (close)="showLanguagePanel = false"
     (languageChange)="onLanguageChange($event)"></app-language-panel>
+
+  <app-blog-graph-modal
+    *ngIf="showGraphModal && vm.status === 'ready' && graphModalSlug"
+    [graphData]="vm.graph"
+    [currentSlug]="graphModalSlug"
+    [lang]="currentLanguage"
+    (close)="closeGraphModal()"
+    (navigateToArticle)="navigateFromGraph($event)"></app-blog-graph-modal>
 
   <ng-template #exploreState>
     <div class="explore-state" *ngIf="vm.status === 'loading'; else exploreError">

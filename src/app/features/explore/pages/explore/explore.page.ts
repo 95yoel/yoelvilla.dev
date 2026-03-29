@@ -8,7 +8,8 @@ import { LayoutService } from '../../../../services/layout.service';
 import { PerformanceConfigService } from '../../../../services/performance-config.service';
 import { TranslatePipe } from '../../../../translations/pipes/translate.pipe';
 import { Language, TranslationService } from '../../../../translations/services/translation.service';
-import { BlogArticleSummary } from '../../../blog/models/blog-article.model';
+import { BlogGraphModalComponent } from '../../../blog/components/blog-graph-modal/blog-graph-modal.component';
+import { BlogArticleGraphData, BlogArticleSummary } from '../../../blog/models/blog-article.model';
 import { BlogRoutingService } from '../../../blog/services/blog-routing.service';
 import { BlogService } from '../../../blog/services/blog.service';
 import { ExploreRoutingService } from '../../services/explore-routing.service';
@@ -49,18 +50,25 @@ type ExploreVm =
       timelineSeries: TimelineSeriesConfig[];
       filteredArticles: BlogArticleSummary[];
       totalArticles: number;
+      graph: BlogArticleGraphData;
       barChartOptions: EChartsCoreOption;
     };
 
 @Component({
   selector: 'app-explore-page',
-  imports: [CommonModule, RouterLink, TranslatePipe, LanguagePanelComponent, CustomCursorComponent, NgxEchartsDirective],
+  imports: [CommonModule, RouterLink, TranslatePipe, LanguagePanelComponent, CustomCursorComponent, NgxEchartsDirective, BlogGraphModalComponent],
   templateUrl: './explore.page.html',
   styleUrl: './explore.page.css',
   providers: [provideEchartsCore({ echarts })]
 })
 export class ExplorePage implements AfterViewInit, OnDestroy {
-  @ViewChild('timelineChart') private timelineChartRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('timelineChart')
+  set timelineChartRef(value: ElementRef<HTMLDivElement> | undefined) {
+    this._timelineChartRef = value;
+    this.queueTimelineChartRender();
+  }
+
+  private _timelineChartRef?: ElementRef<HTMLDivElement>;
 
   private readonly route = inject(ActivatedRoute);
   private readonly doc = inject(DOCUMENT);
@@ -80,6 +88,8 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   private barChart: EChartsInstance | null = null;
   private latestBarChartOptions: EChartsCoreOption | null = null;
   private barChartRenderHandle: number | null = null;
+  private latestTimelineSeries: TimelineSeriesConfig[] = [];
+  private timelineChartRenderHandle: number | null = null;
   private timelineSeriesByTag = new Map<string, ISeriesApi<'Line'>>();
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
@@ -88,6 +98,8 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
 
   readonly layout$ = this.layoutService.layout$;
   showLanguagePanel = false;
+  showGraphModal = false;
+  graphModalSlug: string | null = null;
   readonly routeLang$ = this.route.data.pipe(
     map(() => this.exploreRoutingService.getRouteLanguage()),
     map((routeLang) => this.exploreRoutingService.resolveLanguage(routeLang)),
@@ -100,8 +112,11 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     this.selectedTags$.pipe(startWith<string[]>([]))
   ]).pipe(
     switchMap(([lang, _reload, selectedTags]) =>
-      this.blogService.getIndex(lang).pipe(
-        map((articles) => this.buildViewModel(articles, selectedTags)),
+      combineLatest([
+        this.blogService.getIndex(lang),
+        this.blogService.getGraphData(lang)
+      ]).pipe(
+        map(([articles, graph]) => this.buildViewModel(articles, graph, selectedTags)),
         catchError(() => of({ status: 'error' } as ExploreVm))
       )
     ),
@@ -130,12 +145,14 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       if (vm.status === 'ready') {
         this.selectedTags = [...vm.selectedTags];
         this.latestBarChartOptions = vm.barChartOptions;
+        this.latestTimelineSeries = vm.timelineSeries;
         this.queueBarChartRender();
-        this.syncTimelineChart(vm.timelineSeries);
+        this.queueTimelineChartRender();
       } else {
         this.latestBarChartOptions = null;
+        this.latestTimelineSeries = [];
         this.queueBarChartRender();
-        this.syncTimelineChart([]);
+        this.queueTimelineChartRender();
       }
     });
   }
@@ -148,6 +165,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     requestAnimationFrame(() => {
       this.ensureTimelineChart();
       this.queueBarChartRender();
+      this.queueTimelineChartRender();
     });
   }
 
@@ -158,6 +176,10 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     if (this.barChartRenderHandle !== null && isPlatformBrowser(this.platformId)) {
       cancelAnimationFrame(this.barChartRenderHandle);
       this.barChartRenderHandle = null;
+    }
+    if (this.timelineChartRenderHandle !== null && isPlatformBrowser(this.platformId)) {
+      cancelAnimationFrame(this.timelineChartRenderHandle);
+      this.timelineChartRenderHandle = null;
     }
     this.vmSubscription?.unsubscribe();
     this.vmSubscription = null;
@@ -170,7 +192,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     this.queueBarChartRender();
-    this.resizeTimelineChart();
+    this.queueTimelineChartRender();
   }
 
   toggleLanguagePanel(): void {
@@ -217,6 +239,25 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     this.queueBarChartRender();
   }
 
+  openGraphModal(slug: string): void {
+    this.graphModalSlug = slug;
+    this.showGraphModal = true;
+  }
+
+  closeGraphModal(): void {
+    this.showGraphModal = false;
+    this.graphModalSlug = null;
+  }
+
+  navigateFromGraph(slug: string): void {
+    this.closeGraphModal();
+    this.blogRoutingService.goToArticle(slug, this.currentLanguage);
+  }
+
+  hasGraphRelations(graph: BlogArticleGraphData, slug: string): boolean {
+    return (graph.relatedBySlug[slug] || []).length > 0;
+  }
+
   getArticleLink(slug: string): string[] {
     return this.blogRoutingService.buildArticleLink(slug, this.currentLanguage);
   }
@@ -238,7 +279,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     }).format(parsedDate);
   }
 
-  private buildViewModel(articles: BlogArticleSummary[], selectedTags: string[]): ExploreVm {
+  private buildViewModel(articles: BlogArticleSummary[], graph: BlogArticleGraphData, selectedTags: string[]): ExploreVm {
     const tagCounts = new Map<string, number>();
 
     for (const article of articles) {
@@ -269,6 +310,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       })),
       filteredArticles,
       totalArticles: articles.length,
+      graph,
       barChartOptions: this.createBarChartOptions(topTags, normalizedSelectedTags)
     };
   }
@@ -369,11 +411,11 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   }
 
   private ensureTimelineChart(): void {
-    if (!isPlatformBrowser(this.platformId) || this.timelineChart || !this.timelineChartRef?.nativeElement) {
+    if (!isPlatformBrowser(this.platformId) || this.timelineChart || !this._timelineChartRef?.nativeElement) {
       return;
     }
 
-    const container = this.timelineChartRef.nativeElement;
+    const container = this._timelineChartRef.nativeElement;
     this.timelineChart = createChart(container, {
       autoSize: true,
       height: Math.max(280, container.clientHeight || 320),
@@ -399,7 +441,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       }
     });
 
-    this.syncTimelineChart(this.latestVm.status === 'ready' ? this.latestVm.timelineSeries : []);
+    this.syncTimelineChart(this.latestTimelineSeries);
   }
 
   private queueBarChartRender(): void {
@@ -430,6 +472,22 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
 
     this.barChart.setOption(options, true);
     this.barChart.resize();
+  }
+
+  private queueTimelineChartRender(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (this.timelineChartRenderHandle !== null) {
+      cancelAnimationFrame(this.timelineChartRenderHandle);
+    }
+
+    this.timelineChartRenderHandle = requestAnimationFrame(() => {
+      this.timelineChartRenderHandle = null;
+      this.syncTimelineChart(this.latestTimelineSeries);
+      window.setTimeout(() => this.syncTimelineChart(this.latestTimelineSeries), 0);
+    });
   }
 
   private syncTimelineChart(seriesConfigs: TimelineSeriesConfig[]): void {
@@ -476,7 +534,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   }
 
   private resizeTimelineChart(): void {
-    const container = this.timelineChartRef?.nativeElement;
+    const container = this._timelineChartRef?.nativeElement;
     if (!container || !this.timelineChart) {
       return;
     }
