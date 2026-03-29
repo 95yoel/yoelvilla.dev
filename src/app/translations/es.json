@@ -127,6 +127,7 @@
     "loading": "Preparando la sección de exploración...",
     "error": "No se pudieron cargar los datos de exploración.",
     "clearFilter": "Quitar filtro",
+    "clearAll": "Limpiar todo",
     "tags": {
       "title": "Tags dominantes",
       "subtitle": "Top 10 tags más frecuentes",
@@ -135,7 +136,7 @@
     "timeline": {
       "title": "Evolución temporal",
       "subtitle": "Frecuencia por mes",
-      "showing": "Mostrando evolución de"
+      "showingMonthly": "Mostrando evolución mensual de los tags activos"
     },
     "articles": {
       "title": "Artículos filtrados",

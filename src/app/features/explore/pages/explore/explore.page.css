@@ -88,6 +88,7 @@
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--color-accent) transparent;
+  scrollbar-gutter: stable;
 }
 
 .explore-insights::-webkit-scrollbar,
@@ -98,6 +99,7 @@
 .explore-insights::-webkit-scrollbar-track,
 .explore-articles::-webkit-scrollbar-track {
   background: transparent;
+  margin-block: 1.2rem;
 }
 
 .explore-insights::-webkit-scrollbar-thumb,
@@ -157,6 +159,7 @@
   padding: 1.35rem;
   background: rgba(255, 250, 246, 0.96);
   color: var(--color-text-darkest);
+  padding-right: 0.8rem;
 }
 
 .panel-header,
@@ -195,6 +198,13 @@
   margin-top: 1rem;
 }
 
+.active-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
 .tag-chip,
 .clear-filter-button {
   border: 1px solid rgba(15, 23, 42, 0.1);
@@ -217,6 +227,27 @@
   background: rgba(232, 106, 120, 0.14);
   border-color: rgba(232, 106, 120, 0.3);
   color: #8c2f3f;
+}
+
+.active-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.58rem 0.85rem;
+  border: 1px solid rgba(232, 106, 120, 0.28);
+  border-radius: 999px;
+  background: rgba(232, 106, 120, 0.14);
+  color: #8c2f3f;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-medium), background var(--transition-medium), border-color var(--transition-medium);
+}
+
+.active-tag-chip:hover {
+  transform: translateY(-1px);
+  background: rgba(232, 106, 120, 0.2);
+  border-color: rgba(232, 106, 120, 0.38);
 }
 
 .tag-chip:hover,

@@ -14,11 +14,12 @@ import { BlogService } from '../../../blog/services/blog.service';
 import { ExploreRoutingService } from '../../services/explore-routing.service';
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import type { EChartsCoreOption } from 'echarts/core';
+import type { ECharts as EChartsInstance } from 'echarts/core';
 import * as echarts from 'echarts/core';
 import { BarChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
-import { createChart, type IChartApi, LineSeries, ColorType } from 'lightweight-charts';
+import { createChart, type IChartApi, type ISeriesApi, LineSeries, ColorType } from 'lightweight-charts';
 
 echarts.use([BarChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
@@ -27,9 +28,15 @@ interface TagAggregate {
   count: number;
 }
 
-interface MonthlyPoint {
+interface TimelinePoint {
   time: string;
   value: number;
+}
+
+interface TimelineSeriesConfig {
+  tag: string;
+  color: string;
+  data: TimelinePoint[];
 }
 
 type ExploreVm =
@@ -38,9 +45,8 @@ type ExploreVm =
   | {
       status: 'ready';
       topTags: TagAggregate[];
-      selectedTag: string | null;
-      timelineTag: string | null;
-      timelineData: MonthlyPoint[];
+      selectedTags: string[];
+      timelineSeries: TimelineSeriesConfig[];
       filteredArticles: BlogArticleSummary[];
       totalArticles: number;
       barChartOptions: EChartsCoreOption;
@@ -65,12 +71,16 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   private readonly exploreRoutingService = inject(ExploreRoutingService);
   private readonly layoutService = inject(LayoutService);
   private readonly performanceConfig = inject(PerformanceConfigService);
-  private selectedTag: string | null = null;
-  private readonly selectedTag$ = new Subject<string | null>();
+  private readonly selectedTags$ = new Subject<string[]>();
   private readonly reload$ = new Subject<void>();
+  private readonly palette = ['#e86a78', '#7bc2a5', '#7aa2f7', '#f4b267', '#c084fc', '#14b8a6', '#f97316', '#0f766e', '#dc2626', '#4338ca'];
+  private selectedTags: string[] = [];
   private vmSubscription: Subscription | null = null;
   private timelineChart: IChartApi | null = null;
-  private timelineSeries: { setData(data: MonthlyPoint[]): void } | null = null;
+  private barChart: EChartsInstance | null = null;
+  private latestBarChartOptions: EChartsCoreOption | null = null;
+  private barChartRenderHandle: number | null = null;
+  private timelineSeriesByTag = new Map<string, ISeriesApi<'Line'>>();
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
@@ -87,15 +97,15 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   readonly vm$ = combineLatest([
     this.routeLang$,
     this.reload$.pipe(startWith(undefined)),
-    this.selectedTag$.pipe(startWith<string | null>(null))
+    this.selectedTags$.pipe(startWith<string[]>([]))
   ]).pipe(
-    switchMap(([lang, _reload, selectedTag]) =>
+    switchMap(([lang, _reload, selectedTags]) =>
       this.blogService.getIndex(lang).pipe(
-        map((articles) => this.buildViewModel(articles, selectedTag)),
-        startWith({ status: 'loading' } as ExploreVm),
+        map((articles) => this.buildViewModel(articles, selectedTags)),
         catchError(() => of({ status: 'error' } as ExploreVm))
       )
-    )
+    ),
+    startWith({ status: 'loading' } as ExploreVm)
   );
 
   get currentLanguage(): Language {
@@ -118,8 +128,13 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     this.vmSubscription = this.vm$.subscribe((vm) => {
       this.latestVm = vm;
       if (vm.status === 'ready') {
-        this.syncTimelineChart(vm.timelineData);
+        this.selectedTags = [...vm.selectedTags];
+        this.latestBarChartOptions = vm.barChartOptions;
+        this.queueBarChartRender();
+        this.syncTimelineChart(vm.timelineSeries);
       } else {
+        this.latestBarChartOptions = null;
+        this.queueBarChartRender();
         this.syncTimelineChart([]);
       }
     });
@@ -130,22 +145,31 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       return;
     }
 
-    requestAnimationFrame(() => this.ensureTimelineChart());
+    requestAnimationFrame(() => {
+      this.ensureTimelineChart();
+      this.queueBarChartRender();
+    });
   }
 
   ngOnDestroy(): void {
     this.doc.body.style.overflow = this.previousBodyOverflow;
     this.doc.body.style.overflowX = this.previousBodyOverflowX;
     this.doc.documentElement.style.overflow = this.previousHtmlOverflow;
+    if (this.barChartRenderHandle !== null && isPlatformBrowser(this.platformId)) {
+      cancelAnimationFrame(this.barChartRenderHandle);
+      this.barChartRenderHandle = null;
+    }
     this.vmSubscription?.unsubscribe();
     this.vmSubscription = null;
+    this.barChart = null;
     this.timelineChart?.remove();
     this.timelineChart = null;
-    this.timelineSeries = null;
+    this.timelineSeriesByTag.clear();
   }
 
   @HostListener('window:resize')
   onResize(): void {
+    this.queueBarChartRender();
     this.resizeTimelineChart();
   }
 
@@ -163,14 +187,21 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     this.reload$.next();
   }
 
-  selectTag(tag: string): void {
-    this.selectedTag = this.selectedTag === tag ? null : tag;
-    this.selectedTag$.next(this.selectedTag);
+  toggleTag(tag: string): void {
+    this.selectedTags = this.selectedTags.includes(tag)
+      ? this.selectedTags.filter((value) => value !== tag)
+      : [...this.selectedTags, tag];
+    this.selectedTags$.next([...this.selectedTags]);
   }
 
-  clearSelectedTag(): void {
-    this.selectedTag = null;
-    this.selectedTag$.next(null);
+  removeTag(tag: string): void {
+    this.selectedTags = this.selectedTags.filter((value) => value !== tag);
+    this.selectedTags$.next([...this.selectedTags]);
+  }
+
+  clearSelectedTags(): void {
+    this.selectedTags = [];
+    this.selectedTags$.next([]);
   }
 
   onBarChartClick(event: { name?: string }): void {
@@ -178,7 +209,12 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.selectTag(event.name);
+    this.toggleTag(event.name);
+  }
+
+  onBarChartInit(instance: EChartsInstance): void {
+    this.barChart = instance;
+    this.queueBarChartRender();
   }
 
   getArticleLink(slug: string): string[] {
@@ -202,7 +238,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     }).format(parsedDate);
   }
 
-  private buildViewModel(articles: BlogArticleSummary[], selectedTag: string | null): ExploreVm {
+  private buildViewModel(articles: BlogArticleSummary[], selectedTags: string[]): ExploreVm {
     const tagCounts = new Map<string, number>();
 
     for (const article of articles) {
@@ -216,33 +252,30 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag))
       .slice(0, 10);
 
-    const normalizedSelectedTag = selectedTag && topTags.some((entry) => entry.tag === selectedTag)
-      ? selectedTag
-      : null;
-    const timelineTag = normalizedSelectedTag || topTags[0]?.tag || null;
-    const filteredArticles = normalizedSelectedTag
-      ? articles.filter((article) => article.tags.includes(normalizedSelectedTag))
+    const normalizedSelectedTags = selectedTags.filter((tag) => topTags.some((entry) => entry.tag === tag));
+    const activeTags = normalizedSelectedTags.length ? normalizedSelectedTags : topTags.slice(0, Math.min(3, topTags.length)).map((entry) => entry.tag);
+    const filteredArticles = normalizedSelectedTags.length
+      ? articles.filter((article) => article.tags.some((tag) => normalizedSelectedTags.includes(tag)))
       : articles;
 
     return {
       status: 'ready',
       topTags,
-      selectedTag: normalizedSelectedTag,
-      timelineTag,
-      timelineData: this.buildTimelineData(articles, timelineTag),
+      selectedTags: normalizedSelectedTags,
+      timelineSeries: activeTags.map((tag, index) => ({
+        tag,
+        color: this.palette[index % this.palette.length],
+        data: this.buildMonthlyData(articles, tag)
+      })),
       filteredArticles,
       totalArticles: articles.length,
-      barChartOptions: this.createBarChartOptions(topTags, normalizedSelectedTag)
+      barChartOptions: this.createBarChartOptions(topTags, normalizedSelectedTags)
     };
   }
 
-  private buildTimelineData(articles: BlogArticleSummary[], tag: string | null): MonthlyPoint[] {
-    if (!tag) {
-      return [];
-    }
-
+  private buildMonthlyData(articles: BlogArticleSummary[], tag: string): TimelinePoint[] {
     const articleMonths = articles
-      .map((article) => this.toMonthKey(article.date))
+      .map((article) => this.toMonthStart(article.date))
       .filter((value): value is string => !!value)
       .sort();
 
@@ -250,9 +283,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       return [];
     }
 
-    const start = articleMonths[0];
-    const end = articleMonths[articleMonths.length - 1];
-    const monthKeys = this.buildMonthRange(start, end);
+    const range = this.buildMonthRange(articleMonths[0], articleMonths[articleMonths.length - 1]);
     const counts = new Map<string, number>();
 
     for (const article of articles) {
@@ -260,7 +291,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
         continue;
       }
 
-      const monthKey = this.toMonthKey(article.date);
+      const monthKey = this.toMonthStart(article.date);
       if (!monthKey) {
         continue;
       }
@@ -268,13 +299,13 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       counts.set(monthKey, (counts.get(monthKey) || 0) + 1);
     }
 
-    return monthKeys.map((monthKey) => ({
-      time: `${monthKey}-01`,
+    return range.map((monthKey) => ({
+      time: monthKey,
       value: counts.get(monthKey) || 0
     }));
   }
 
-  private createBarChartOptions(topTags: TagAggregate[], selectedTag: string | null): EChartsCoreOption {
+  private createBarChartOptions(topTags: TagAggregate[], selectedTags: string[]): EChartsCoreOption {
     return {
       animation: this.performanceConfig.animationsEnabled,
       grid: {
@@ -290,11 +321,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
         },
         formatter: (params: Array<{ name: string; value: number }>) => {
           const item = params[0];
-          if (!item) {
-            return '';
-          }
-
-          return `${item.name}: ${item.value}`;
+          return item ? `${item.name}: ${item.value}` : '';
         }
       },
       xAxis: {
@@ -331,7 +358,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
           data: topTags.map((entry) => ({
             value: entry.count,
             itemStyle: {
-              color: entry.tag === selectedTag ? '#e86a78' : '#7bc2a5',
+              color: selectedTags.includes(entry.tag) ? '#e86a78' : '#7bc2a5',
               borderRadius: [10, 10, 0, 0]
             }
           })),
@@ -359,35 +386,92 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       },
       timeScale: {
         borderColor: '#e7e5e4',
-        timeVisible: true
+        timeVisible: false,
+        secondsVisible: false
       },
       grid: {
         vertLines: { color: 'rgba(148, 163, 184, 0.14)' },
         horzLines: { color: 'rgba(148, 163, 184, 0.14)' }
       },
       crosshair: {
-        vertLine: {
-          color: 'rgba(232, 106, 120, 0.24)'
-        },
-        horzLine: {
-          color: 'rgba(123, 194, 165, 0.24)'
-        }
+        vertLine: { color: 'rgba(232, 106, 120, 0.24)' },
+        horzLine: { color: 'rgba(123, 194, 165, 0.24)' }
       }
     });
-    this.timelineSeries = this.timelineChart.addSeries(LineSeries, {
-      color: '#e86a78',
-      lineWidth: 3,
-      crosshairMarkerBackgroundColor: '#e86a78',
-      priceLineVisible: false,
-      lastValueVisible: false
-    });
-    this.syncTimelineChart(this.latestVm.status === 'ready' ? this.latestVm.timelineData : []);
+
+    this.syncTimelineChart(this.latestVm.status === 'ready' ? this.latestVm.timelineSeries : []);
   }
 
-  private syncTimelineChart(data: MonthlyPoint[]): void {
+  private queueBarChartRender(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (this.barChartRenderHandle !== null) {
+      cancelAnimationFrame(this.barChartRenderHandle);
+    }
+
+    this.barChartRenderHandle = requestAnimationFrame(() => {
+      this.barChartRenderHandle = null;
+      this.syncBarChart(this.latestBarChartOptions);
+      window.setTimeout(() => this.syncBarChart(this.latestBarChartOptions), 0);
+    });
+  }
+
+  private syncBarChart(options: EChartsCoreOption | null): void {
+    if (!this.barChart) {
+      return;
+    }
+
+    if (!options) {
+      this.barChart.clear();
+      return;
+    }
+
+    this.barChart.setOption(options, true);
+    this.barChart.resize();
+  }
+
+  private syncTimelineChart(seriesConfigs: TimelineSeriesConfig[]): void {
     this.ensureTimelineChart();
-    this.timelineSeries?.setData(data);
-    this.timelineChart?.timeScale().fitContent();
+    if (!this.timelineChart) {
+      return;
+    }
+
+    const activeTags = new Set(seriesConfigs.map((entry) => entry.tag));
+    for (const [tag, series] of this.timelineSeriesByTag.entries()) {
+      if (activeTags.has(tag)) {
+        continue;
+      }
+
+      this.timelineChart.removeSeries(series);
+      this.timelineSeriesByTag.delete(tag);
+    }
+
+    for (const config of seriesConfigs) {
+      let series = this.timelineSeriesByTag.get(config.tag);
+      if (!series) {
+        series = this.timelineChart.addSeries(LineSeries, {
+          color: config.color,
+          lineWidth: 3,
+          crosshairMarkerBackgroundColor: config.color,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          title: config.tag
+        });
+        this.timelineSeriesByTag.set(config.tag, series);
+      } else {
+        series.applyOptions({
+          color: config.color,
+          crosshairMarkerBackgroundColor: config.color,
+          title: config.tag
+        });
+      }
+
+      series.setData(config.data);
+    }
+
+    this.timelineChart.timeScale().fitContent();
     this.resizeTimelineChart();
   }
 
@@ -403,7 +487,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     });
   }
 
-  private toMonthKey(value: string): string | null {
+  private toMonthStart(value: string): string | null {
     if (!value) {
       return null;
     }
@@ -413,26 +497,21 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       return null;
     }
 
-    const month = `${parsed.getMonth() + 1}`.padStart(2, '0');
-    return `${parsed.getFullYear()}-${month}`;
+    const utcDate = new Date(Date.UTC(parsed.getFullYear(), parsed.getMonth(), 1));
+
+    return utcDate.toISOString().slice(0, 10);
   }
 
   private buildMonthRange(start: string, end: string): string[] {
-    const [startYear, startMonth] = start.split('-').map((part) => Number.parseInt(part, 10));
-    const [endYear, endMonth] = end.split('-').map((part) => Number.parseInt(part, 10));
-    const months: string[] = [];
-    let year = startYear;
-    let month = startMonth;
+    const range: string[] = [];
+    const cursor = new Date(`${start}T00:00:00Z`);
+    const last = new Date(`${end}T00:00:00Z`);
 
-    while (year < endYear || (year === endYear && month <= endMonth)) {
-      months.push(`${year}-${`${month}`.padStart(2, '0')}`);
-      month += 1;
-      if (month > 12) {
-        month = 1;
-        year += 1;
-      }
+    while (cursor.getTime() <= last.getTime()) {
+      range.push(cursor.toISOString().slice(0, 10));
+      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
     }
 
-    return months;
+    return range;
   }
 }

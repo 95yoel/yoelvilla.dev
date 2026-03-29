@@ -36,6 +36,7 @@
             class="tags-chart"
             [options]="vm.barChartOptions"
             [autoResize]="true"
+            (chartInit)="onBarChartInit($event)"
             (chartClick)="onBarChartClick($event)"></div>
         </article>
 
@@ -46,11 +47,22 @@
               <h2>{{ 'explore.timeline.subtitle' | translate }}</h2>
             </div>
             <button
-              *ngIf="vm.selectedTag"
+              *ngIf="vm.selectedTags.length"
               type="button"
               class="clear-filter-button"
-              (click)="clearSelectedTag()">
-              {{ 'explore.clearFilter' | translate }}
+              (click)="clearSelectedTags()">
+              {{ 'explore.clearAll' | translate }}
+            </button>
+          </div>
+
+          <div class="active-tag-chips" *ngIf="vm.selectedTags.length">
+            <button
+              *ngFor="let tag of vm.selectedTags"
+              type="button"
+              class="active-tag-chip"
+              (click)="removeTag(tag)">
+              <span>{{ tag }}</span>
+              <strong aria-hidden="true">×</strong>
             </button>
           </div>
 
@@ -59,15 +71,15 @@
               *ngFor="let entry of vm.topTags"
               type="button"
               class="tag-chip"
-              [class.active]="entry.tag === vm.selectedTag"
-              (click)="selectTag(entry.tag)">
+              [class.active]="vm.selectedTags.includes(entry.tag)"
+              (click)="toggleTag(entry.tag)">
               <span>{{ entry.tag }}</span>
               <small>{{ entry.count }}</small>
             </button>
           </div>
 
-          <div class="timeline-caption" *ngIf="vm.timelineTag as timelineTag">
-            {{ 'explore.timeline.showing' | translate }} <strong>{{ timelineTag }}</strong>
+          <div class="timeline-caption" *ngIf="vm.timelineSeries.length">
+            {{ 'explore.timeline.showingMonthly' | translate }}
           </div>
 
           <div class="timeline-chart-shell">

@@ -127,6 +127,7 @@
     "loading": "Preparing the explore section...",
     "error": "Explore data could not be loaded.",
     "clearFilter": "Clear filter",
+    "clearAll": "Clear all",
     "tags": {
       "title": "Dominant tags",
       "subtitle": "Top 10 most common tags",
@@ -135,7 +136,7 @@
     "timeline": {
       "title": "Time evolution",
       "subtitle": "Monthly frequency",
-      "showing": "Showing evolution for"
+      "showingMonthly": "Showing monthly evolution for the active tags"
     },
     "articles": {
       "title": "Filtered articles",
