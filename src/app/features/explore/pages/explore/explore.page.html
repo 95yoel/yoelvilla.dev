@@ -90,9 +90,11 @@
 
       <aside class="explore-articles">
         <div class="articles-header">
-          <span class="panel-kicker">{{ 'explore.articles.title' | translate }}</span>
-          <h2>{{ 'explore.articles.subtitle' | translate }}</h2>
-          <p>
+          <div class="articles-header-copy">
+            <span class="panel-kicker">{{ 'explore.articles.title' | translate }}</span>
+            <h2>{{ 'explore.articles.subtitle' | translate }}</h2>
+          </div>
+          <p class="articles-count">
             {{ vm.filteredArticles.length }}
             {{ 'explore.articles.of' | translate }}
             {{ vm.totalArticles }}

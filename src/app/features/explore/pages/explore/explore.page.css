@@ -184,10 +184,24 @@
   color: var(--color-text-darkest);
 }
 
+.articles-header-copy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .panel-meta,
 .articles-header p,
 .timeline-caption {
   color: var(--color-text-slate);
+}
+
+.articles-count {
+  margin: 0;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  line-height: 1.2;
 }
 
 .tags-chart {

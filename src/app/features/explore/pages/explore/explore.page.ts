@@ -136,9 +136,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     this.previousBodyOverflowX = this.doc.body.style.overflowX;
     this.previousHtmlOverflow = this.doc.documentElement.style.overflow;
 
-    this.doc.body.style.overflow = 'hidden';
-    this.doc.body.style.overflowX = 'hidden';
-    this.doc.documentElement.style.overflow = 'hidden';
+    this.applyPageOverflowMode();
 
     this.vmSubscription = this.vm$.subscribe((vm) => {
       this.latestVm = vm;
@@ -191,6 +189,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize(): void {
+    this.applyPageOverflowMode();
     this.queueBarChartRender();
     this.queueTimelineChartRender();
   }
@@ -408,6 +407,18 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
         }
       ]
     };
+  }
+
+  private applyPageOverflowMode(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const shouldUsePageScroll = window.innerWidth <= 960;
+
+    this.doc.body.style.overflow = shouldUsePageScroll ? 'auto' : 'hidden';
+    this.doc.body.style.overflowX = 'hidden';
+    this.doc.documentElement.style.overflow = shouldUsePageScroll ? 'auto' : 'hidden';
   }
 
   private ensureTimelineChart(): void {
