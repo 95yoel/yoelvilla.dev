@@ -149,12 +149,11 @@ export class CustomCursorComponent {
         this.dotY += (this.mouseY - this.dotY) * dotDelay;
       }
 
-      cursor.style.left = `${this.circleX}px`;
-      cursor.style.top = `${this.circleY}px`;
+      cursor.style.transform = `translate3d(${this.circleX}px, ${this.circleY}px, 0) translate(-50%, -50%)`;
 
       const dx = this.dotX - this.circleX;
       const dy = this.dotY - this.circleY;
-      dot.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      dot.style.transform = `translate3d(${dx}px, ${dy}px, 0) translate(-50%, -50%)`;
 
       this.animationFrameId = requestAnimationFrame(animate);
     };
@@ -275,12 +274,11 @@ export class CustomCursorComponent {
         this.dotY += (this.mouseY - this.dotY) * dotDelay;
       }
 
-      this.cursorEl!.style.left = `${this.circleX}px`;
-      this.cursorEl!.style.top = `${this.circleY}px`;
+      this.cursorEl!.style.transform = `translate3d(${this.circleX}px, ${this.circleY}px, 0) translate(-50%, -50%)`;
 
       const dx = this.dotX - this.circleX;
       const dy = this.dotY - this.circleY;
-      this.dotEl!.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      this.dotEl!.style.transform = `translate3d(${dx}px, ${dy}px, 0) translate(-50%, -50%)`;
 
       this.animationFrameId = requestAnimationFrame(animateLoop);
     });

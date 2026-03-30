@@ -485,3 +485,57 @@ Reducir el trabajo y las dependencias que se cargan antes de que el lector pueda
 - Tradeoff o decision importante: no se elimina funcionalidad; simplemente se carga cuando el usuario la pide o cuando el navegador queda ocioso.
 - Hallazgo de implementacion: `marked`, overlays y cursor eran mejores candidatos para recorte del camino critico que el contenido en si.
 - Impacto observado o esperado: menos JS evaluado al entrar en un articulo, menor longitud de la cadena critica y mejor margen para LCP y TBT en produccion.
+
+## Tarea 15. Reducir trabajo continuo y consultas DOM en la home visual
+
+### Estado
+
+- [x] Auditar runtime de la home
+- [x] Reducir consultas DOM repetidas en desktop
+- [x] Afinar observacion de secciones al contenedor real
+- [x] Abaratar movimiento del cursor
+- [ ] Validar impacto con build y prueba visual
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Mantener la home visual y animada, pero recortando trabajo continuo innecesario en main thread: menos consultas al DOM, menos callbacks redundantes y movimiento del cursor mas barato de pintar.
+
+### Archivos previstos
+
+- `src/app/components/desktop-layout/desktop-layout.component.ts`
+- `src/app/components/shared/custom-cursor/custom-cursor.component.ts`
+- `src/app/components/shared/custom-cursor/custom-cursor.component.css`
+- `src/app/services/section-navigation.service.ts`
+- `tmp/plan_optimization_oportunities.md`
+
+### Plan de ejecucion
+
+- Cachear referencias DOM de secciones y nav al montar `desktop-layout`.
+- Hacer que `SectionNavigationService` observe el contenedor horizontal real y evite transiciones redundantes de seccion.
+- Cambiar el cursor custom para moverlo con `transform` en vez de `left/top`.
+- Medir build y revisar que la experiencia visual no se degrada.
+
+### Cambios realizados
+
+- Añadida cache local de refs DOM por seccion en `desktop-layout`, evitando `querySelector` y busquedas globales repetidas en cada entrada/salida.
+- El layout desktop ahora registra `SectionNavigationService` con `root` apuntando al contenedor horizontal real y umbral ajustado para esa navegacion.
+- `SectionNavigationService` evita relanzar `onSectionEnter` si la seccion activa no cambia y solo resuelve transiciones reales.
+- El carrusel desktop ya no mide el ancho de tarjeta en cada click; lo calcula una vez y lo refresca en `resize`.
+- Ajustado el carrusel para recalcular sus metricas al entrar en `portfolio` y justo antes de avanzar/retroceder, corrigiendo un bug donde el ancho podia calcularse demasiado pronto.
+- El cursor custom pasa a moverse con `translate3d(...)` en vez de escribir `left/top` por frame, reduciendo probables layouts y mejorando la via de composicion.
+- Añadido `will-change: transform` al cursor para ayudar a la promocion a capa.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- No aparecen errores nuevos por esta tarea.
+- Siguen presentes warnings ya existentes de budgets CSS por componente y dependencias CommonJS de `sigma`.
+
+### Notas para articulo
+
+- Problema original: una home muy visual no siempre sufre por bundle; muchas veces pierde rendimiento por trabajo continuo en runtime.
+- Enfoque aplicado: respetar la riqueza visual, pero quitar lecturas y escrituras caras o repetidas.
+- Tradeoff o decision importante: no se retiran animaciones ni navegacion guiada; se optimiza la forma en que se sostienen.
+- Hallazgo de implementacion: mover con `transform` y cachear refs suele dar mas retorno que intentar recortar microdependencias en una pantalla de este tipo.
+- Impacto observado o esperado: menos trabajo continuo por frame, menos consultas DOM por transicion de seccion y menor probabilidad de forced reflow en la home.

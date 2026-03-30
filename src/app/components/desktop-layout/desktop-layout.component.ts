@@ -11,6 +11,19 @@ import { PortfolioService, PortfolioTab } from '../../services/portfolio.service
 import { SectionNavigationService } from '../../services/section-navigation.service';
 import { PerformanceConfigService } from '../../services/performance-config.service';
 
+interface DesktopSectionCache {
+  navItem?: HTMLElement;
+  title?: HTMLElement;
+  subtitle?: HTMLElement;
+  aboutText?: HTMLElement;
+  contactRoot?: HTMLElement;
+  workRoot?: HTMLElement;
+  projectsPanel?: HTMLElement;
+  projectCards: HTMLElement[];
+  experiencePanel?: HTMLElement;
+  experienceItems: HTMLElement[];
+}
+
 @Component({
   selector: 'villayoel-desktop',
   imports: [ScrollBtnComponent, CustomCursorComponent, CommonModule, FormsModule, MatTooltipModule, TranslatePipe],
@@ -27,6 +40,8 @@ export class DesktopLayoutComponent {
 
   private portfolioEl?: HTMLElement
   private isScrolling = false
+  private carouselStep = window.innerWidth * 0.8
+  private readonly sectionCache = new Map<string, DesktopSectionCache>()
   private contactService = inject(ContactService)
   private portfolioService = inject(PortfolioService)
   private sectionNavigationService = inject(SectionNavigationService)
@@ -108,17 +123,36 @@ export class DesktopLayoutComponent {
     }
   }
 
+  @HostListener('window:resize')
+  onResize() {
+    this.refreshCarouselMetrics()
+    this.updateCarouselButtons()
+  }
+
   ngAfterViewInit(): void {
+    this.buildSectionCache()
     this.sectionNavigationService.registerSections(
       this.panels.toArray().map((panel) => panel.nativeElement as HTMLElement),
       {
         onSectionEnter: (sectionName, element) => this.handleSectionChange(sectionName, element),
         onSectionLeave: (sectionName, element) => this.handleSectionLeave(sectionName, element)
+      },
+      {
+        root: this.scrollContainer.nativeElement,
+        threshold: 0.55
       }
     )
 
-    // Initialize carousel buttons state
-    setTimeout(() => this.updateCarouselButtons(), 100)
+    const initialSection = this.panels.first?.nativeElement as HTMLElement | undefined
+    if (initialSection) {
+      const initialSectionName = initialSection.dataset['section'] || 'home'
+      this.handleSectionChange(initialSectionName, initialSection)
+    }
+
+    setTimeout(() => {
+      this.refreshCarouselMetrics()
+      this.updateCarouselButtons()
+    }, 100)
   }
 
   ngOnDestroy(): void {
@@ -126,23 +160,26 @@ export class DesktopLayoutComponent {
   }
 
   private handleSectionChange(sectionName: string, element: HTMLElement) {
-    const navItem = document.querySelector(`nav li[data-nav="${sectionName}"]`)
+    const cache = this.getSectionCache(sectionName, element)
+    const navItem = cache.navItem
     if (navItem) {
       navItem.classList.add('active')
     }
     switch (sectionName) {
       case 'home':
         element.classList.add('home-section')
-        this.animateTitle(element)
+        this.animateTitle(cache)
         break
       case 'about':
         element.classList.add('about-section')
-        this.animateAbout(element)
+        this.animateAbout(cache)
         break
       case 'portfolio':
         element.classList.add('portfolio-section')
         this.portfolioEl = element
-        const work = this.getWorkRoot(element)
+        this.refreshCarouselMetrics()
+        this.updateCarouselButtons()
+        const work = cache.workRoot
         if (work) {
           if (this.animationsEnabled) {
             gsap.set(work, { opacity: 0, y: 12 })
@@ -155,27 +192,28 @@ export class DesktopLayoutComponent {
         break
       case 'contact':
         element.classList.add('contact-section')
-        this.animateContact(element)
+        this.animateContact(cache)
         break
     }
   }
 
   private handleSectionLeave(sectionName: string, element: HTMLElement) {
-    const navItem = document.querySelector(`nav li[data-nav="${sectionName}"]`)
+    const cache = this.getSectionCache(sectionName, element)
+    const navItem = cache.navItem
     if (navItem) {
       navItem.classList.remove('active')
     }
 
     switch (sectionName) {
       case 'home':
-        this.unanimateTitle(element)
+        this.unanimateTitle(cache)
         break
       case 'about':
-        this.unanimateAbout(element)
+        this.unanimateAbout(cache)
         break
       case 'portfolio':
-        this.unanimateWorkTab(this.activeWorkTab, element)
-        const work = this.getWorkRoot(element)
+        this.unanimateWorkTab(this.activeWorkTab, cache)
+        const work = cache.workRoot
         if (work) {
           if (this.animationsEnabled) {
             gsap.to(work, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.inOut' })
@@ -185,14 +223,14 @@ export class DesktopLayoutComponent {
         }
         break
       case 'contact':
-        this.unanimateContact(element)
+        this.unanimateContact(cache)
         break
     }
   }
 
-  private animateTitle(element: HTMLElement) {
-    const title = element.querySelector('.title')
-    const subtitle = element.querySelector('.subtitle')
+  private animateTitle(cache: DesktopSectionCache) {
+    const title = cache.title
+    const subtitle = cache.subtitle
 
     if (!title || !subtitle) return
 
@@ -208,9 +246,9 @@ export class DesktopLayoutComponent {
     gsap.to(subtitle, { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: 'power2.out' })
   }
 
-  private unanimateTitle(element: HTMLElement) {
-    const title = element.querySelector('.title')
-    const subtitle = element.querySelector('.subtitle')
+  private unanimateTitle(cache: DesktopSectionCache) {
+    const title = cache.title
+    const subtitle = cache.subtitle
 
     if (title) {
       this.animationsEnabled
@@ -225,8 +263,8 @@ export class DesktopLayoutComponent {
     }
   }
 
-  private animateAbout(element: HTMLElement) {
-    const aboutText = element.querySelector('.about')
+  private animateAbout(cache: DesktopSectionCache) {
+    const aboutText = cache.aboutText
 
     if (!aboutText) return
 
@@ -240,8 +278,8 @@ export class DesktopLayoutComponent {
     gsap.to(aboutText, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' })
   }
 
-  private unanimateAbout(element: HTMLElement) {
-    const aboutText = element.querySelector('.about')
+  private unanimateAbout(cache: DesktopSectionCache) {
+    const aboutText = cache.aboutText
 
     if (aboutText) {
       this.animationsEnabled
@@ -253,7 +291,7 @@ export class DesktopLayoutComponent {
   public switchWorkTab(tab: PortfolioTab): void {
     if (this.activeWorkTab === tab) return
 
-    this.unanimateWorkTab(this.activeWorkTab, this.portfolioEl)
+    this.unanimateWorkTab(this.activeWorkTab, this.getWorkSectionCache())
 
     this.lastWorkTab = this.activeWorkTab
     this.activeWorkTab = tab
@@ -262,14 +300,20 @@ export class DesktopLayoutComponent {
   }
 
   private animateWorkTab(tab: PortfolioTab, element?: HTMLElement): void {
-    const work = this.getWorkRoot(element)
+    const cache = this.getWorkSectionCache(element)
+    const work = cache.workRoot
     if (!work) return
 
-    gsap.killTweensOf(work.querySelectorAll('*'))
+    gsap.killTweensOf([
+      ...(cache.projectCards || []),
+      ...(cache.experienceItems || []),
+      cache.projectsPanel,
+      cache.experiencePanel
+    ].filter(Boolean))
 
     if (tab === 'proyectos') {
-      const panel = work.querySelector('#proyectos') as HTMLElement | null
-      const cards = panel?.querySelectorAll('.card') ?? []
+      const panel = cache.projectsPanel
+      const cards = cache.projectCards
       if (!panel || !cards.length) return
 
       if (this.animationsEnabled) {
@@ -283,8 +327,8 @@ export class DesktopLayoutComponent {
         gsap.set(cards, { opacity: 1, y: 0 })
       }
     } else {
-      const panel = work.querySelector('#experiencia') as HTMLElement | null
-      const items = panel?.querySelectorAll('.xp li') ?? []
+      const panel = cache.experiencePanel
+      const items = cache.experienceItems
       if (!panel) return
 
       if (this.animationsEnabled) {
@@ -304,11 +348,9 @@ export class DesktopLayoutComponent {
     }
   }
 
-  private unanimateWorkTab(tab: PortfolioTab, element?: HTMLElement): void {
-    const work = this.getWorkRoot(element)
-    if (!work) return
-
-    const panel = work.querySelector(tab === 'proyectos' ? '#proyectos' : '#experiencia') as HTMLElement | null
+  private unanimateWorkTab(tab: PortfolioTab, cache?: DesktopSectionCache): void {
+    const sectionCache = cache ?? this.getWorkSectionCache()
+    const panel = tab === 'proyectos' ? sectionCache.projectsPanel : sectionCache.experiencePanel
     if (!panel) return
 
     this.animationsEnabled
@@ -316,23 +358,14 @@ export class DesktopLayoutComponent {
       : gsap.set(panel, { opacity: 0, y: 8 })
   }
 
-  private getWorkRoot(element?: HTMLElement): HTMLElement | null {
-    const root = element ?? this.portfolioEl ?? document.querySelector('[data-section="portfolio"]') as HTMLElement | null
-    return root?.querySelector('.work') as HTMLElement | null
-  }
-
   private getCardStep(): number {
-    const el = this.carouselRef?.nativeElement
-    const card = el?.querySelector('.card') as HTMLElement | null
-    if (!el || !card) return window.innerWidth * 0.8
-    const styles = getComputedStyle(el)
-    const gap = parseFloat(styles.columnGap || styles.gap || '16')
-    return card.getBoundingClientRect().width + gap
+    return this.carouselStep
   }
 
   public carouselNext(): void {
     const el = this.carouselRef?.nativeElement
     if (!el) return
+    this.refreshCarouselMetrics()
     const step = this.getCardStep()
     if (this.animationsEnabled) {
       gsap.to(el, { 
@@ -351,6 +384,7 @@ export class DesktopLayoutComponent {
   public carouselPrev(): void {
     const el = this.carouselRef?.nativeElement
     if (!el) return
+    this.refreshCarouselMetrics()
     const step = this.getCardStep()
     if (this.animationsEnabled) {
       gsap.to(el, { 
@@ -378,8 +412,8 @@ export class DesktopLayoutComponent {
     this.canScrollCarouselNext = el.scrollLeft < maxScroll - 10
   }
 
-  private animateContact(element: HTMLElement) {
-    const root = element.querySelector('.contact') as HTMLElement | null
+  private animateContact(cache: DesktopSectionCache) {
+    const root = cache.contactRoot
     if (!root) return
 
     if (!this.animationsEnabled) {
@@ -391,8 +425,8 @@ export class DesktopLayoutComponent {
     gsap.to(root, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
   }
 
-  private unanimateContact(element: HTMLElement) {
-    const root = element.querySelector('.contact') as HTMLElement | null
+  private unanimateContact(cache: DesktopSectionCache) {
+    const root = cache.contactRoot
     if (!root) return
     this.animationsEnabled
       ? gsap.to(root, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.inOut' })
@@ -476,5 +510,77 @@ export class DesktopLayoutComponent {
     }).catch(err => {
       // Copy error
     })
+  }
+
+  private buildSectionCache(): void {
+    this.sectionCache.clear()
+
+    for (const panelRef of this.panels.toArray()) {
+      const panel = panelRef.nativeElement as HTMLElement
+      const sectionName = panel.dataset['section'] || ''
+      if (!sectionName) {
+        continue
+      }
+
+      const workRoot = panel.querySelector('.work') as HTMLElement | null
+      const projectsPanel = workRoot?.querySelector('#proyectos') as HTMLElement | null
+      const experiencePanel = workRoot?.querySelector('#experiencia') as HTMLElement | null
+
+      this.sectionCache.set(sectionName, {
+        navItem: document.querySelector(`nav li[data-nav="${sectionName}"]`) as HTMLElement | null || undefined,
+        title: panel.querySelector('.title') as HTMLElement | null || undefined,
+        subtitle: panel.querySelector('.subtitle') as HTMLElement | null || undefined,
+        aboutText: panel.querySelector('.about') as HTMLElement | null || undefined,
+        contactRoot: panel.querySelector('.contact') as HTMLElement | null || undefined,
+        workRoot: workRoot || undefined,
+        projectsPanel: projectsPanel || undefined,
+        projectCards: Array.from(projectsPanel?.querySelectorAll('.card') ?? []),
+        experiencePanel: experiencePanel || undefined,
+        experienceItems: Array.from(experiencePanel?.querySelectorAll('.xp li') ?? [])
+      })
+    }
+  }
+
+  private getSectionCache(sectionName: string, element?: HTMLElement): DesktopSectionCache {
+    const cached = this.sectionCache.get(sectionName)
+    if (cached) {
+      return cached
+    }
+
+    const fallbackElement = element ?? this.sectionNavigationService.findSectionByName(sectionName)
+    const workRoot = fallbackElement?.querySelector('.work') as HTMLElement | null
+    const projectsPanel = workRoot?.querySelector('#proyectos') as HTMLElement | null
+    const experiencePanel = workRoot?.querySelector('#experiencia') as HTMLElement | null
+
+    return {
+      navItem: document.querySelector(`nav li[data-nav="${sectionName}"]`) as HTMLElement | null || undefined,
+      title: fallbackElement?.querySelector('.title') as HTMLElement | null || undefined,
+      subtitle: fallbackElement?.querySelector('.subtitle') as HTMLElement | null || undefined,
+      aboutText: fallbackElement?.querySelector('.about') as HTMLElement | null || undefined,
+      contactRoot: fallbackElement?.querySelector('.contact') as HTMLElement | null || undefined,
+      workRoot: workRoot || undefined,
+      projectsPanel: projectsPanel || undefined,
+      projectCards: Array.from(projectsPanel?.querySelectorAll('.card') ?? []),
+      experiencePanel: experiencePanel || undefined,
+      experienceItems: Array.from(experiencePanel?.querySelectorAll('.xp li') ?? [])
+    }
+  }
+
+  private getWorkSectionCache(element?: HTMLElement): DesktopSectionCache {
+    const sectionName = element?.dataset['section'] || this.portfolioEl?.dataset['section'] || 'portfolio'
+    return this.getSectionCache(sectionName, element ?? this.portfolioEl)
+  }
+
+  private refreshCarouselMetrics(): void {
+    const el = this.carouselRef?.nativeElement
+    const firstCard = this.getWorkSectionCache().projectCards[0]
+    if (!el || !firstCard) {
+      this.carouselStep = window.innerWidth * 0.8
+      return
+    }
+
+    const styles = getComputedStyle(el)
+    const gap = parseFloat(styles.columnGap || styles.gap || '16')
+    this.carouselStep = firstCard.getBoundingClientRect().width + gap
   }
 }

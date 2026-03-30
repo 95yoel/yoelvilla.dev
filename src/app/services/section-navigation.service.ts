@@ -12,12 +12,18 @@ interface SectionCallbacks {
   onSectionLeave: (sectionName: string, element: HTMLElement) => void;
 }
 
+interface RegisterSectionOptions {
+  root?: HTMLElement | null;
+  threshold?: number | number[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class SectionNavigationService {
   private sections: HTMLElement[] = [];
   private observer?: IntersectionObserver;
+  private activeSectionName = 'home';
 
   private readonly stateSubject = new BehaviorSubject<SectionNavigationState>({
     activeSection: 'home',
@@ -31,35 +37,46 @@ export class SectionNavigationService {
     return this.stateSubject.value;
   }
 
-  registerSections(sections: HTMLElement[], callbacks: SectionCallbacks): void {
+  registerSections(sections: HTMLElement[], callbacks: SectionCallbacks, options?: RegisterSectionOptions): void {
     this.disconnect();
 
     this.sections = sections;
+    this.activeSectionName = sections[0]?.dataset['section'] || 'home';
     this.patchState({
+      activeSection: this.activeSectionName,
+      currentSectionIndex: 0,
       totalSections: sections.length
     });
 
     this.observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          const section = entry.target as HTMLElement;
-          const sectionName = section.dataset['section'] || '';
+        const entering = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((left, right) => right.intersectionRatio - left.intersectionRatio);
 
-          if (entry.isIntersecting) {
+        const nextActive = entering[0];
+        if (nextActive) {
+          const section = nextActive.target as HTMLElement;
+          const sectionName = section.dataset['section'] || '';
+          if (sectionName && sectionName !== this.activeSectionName) {
+            const previousSection = this.findSectionByName(this.activeSectionName);
+            if (previousSection) {
+              callbacks.onSectionLeave(this.activeSectionName, previousSection);
+            }
+
+            this.activeSectionName = sectionName;
             const sectionIndex = this.sections.findIndex((item) => item === section);
             this.patchState({
               activeSection: sectionName,
               currentSectionIndex: sectionIndex >= 0 ? sectionIndex : this.snapshot.currentSectionIndex
             });
             callbacks.onSectionEnter(sectionName, section);
-          } else {
-            callbacks.onSectionLeave(sectionName, section);
           }
-        });
+        }
       },
       {
-        root: null,
-        threshold: 0.5
+        root: options?.root ?? null,
+        threshold: options?.threshold ?? 0.5
       }
     );
 
@@ -91,6 +108,7 @@ export class SectionNavigationService {
   disconnect(): void {
     this.observer?.disconnect();
     this.observer = undefined;
+    this.sections = [];
   }
 
   private patchState(patch: Partial<SectionNavigationState>): void {
