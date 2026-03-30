@@ -27,7 +27,7 @@
     "project1": {
       "title": "yoelvilla.dev",
       "tech": "Angular 19 · AWS · TypeScript",
-      "description": "Personal portfolio with serverless architecture. Frontend deployed on S3 + CloudFront, backend with Lambda + API Gateway. Custom translation system, personalized cursor and integrated contact form.",
+      "description": "Bilingual portfolio and blog in production on AWS with a serverless architecture. Frontend on S3 + CloudFront, backend with Lambda + API Gateway, custom translation system, content visualization, and performance optimization.",
       "github": "https://github.com/95yoel/yoelvilla.dev/"
     },
     "project2": {
