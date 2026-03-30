@@ -3,9 +3,10 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, 
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Router } from '@angular/router';
 import { BlogArticleGraphData, BlogGraphRelation, BlogGraphRelationType } from '../../models/blog-article.model';
-import { buildArticleGraph, BlogGraphBuildResult, BlogGraphNodeAttributes, BlogGraphNodeMeta, BlogGraphEdgeAttributes, collectSharedTags, withAlpha } from '../../utils/blog-graph.utils';
+import { BlogGraphBuildResult, BlogGraphNodeAttributes, BlogGraphNodeMeta, BlogGraphEdgeAttributes, collectSharedTags, materializeBlogGraphBuildResult, withAlpha } from '../../utils/blog-graph.utils';
 import { Language } from '../../../../translations/services/translation.service';
 import { BlogRoutingService } from '../../services/blog-routing.service';
+import { BlogGraphWorkerService } from '../../services/blog-graph-worker.service';
 
 type SigmaRenderer = {
   on(event: string, listener: (payload: { node?: string; edge?: string; event?: { x: number; y: number }; preventSigmaDefault?: () => void }) => void): SigmaRenderer;
@@ -74,6 +75,7 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly blogRoutingService = inject(BlogRoutingService);
+  private readonly blogGraphWorker = inject(BlogGraphWorkerService);
   private sigma: SigmaRenderer | null = null;
   private graphBuildResult: BlogGraphBuildResult | null = null;
   private hoveredSlug: string | null = null;
@@ -292,7 +294,8 @@ export class BlogGraphModalComponent implements AfterViewInit, OnChanges, OnDest
     this.loadError = null;
     this.destroySigma();
 
-    this.graphBuildResult = buildArticleGraph(this.graphData, this.currentSlug, this.topLevelLimit);
+    const graphSnapshot = await this.blogGraphWorker.buildGraph(this.graphData, this.currentSlug, this.topLevelLimit);
+    this.graphBuildResult = graphSnapshot ? materializeBlogGraphBuildResult(graphSnapshot) : null;
     this.visibleNodeCount = this.graphBuildResult?.graph.order || 0;
     this.visibleEdgeCount = this.graphBuildResult?.graph.size || 0;
     this.hasRelations = (this.graphData.relatedBySlug[this.currentSlug] || []).length > 0;

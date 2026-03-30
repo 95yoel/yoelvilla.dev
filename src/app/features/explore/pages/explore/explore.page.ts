@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, combineLatest, map, of, startWith, Subject, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, from, map, of, startWith, Subject, Subscription, switchMap, tap } from 'rxjs';
 import { LanguagePanelComponent } from '../../../../components/shared/language-panel/language-panel.component';
 import { CustomCursorComponent } from '../../../../components/shared/custom-cursor/custom-cursor.component';
 import { LayoutService } from '../../../../services/layout.service';
@@ -21,31 +21,15 @@ import { BarChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { createChart, type IChartApi, type ISeriesApi, LineSeries, ColorType } from 'lightweight-charts';
+import { ExploreAnalyticsWorkerService } from '../../services/explore-analytics-worker.service';
+import { TagAggregate, TimelinePoint } from '../../utils/explore-analytics.utils';
 
 echarts.use([BarChart, GridComponent, TooltipComponent, CanvasRenderer]);
-
-interface TagAggregate {
-  tag: string;
-  count: number;
-}
-
-interface TimelinePoint {
-  time: string;
-  value: number;
-}
 
 interface TimelineSeriesConfig {
   tag: string;
   color: string;
   data: TimelinePoint[];
-}
-
-interface ExploreDataset {
-  articles: BlogArticleSummary[];
-  topTags: TagAggregate[];
-  topTagSet: Set<string>;
-  articlesByTag: Map<string, BlogArticleSummary[]>;
-  timelineByTag: Map<string, TimelinePoint[]>;
 }
 
 type ExploreVm =
@@ -60,6 +44,17 @@ type ExploreVm =
       totalArticles: number;
       graph: BlogArticleGraphData;
       barChartOptions: EChartsCoreOption;
+    };
+
+type ExploreDataState =
+  | { status: 'loading' }
+  | { status: 'error' }
+  | {
+      status: 'ready';
+      lang: Language;
+      articlesBySlug: Map<string, BlogArticleSummary>;
+      totalArticles: number;
+      graph: BlogArticleGraphData;
     };
 
 @Component({
@@ -85,12 +80,12 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   private readonly blogService = inject(BlogService);
   private readonly blogRoutingService = inject(BlogRoutingService);
   private readonly exploreRoutingService = inject(ExploreRoutingService);
+  private readonly exploreAnalyticsWorker = inject(ExploreAnalyticsWorkerService);
   private readonly layoutService = inject(LayoutService);
   private readonly performanceConfig = inject(PerformanceConfigService);
   private readonly selectedTags$ = new Subject<string[]>();
   private readonly reload$ = new Subject<void>();
   private readonly palette = ['#e86a78', '#7bc2a5', '#7aa2f7', '#f4b267', '#c084fc', '#14b8a6', '#f97316', '#0f766e', '#dc2626', '#4338ca'];
-  private readonly exploreDatasetCache = new Map<Language, ExploreDataset>();
   private selectedTags: string[] = [];
   private vmSubscription: Subscription | null = null;
   private timelineChart: IChartApi | null = null;
@@ -115,20 +110,61 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     tap(() => this.exploreRoutingService.ensureLocalizedExploreRoute(this.exploreRoutingService.getRouteLanguage()))
   );
 
-  readonly vm$ = combineLatest([
+  private readonly exploreData$ = combineLatest([
     this.routeLang$,
-    this.reload$.pipe(startWith(undefined)),
-    this.selectedTags$.pipe(startWith<string[]>([]))
+    this.reload$.pipe(startWith(undefined))
   ]).pipe(
-    switchMap(([lang, _reload, selectedTags]) =>
+    switchMap(([lang]) =>
       combineLatest([
         this.blogService.getIndex(lang),
         this.blogService.getGraphData(lang)
       ]).pipe(
-        map(([articles, graph]) => this.buildViewModel(this.getOrCreateExploreDataset(lang, articles), graph, selectedTags)),
-        catchError(() => of({ status: 'error' } as ExploreVm))
+        switchMap(([articles, graph]) =>
+          from(this.exploreAnalyticsWorker.prepareDataset(lang, articles)).pipe(
+            map((): ExploreDataState => ({
+              status: 'ready',
+              lang,
+              articlesBySlug: new Map(articles.map((article) => [article.slug, article])),
+              totalArticles: articles.length,
+              graph
+            }))
+          )
+        ),
+        catchError(() => of({ status: 'error' } as ExploreDataState))
       )
     ),
+    startWith({ status: 'loading' } as ExploreDataState)
+  );
+
+  readonly vm$ = combineLatest([
+    this.exploreData$,
+    this.selectedTags$.pipe(startWith<string[]>([]))
+  ]).pipe(
+    switchMap(([dataState, selectedTags]) => {
+      if (dataState.status !== 'ready') {
+        return of(dataState as ExploreVm);
+      }
+
+      return from(this.exploreAnalyticsWorker.applySelection(dataState.lang, selectedTags)).pipe(
+        map((result): ExploreVm => ({
+          status: 'ready',
+          topTags: result.topTags,
+          selectedTags: result.normalizedSelectedTags,
+          timelineSeries: result.activeTags.map((tag, index) => ({
+            tag,
+            color: this.palette[index % this.palette.length],
+            data: result.timelineByTag[tag] ?? []
+          })),
+          filteredArticles: result.filteredArticleSlugs
+            .map((slug) => dataState.articlesBySlug.get(slug))
+            .filter((article): article is BlogArticleSummary => !!article),
+          totalArticles: dataState.totalArticles,
+          graph: dataState.graph,
+          barChartOptions: this.createBarChartOptions(result.topTags, result.normalizedSelectedTags)
+        })),
+        catchError(() => of({ status: 'error' } as ExploreVm))
+      );
+    }),
     startWith({ status: 'loading' } as ExploreVm)
   );
 
@@ -214,7 +250,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
 
   retry(): void {
     this.blogService.clearCaches();
-    this.exploreDatasetCache.clear();
+    this.exploreAnalyticsWorker.clearFallbackCache();
     this.reload$.next();
   }
 
@@ -286,110 +322,6 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       month: 'short',
       year: 'numeric'
     }).format(parsedDate);
-  }
-
-  private buildViewModel(dataset: ExploreDataset, graph: BlogArticleGraphData, selectedTags: string[]): ExploreVm {
-    const { articles, topTags, topTagSet } = dataset;
-    const normalizedSelectedTags = selectedTags.filter((tag) => topTagSet.has(tag));
-    const activeTags = normalizedSelectedTags.length
-      ? normalizedSelectedTags
-      : topTags.slice(0, Math.min(3, topTags.length)).map((entry) => entry.tag);
-    const filteredArticles = normalizedSelectedTags.length
-      ? this.collectFilteredArticles(dataset, normalizedSelectedTags)
-      : articles;
-
-    return {
-      status: 'ready',
-      topTags,
-      selectedTags: normalizedSelectedTags,
-      timelineSeries: activeTags.map((tag, index) => ({
-        tag,
-        color: this.palette[index % this.palette.length],
-        data: dataset.timelineByTag.get(tag) ?? []
-      })),
-      filteredArticles,
-      totalArticles: articles.length,
-      graph,
-      barChartOptions: this.createBarChartOptions(topTags, normalizedSelectedTags)
-    };
-  }
-
-  private getOrCreateExploreDataset(lang: Language, articles: BlogArticleSummary[]): ExploreDataset {
-    const cached = this.exploreDatasetCache.get(lang);
-    if (cached) {
-      return cached;
-    }
-
-    const tagCounts = new Map<string, number>();
-    const articlesByTag = new Map<string, BlogArticleSummary[]>();
-    const articleMonths = articles
-      .map((article) => this.toMonthStart(article.date))
-      .filter((value): value is string => !!value)
-      .sort();
-
-    for (const article of articles) {
-      for (const tag of article.tags) {
-        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
-        const taggedArticles = articlesByTag.get(tag);
-        if (taggedArticles) {
-          taggedArticles.push(article);
-        } else {
-          articlesByTag.set(tag, [article]);
-        }
-      }
-    }
-
-    const topTags = [...tagCounts.entries()]
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag))
-      .slice(0, 10);
-    const range = articleMonths.length
-      ? this.buildMonthRange(articleMonths[0], articleMonths[articleMonths.length - 1])
-      : [];
-    const timelineByTag = new Map<string, TimelinePoint[]>();
-
-    for (const entry of topTags) {
-      const counts = new Map<string, number>();
-      const taggedArticles = articlesByTag.get(entry.tag) ?? [];
-
-      for (const article of taggedArticles) {
-        const monthKey = this.toMonthStart(article.date);
-        if (!monthKey) {
-          continue;
-        }
-
-        counts.set(monthKey, (counts.get(monthKey) || 0) + 1);
-      }
-
-      timelineByTag.set(entry.tag, range.map((monthKey) => ({
-        time: monthKey,
-        value: counts.get(monthKey) || 0
-      })));
-    }
-
-    const dataset: ExploreDataset = {
-      articles,
-      topTags,
-      topTagSet: new Set(topTags.map((entry) => entry.tag)),
-      articlesByTag,
-      timelineByTag
-    };
-
-    this.exploreDatasetCache.set(lang, dataset);
-    return dataset;
-  }
-
-  private collectFilteredArticles(dataset: ExploreDataset, selectedTags: string[]): BlogArticleSummary[] {
-    const matchingSlugs = new Set<string>();
-
-    for (const tag of selectedTags) {
-      const taggedArticles = dataset.articlesByTag.get(tag) ?? [];
-      for (const article of taggedArticles) {
-        matchingSlugs.add(article.slug);
-      }
-    }
-
-    return dataset.articles.filter((article) => matchingSlugs.has(article.slug));
   }
 
   private createBarChartOptions(topTags: TagAggregate[], selectedTags: string[]): EChartsCoreOption {
@@ -602,31 +534,4 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     });
   }
 
-  private toMonthStart(value: string): string | null {
-    if (!value) {
-      return null;
-    }
-
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-      return null;
-    }
-
-    const utcDate = new Date(Date.UTC(parsed.getFullYear(), parsed.getMonth(), 1));
-
-    return utcDate.toISOString().slice(0, 10);
-  }
-
-  private buildMonthRange(start: string, end: string): string[] {
-    const range: string[] = [];
-    const cursor = new Date(`${start}T00:00:00Z`);
-    const last = new Date(`${end}T00:00:00Z`);
-
-    while (cursor.getTime() <= last.getTime()) {
-      range.push(cursor.toISOString().slice(0, 10));
-      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
-    }
-
-    return range;
-  }
 }

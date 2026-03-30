@@ -293,3 +293,91 @@ Extender la cache actual en memoria para que `index.json` y los articulos ya abi
 - Tradeoff o decision importante: `sessionStorage` es una mejora pragmatica y simple antes de dar el salto a algo mas complejo como IndexedDB.
 - Hallazgo de implementacion: una cache persistida necesita invalidacion mas precisa que un simple `clear all`, aunque se mantenga esa opcion.
 - Impacto observado o esperado: aperturas repetidas mas rapidas, menos parsing repetido y menos peticiones al volver a index o articulos dentro de la misma sesion.
+
+## Tarea 13. Externalizar analytics y construccion de grafo a Web Workers
+
+### Estado
+
+- [x] Analizar arquitectura actual
+- [x] Diseñar contrato de mensajes
+- [x] Implementar workers
+- [x] Integrar workers en componentes
+- [ ] Medir impacto real
+- [x] Documentar resultados para articulo
+
+### Objetivo
+
+Mover a segundo plano el trabajo de calculo mas pesado de `explore` y de la construccion del subgrafo del blog, dejando en main thread solo el render y la interaccion inmediata.
+
+### Alcance recomendado
+
+- `explore`: mover agregaciones, top tags, series mensuales, filtrado y preparacion de modelos de datos.
+- `blog graph`: mover `buildArticleGraph()` y toda la preparacion estructural de nodos, edges, metadata y bounding box.
+- Mantener en main thread: `Sigma`, `echarts`, `lightweight-charts`, hover, drag, tooltip y reducers visuales.
+
+### Archivos actuales implicados
+
+- `src/app/features/explore/pages/explore/explore.page.ts`
+- `src/app/features/explore/services/explore-analytics.worker.ts`
+- `src/app/features/explore/services/explore-analytics-worker.service.ts`
+- `src/app/features/explore/utils/explore-analytics.utils.ts`
+- `src/app/features/blog/utils/blog-graph.utils.ts`
+- `src/app/features/blog/components/blog-graph-modal/blog-graph-modal.component.ts`
+- `src/app/features/blog/services/blog-graph.worker.ts`
+- `src/app/features/blog/services/blog-graph-worker.service.ts`
+- `tmp/plan_optimization_oportunities.md`
+
+### Analisis tecnico
+
+- En `explore`, el coste relevante esta en la preparacion de datasets y no en la instancia del chart.
+- En el grafo del blog, el coste candidato a worker es la construccion estructural del subgrafo, no la capa Sigma de render e interaccion.
+- Mandar hover continuo, drag o posicionamiento de tooltip a worker no compensa: añade latencia y ruido de mensajes.
+
+### Arquitectura propuesta
+
+- `explore-analytics.worker.ts`
+- `blog-graph.worker.ts`
+- `ExploreAnalyticsWorkerService`
+- `BlogGraphWorkerService`
+
+Cada worker deberia recibir datos puros y devolver estructuras serializables, evitando dependencias de DOM o instancias de librerias de render.
+
+### Contratos sugeridos
+
+- Worker de `explore`
+  Entrada: `articles`, `selectedTags`, `lang`, `mode`
+  Salida: `topTags`, `filteredArticleSlugs`, `timelineSeries`, `barChartModel`
+
+- Worker de `blog graph`
+  Entrada: `graphData`, `currentSlug`, `limit`, `mode`
+  Salida: `nodes`, `edges`, `nodeMetaBySlug`, `adjacency`, `edgeKeysByNode`, `edgeMetaByKey`, `bbox`
+
+### Cambios realizados
+
+- Implementado `explore-analytics.worker.ts` para preparar dataset por idioma y aplicar seleccion de tags fuera del main thread.
+- Implementado `ExploreAnalyticsWorkerService` con fallback sincronico para entornos sin soporte de workers.
+- Refactorizado `explore.page.ts` para consumir analytics desde worker y dejar en main thread solo la composicion final de series y el render de charts.
+- Refactorizada la construccion del grafo del blog para generar primero un snapshot serializable.
+- Implementado `blog-graph.worker.ts` para construir ese snapshot en segundo plano.
+- Implementado `BlogGraphWorkerService` con fallback sincronico.
+- `blog-graph-modal.component.ts` ahora materializa el `graphology` graph en main thread a partir del snapshot devuelto por worker, manteniendo Sigma e interaccion fuera del worker.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build ya genera bundles dedicados para `explore-analytics-worker` y `blog-graph-worker`.
+- Siguen presentes warnings ya existentes de budgets y dependencias CommonJS, sin errores nuevos por esta tarea.
+
+### Orden recomendado
+
+1. Workerizar `explore` primero.
+2. Workerizar despues la construccion del subgrafo del blog.
+3. Medir antes y despues con Performance panel y marcas concretas.
+4. Solo plantear `OffscreenCanvas` si los cuellos reales siguen estando en render y no en calculo.
+
+### Notas para articulo
+
+- Idea central: no todo lo costoso debe salir del main thread; hay que separar calculo de render.
+- Enfoque defendible: mover preparacion de datos, no eventos de puntero por frame.
+- Mensaje tecnico: `Web Workers` dan valor cuando desacoplas computacion pura, no cuando intentas sacar a la fuerza una UI interactiva entera.
+- Resultado practico: `explore` y la construccion del subgrafo ya pueden trabajar en segundo plano, mientras que Sigma y los charts siguen en main thread para conservar respuesta inmediata al usuario.

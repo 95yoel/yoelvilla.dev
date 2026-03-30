@@ -66,17 +66,49 @@ export interface BlogGraphBuildResult {
   edgeMetaByKey: Map<string, BlogGraphRelation>;
 }
 
+export interface BlogGraphNodeSnapshot {
+  slug: string;
+  attributes: BlogGraphNodeAttributes;
+}
+
+export interface BlogGraphEdgeSnapshot {
+  key: string;
+  source: string;
+  target: string;
+  attributes: BlogGraphEdgeAttributes;
+}
+
+export interface SerializedBlogGraphBuildResult {
+  centerSlug: string;
+  nodes: BlogGraphNodeSnapshot[];
+  edges: BlogGraphEdgeSnapshot[];
+  nodeMetaBySlug: Record<string, BlogGraphNodeMeta>;
+  adjacency: Record<string, string[]>;
+  edgeKeysByNode: Record<string, string[]>;
+  edgeMetaByKey: Record<string, BlogGraphRelation>;
+}
+
 export function buildArticleGraph(
   graphData: BlogArticleGraphData,
   centerSlug: string,
   limit = 8
 ): BlogGraphBuildResult | null {
+  const snapshot = buildArticleGraphSnapshot(graphData, centerSlug, limit);
+  return snapshot ? materializeBlogGraphBuildResult(snapshot) : null;
+}
+
+export function buildArticleGraphSnapshot(
+  graphData: BlogArticleGraphData,
+  centerSlug: string,
+  limit = 8
+): SerializedBlogGraphBuildResult | null {
   const centerArticle = graphData.articlesBySlug[centerSlug];
   if (!centerArticle) {
     return null;
   }
 
-  const graph = new Graph<BlogGraphNodeAttributes, BlogGraphEdgeAttributes>({ type: 'undirected' });
+  const nodes: BlogGraphNodeSnapshot[] = [];
+  const edges: BlogGraphEdgeSnapshot[] = [];
   const nodeMetaBySlug: Record<string, BlogGraphNodeMeta> = {};
   const adjacency = new Map<string, Set<string>>();
   const edgeKeysByNode = new Map<string, Set<string>>();
@@ -102,20 +134,23 @@ export function buildArticleGraph(
   const edgeMin = edgeScores.length ? Math.min(...edgeScores) : 0;
   const edgeMax = edgeScores.length ? Math.max(...edgeScores) : 1;
 
-  graph.addNode(centerSlug, {
-    x: 0,
-    y: 0,
-    size: CENTER_NODE_SIZE,
-    label: truncateLabel(centerArticle.title, 38),
-    color: '#fff7f2',
-    type: 'circle',
-    hidden: false,
-    highlighted: false,
-    forceLabel: true,
-    zIndex: 10,
-    nodeType: 'center',
-    routeSlug: centerArticle.slug,
-    fullTitle: centerArticle.title
+  nodes.push({
+    slug: centerSlug,
+    attributes: {
+      x: 0,
+      y: 0,
+      size: CENTER_NODE_SIZE,
+      label: truncateLabel(centerArticle.title, 38),
+      color: '#fff7f2',
+      type: 'circle',
+      hidden: false,
+      highlighted: false,
+      forceLabel: true,
+      zIndex: 10,
+      nodeType: 'center',
+      routeSlug: centerArticle.slug,
+      fullTitle: centerArticle.title
+    }
   });
 
   nodeMetaBySlug[centerSlug] = {
@@ -146,20 +181,23 @@ export function buildArticleGraph(
     const radius = interpolate(OUTER_RADIUS, INNER_RADIUS, similarity) * DEFAULT_GRAPH_SPACING_MULTIPLIER;
     const angle = resolveNodeAngle(index, orderedRelations.length);
 
-    graph.addNode(article.slug, {
-      x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius * ELLIPSE_RATIO,
-      size,
-      label: truncateLabel(article.title, 24),
-      color: TYPE_COLORS[relation.dominantType] || TYPE_COLORS.mixed,
-      type: 'circle',
-      hidden: false,
-      highlighted: false,
-      forceLabel: importance > 0.72,
-      zIndex: 5,
-      nodeType: 'related',
-      routeSlug: article.slug,
-      fullTitle: article.title
+    nodes.push({
+      slug: article.slug,
+      attributes: {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius * ELLIPSE_RATIO,
+        size,
+        label: truncateLabel(article.title, 24),
+        color: TYPE_COLORS[relation.dominantType] || TYPE_COLORS.mixed,
+        type: 'circle',
+        hidden: false,
+        highlighted: false,
+        forceLabel: importance > 0.72,
+        zIndex: 5,
+        nodeType: 'related',
+        routeSlug: article.slug,
+        fullTitle: article.title
+      }
     });
 
     nodeMetaBySlug[article.slug] = {
@@ -174,22 +212,27 @@ export function buildArticleGraph(
   });
 
   visibleEdges.forEach((edge) => {
-    if (!graph.hasNode(edge.source) || !graph.hasNode(edge.target)) {
+    if (!nodeMetaBySlug[edge.source] || !nodeMetaBySlug[edge.target]) {
       return;
     }
 
     const edgeKey = createEdgeKey(edge.source, edge.target);
     const edgeSize = interpolate(EDGE_MIN_SIZE, EDGE_MAX_SIZE, normalizeValue(edge.score, edgeMin, edgeMax, 1));
 
-    graph.addEdgeWithKey(edgeKey, edge.source, edge.target, {
-      size: edgeSize,
-      color: withAlpha(TYPE_COLORS[edge.dominantType] || TYPE_COLORS.mixed, edge.source === centerSlug || edge.target === centerSlug ? 0.72 : 0.42),
-      label: edge.label,
-      type: 'line',
-      hidden: false,
-      forceLabel: false,
-      score: edge.score,
-      dominantType: edge.dominantType
+    edges.push({
+      key: edgeKey,
+      source: edge.source,
+      target: edge.target,
+      attributes: {
+        size: edgeSize,
+        color: withAlpha(TYPE_COLORS[edge.dominantType] || TYPE_COLORS.mixed, edge.source === centerSlug || edge.target === centerSlug ? 0.72 : 0.42),
+        label: edge.label,
+        type: 'line',
+        hidden: false,
+        forceLabel: false,
+        score: edge.score,
+        dominantType: edge.dominantType
+      }
     });
 
     edgeMetaByKey.set(edgeKey, edge);
@@ -206,12 +249,34 @@ export function buildArticleGraph(
   });
 
   return {
-    graph,
     centerSlug,
+    nodes,
+    edges,
     nodeMetaBySlug,
-    adjacency,
-    edgeKeysByNode,
-    edgeMetaByKey
+    adjacency: serializeMapOfSets(adjacency),
+    edgeKeysByNode: serializeMapOfSets(edgeKeysByNode),
+    edgeMetaByKey: Object.fromEntries(edgeMetaByKey.entries())
+  };
+}
+
+export function materializeBlogGraphBuildResult(snapshot: SerializedBlogGraphBuildResult): BlogGraphBuildResult {
+  const graph = new Graph<BlogGraphNodeAttributes, BlogGraphEdgeAttributes>({ type: 'undirected' });
+
+  for (const node of snapshot.nodes) {
+    graph.addNode(node.slug, node.attributes);
+  }
+
+  for (const edge of snapshot.edges) {
+    graph.addEdgeWithKey(edge.key, edge.source, edge.target, edge.attributes);
+  }
+
+  return {
+    graph,
+    centerSlug: snapshot.centerSlug,
+    nodeMetaBySlug: snapshot.nodeMetaBySlug,
+    adjacency: deserializeMapOfSets(snapshot.adjacency),
+    edgeKeysByNode: deserializeMapOfSets(snapshot.edgeKeysByNode),
+    edgeMetaByKey: new Map(Object.entries(snapshot.edgeMetaByKey))
   };
 }
 
@@ -294,6 +359,19 @@ function rememberEdge(map: Map<string, Set<string>>, slug: string, edgeKey: stri
   const set = map.get(slug) || new Set<string>();
   set.add(edgeKey);
   map.set(slug, set);
+}
+
+function serializeMapOfSets(map: Map<string, Set<string>>): Record<string, string[]> {
+  return [...map.entries()].reduce<Record<string, string[]>>((acc, [key, values]) => {
+    acc[key] = [...values];
+    return acc;
+  }, {});
+}
+
+function deserializeMapOfSets(value: Record<string, string[]>): Map<string, Set<string>> {
+  return new Map(
+    Object.entries(value).map(([key, items]) => [key, new Set(items)])
+  );
 }
 
 function truncateLabel(value: string, length: number): string {
