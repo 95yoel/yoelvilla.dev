@@ -32,12 +32,39 @@ export class CustomCursorComponent {
   private dotEl?: HTMLElement;
   private isGraphMode = false;
   private animationsEnabled = true;
+  private isPointerInsideWindow = false;
+  private isDocumentVisible = true;
+  private lastModeTarget: Element | null = null;
+  private circleX = 0;
+  private circleY = 0;
+  private dotX = 0;
+  private dotY = 0;
 
   private onPointerDown = (e: PointerEvent) => this.spawnClickPulse(e.clientX, e.clientY);
   private onMouseMove = (e: MouseEvent) => {
     this.mouseX = e.clientX;
     this.mouseY = e.clientY;
+    this.isPointerInsideWindow = true;
     this.syncModeFromTarget(e.target);
+    this.ensureAnimationLoop();
+  };
+  private onMouseLeave = () => {
+    this.isPointerInsideWindow = false;
+    this.stopAnimationLoop();
+  };
+  private onMouseEnter = () => {
+    this.isPointerInsideWindow = true;
+    this.ensureAnimationLoop();
+  };
+  private onVisibilityChange = () => {
+    this.isDocumentVisible = this.doc.visibilityState === 'visible';
+
+    if (this.isDocumentVisible) {
+      this.ensureAnimationLoop();
+      return;
+    }
+
+    this.stopAnimationLoop();
   };
   private animationFrameId?: number;
   private mouseX = 0;
@@ -70,9 +97,10 @@ export class CustomCursorComponent {
   ngOnDestroy(): void {
     window.removeEventListener('pointerdown', this.onPointerDown as any, true);
     window.removeEventListener('mousemove', this.onMouseMove);
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
+    window.removeEventListener('mouseleave', this.onMouseLeave);
+    window.removeEventListener('mouseenter', this.onMouseEnter);
+    this.doc.removeEventListener('visibilitychange', this.onVisibilityChange);
+    this.stopAnimationLoop();
 
     const host = this.elRef.nativeElement as HTMLElement;
     if (host.parentNode === this.doc.body) {
@@ -94,32 +122,38 @@ export class CustomCursorComponent {
       return;
     }
 
-    let circleX = 0, circleY = 0;
-    let dotX = 0, dotY = 0;
-
     window.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseleave', this.onMouseLeave);
+    window.addEventListener('mouseenter', this.onMouseEnter);
+    this.doc.addEventListener('visibilitychange', this.onVisibilityChange);
+    this.isDocumentVisible = this.doc.visibilityState === 'visible';
 
     const animate = () => {
+      if (!this.shouldAnimateCursor()) {
+        this.animationFrameId = undefined;
+        return;
+      }
+
       const circleDelay = this.delay;
       const dotDelay = circleDelay * 1.5;
 
       if (this.isGraphMode || !this.animationsEnabled) {
-        circleX = this.mouseX;
-        circleY = this.mouseY;
-        dotX = this.mouseX;
-        dotY = this.mouseY;
+        this.circleX = this.mouseX;
+        this.circleY = this.mouseY;
+        this.dotX = this.mouseX;
+        this.dotY = this.mouseY;
       } else {
-        circleX += (this.mouseX - circleX) * circleDelay;
-        circleY += (this.mouseY - circleY) * circleDelay;
-        dotX += (this.mouseX - dotX) * dotDelay;
-        dotY += (this.mouseY - dotY) * dotDelay;
+        this.circleX += (this.mouseX - this.circleX) * circleDelay;
+        this.circleY += (this.mouseY - this.circleY) * circleDelay;
+        this.dotX += (this.mouseX - this.dotX) * dotDelay;
+        this.dotY += (this.mouseY - this.dotY) * dotDelay;
       }
 
-      cursor.style.left = `${circleX}px`;
-      cursor.style.top = `${circleY}px`;
+      cursor.style.left = `${this.circleX}px`;
+      cursor.style.top = `${this.circleY}px`;
 
-      const dx = dotX - circleX;
-      const dy = dotY - circleY;
+      const dx = this.dotX - this.circleX;
+      const dy = this.dotY - this.circleY;
       dot.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
 
       this.animationFrameId = requestAnimationFrame(animate);
@@ -127,7 +161,7 @@ export class CustomCursorComponent {
 
     window.addEventListener('pointerdown', this.onPointerDown, { passive: true, capture: true });
     this.updateCursorStyle();
-    animate();
+    this.ensureAnimationLoop(animate);
   }
 
   private updateCursorStyle() {
@@ -161,8 +195,14 @@ export class CustomCursorComponent {
   }
 
   private syncModeFromTarget(target: EventTarget | null): void {
-    const nextGraphMode = target instanceof Element
-      && !!target.closest('.graph-stage, .article-cursor-zone, .chart-cursor-zone');
+    const targetElement = target instanceof Element ? target : null;
+    if (targetElement === this.lastModeTarget) {
+      return;
+    }
+
+    this.lastModeTarget = targetElement;
+    const nextGraphMode = !!targetElement
+      && !!targetElement.closest('.graph-stage, .article-cursor-zone, .chart-cursor-zone');
     if (nextGraphMode === this.isGraphMode || !this.rootEl) {
       return;
     }
@@ -172,7 +212,7 @@ export class CustomCursorComponent {
   }
 
   private spawnClickPulse(x: number, y: number) {
-    if (!this.animationsEnabled) {
+    if (!this.animationsEnabled || !this.isPointerInsideWindow || !this.isDocumentVisible) {
       return;
     }
 
@@ -203,5 +243,57 @@ export class CustomCursorComponent {
     });
 
     setTimeout(() => el.remove(), 500);
+  }
+
+  private shouldAnimateCursor(): boolean {
+    return this.isDocumentVisible && this.isPointerInsideWindow;
+  }
+
+  private ensureAnimationLoop(loop?: () => void): void {
+    if (!this.shouldAnimateCursor() || this.animationFrameId !== undefined || !this.cursorEl || !this.dotEl) {
+      return;
+    }
+
+    const animateLoop = loop ?? (() => {
+      if (!this.shouldAnimateCursor()) {
+        this.animationFrameId = undefined;
+        return;
+      }
+
+      const circleDelay = this.delay;
+      const dotDelay = circleDelay * 1.5;
+
+      if (this.isGraphMode || !this.animationsEnabled) {
+        this.circleX = this.mouseX;
+        this.circleY = this.mouseY;
+        this.dotX = this.mouseX;
+        this.dotY = this.mouseY;
+      } else {
+        this.circleX += (this.mouseX - this.circleX) * circleDelay;
+        this.circleY += (this.mouseY - this.circleY) * circleDelay;
+        this.dotX += (this.mouseX - this.dotX) * dotDelay;
+        this.dotY += (this.mouseY - this.dotY) * dotDelay;
+      }
+
+      this.cursorEl!.style.left = `${this.circleX}px`;
+      this.cursorEl!.style.top = `${this.circleY}px`;
+
+      const dx = this.dotX - this.circleX;
+      const dy = this.dotY - this.circleY;
+      this.dotEl!.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+      this.animationFrameId = requestAnimationFrame(animateLoop);
+    });
+
+    this.animationFrameId = requestAnimationFrame(animateLoop);
+  }
+
+  private stopAnimationLoop(): void {
+    if (this.animationFrameId === undefined) {
+      return;
+    }
+
+    cancelAnimationFrame(this.animationFrameId);
+    this.animationFrameId = undefined;
   }
 }

@@ -158,3 +158,48 @@ Evitar que cada cambio de tags en `explore` vuelva a recorrer todos los articulo
 - Tradeoff o decision importante: mantener la cache dentro del componente es suficiente por ahora y evita abrir todavia una abstraccion nueva de servicio.
 - Hallazgo de implementacion: no hace falta precalcular absolutamente todo; basta con identificar los derivados mas caros y reutilizados en cada interaccion.
 - Impacto observado o esperado: cambios de tags mas fluidos, menos arrays temporales, menos GC y mejor escalabilidad si crece el numero de articulos.
+
+## Tarea 4. Revisar el cursor custom en desktop
+
+### Estado
+
+- [x] Revisar implementacion actual
+- [x] Aplicar cambios
+- [x] Validar comportamiento
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Reducir el coste continuo del cursor custom en desktop, especialmente su `requestAnimationFrame` permanente y parte del trabajo repetido ligado a eventos globales.
+
+### Archivos previstos
+
+- `src/app/components/shared/custom-cursor/custom-cursor.component.ts`
+- `tmp/plan_optimization_oportunities.md`
+
+### Plan de ejecucion
+
+- Revisar el loop de animacion y los listeners globales del cursor.
+- Parar el loop cuando la pestaña no esta visible o cuando el puntero ha salido de la ventana.
+- Evitar recalculos innecesarios de modo visual si el target bajo el puntero no ha cambiado.
+
+### Cambios realizados
+
+- Añadido control explicito de visibilidad del documento para parar el loop cuando la pestaña no esta visible.
+- Añadido control de entrada/salida del puntero en ventana para detener el `requestAnimationFrame` cuando el cursor no puede aportar valor visual.
+- El loop de animacion ahora solo se reactiva cuando vuelve a haber condiciones reales para mostrar el cursor.
+- Se memoriza el ultimo `Element` usado para `syncModeFromTarget()` y se evita recalcular el modo grafico si el target no cambia.
+- Se bloquea tambien el `click pulse` cuando la pestaña no esta visible o cuando el puntero no esta dentro de la ventana.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build sigue mostrando warnings ya existentes de budgets y dependencias CommonJS, pero no introduce errores nuevos por esta tarea.
+
+### Notas para articulo
+
+- Problema original: el cursor custom mantenia un loop permanente y escuchas globales activas aunque la pestaña estuviera en segundo plano o el puntero ya no estuviera en ventana.
+- Enfoque aplicado: convertir el cursor en un sistema mas oportunista, que anima solo cuando tiene sentido visual hacerlo.
+- Tradeoff o decision importante: se mantiene la experiencia visual, pero se prioriza cortar trabajo continuo en estados donde el usuario no percibe beneficio.
+- Hallazgo de implementacion: cachear el ultimo target del puntero evita microtrabajo repetido en cada `mousemove` sin cambiar el diseño.
+- Impacto observado o esperado: menos CPU continua en desktop, menos coste en background tabs y menor ruido en main thread.
