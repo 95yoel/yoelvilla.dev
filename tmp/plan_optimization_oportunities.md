@@ -113,3 +113,48 @@ Eliminar el trabajo continuo de `setInterval(150ms)` en las pantallas de blog y 
 - Hallazgo de implementacion: al sustituir polling por eventos hay que verificar bien cual es la fuente real del scroll, porque `window` por si solo puede no cubrir todos los casos.
 - Hallazgo adicional: el estado del boton debe depender solo de la posicion efectiva (`arriba del todo` vs `no arriba del todo`), no de eventos derivados como el click sobre el boton.
 - Impacto observado o esperado: menos trabajo en idle, mejor eficiencia energetica y menos ruido en el main thread en blog index y article.
+
+## Tarea 2. Reducir recomputacion completa del view model en `explore`
+
+### Estado
+
+- [x] Revisar implementacion actual
+- [x] Aplicar cambios
+- [x] Validar comportamiento
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Evitar que cada cambio de tags en `explore` vuelva a recorrer todos los articulos para recalcular contadores, top tags, series mensuales y listas filtradas completas.
+
+### Archivos previstos
+
+- `src/app/features/explore/pages/explore/explore.page.ts`
+- `tmp/plan_optimization_oportunities.md`
+
+### Plan de ejecucion
+
+- Revisar que partes del `buildViewModel()` se recalculan en cada interaccion.
+- Extraer un dataset derivado cacheado por idioma.
+- Dejar que el filtro de tags solo componga resultados ya preparados y validar con build.
+
+### Cambios realizados
+
+- Añadido un `ExploreDataset` cacheado por idioma dentro de `explore.page.ts`.
+- Precalculados una sola vez por idioma los `topTags`, el `Set` de tags visibles, el lookup `articlesByTag` y las series mensuales `timelineByTag`.
+- Cambiado `buildViewModel()` para trabajar sobre ese dataset derivado en vez de reconstruir todo desde `articles` en cada seleccion.
+- El filtrado de articulos ahora compone resultados desde `articlesByTag` y preserva el orden original recorriendo la lista base una sola vez.
+- En `retry()` se limpia tambien la cache derivada local para forzar reconstruccion si se invalidan datos del blog.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build sigue mostrando warnings ya existentes de budgets y dependencias CommonJS, pero no introduce errores nuevos por esta tarea.
+
+### Notas para articulo
+
+- Problema original: `explore` mezclaba carga de datos y capa analitica en el mismo `buildViewModel()`, rehaciendo agregaciones enteras por cada click de filtro.
+- Enfoque aplicado: separar datos fuente de dataset derivado y cachearlo por idioma, dejando el estado interactivo como una composicion barata.
+- Tradeoff o decision importante: mantener la cache dentro del componente es suficiente por ahora y evita abrir todavia una abstraccion nueva de servicio.
+- Hallazgo de implementacion: no hace falta precalcular absolutamente todo; basta con identificar los derivados mas caros y reutilizados en cada interaccion.
+- Impacto observado o esperado: cambios de tags mas fluidos, menos arrays temporales, menos GC y mejor escalabilidad si crece el numero de articulos.

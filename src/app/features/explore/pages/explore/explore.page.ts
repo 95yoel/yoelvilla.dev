@@ -40,6 +40,14 @@ interface TimelineSeriesConfig {
   data: TimelinePoint[];
 }
 
+interface ExploreDataset {
+  articles: BlogArticleSummary[];
+  topTags: TagAggregate[];
+  topTagSet: Set<string>;
+  articlesByTag: Map<string, BlogArticleSummary[]>;
+  timelineByTag: Map<string, TimelinePoint[]>;
+}
+
 type ExploreVm =
   | { status: 'loading' }
   | { status: 'error' }
@@ -82,6 +90,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
   private readonly selectedTags$ = new Subject<string[]>();
   private readonly reload$ = new Subject<void>();
   private readonly palette = ['#e86a78', '#7bc2a5', '#7aa2f7', '#f4b267', '#c084fc', '#14b8a6', '#f97316', '#0f766e', '#dc2626', '#4338ca'];
+  private readonly exploreDatasetCache = new Map<Language, ExploreDataset>();
   private selectedTags: string[] = [];
   private vmSubscription: Subscription | null = null;
   private timelineChart: IChartApi | null = null;
@@ -116,7 +125,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
         this.blogService.getIndex(lang),
         this.blogService.getGraphData(lang)
       ]).pipe(
-        map(([articles, graph]) => this.buildViewModel(articles, graph, selectedTags)),
+        map(([articles, graph]) => this.buildViewModel(this.getOrCreateExploreDataset(lang, articles), graph, selectedTags)),
         catchError(() => of({ status: 'error' } as ExploreVm))
       )
     ),
@@ -205,6 +214,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
 
   retry(): void {
     this.blogService.clearCaches();
+    this.exploreDatasetCache.clear();
     this.reload$.next();
   }
 
@@ -278,24 +288,14 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     }).format(parsedDate);
   }
 
-  private buildViewModel(articles: BlogArticleSummary[], graph: BlogArticleGraphData, selectedTags: string[]): ExploreVm {
-    const tagCounts = new Map<string, number>();
-
-    for (const article of articles) {
-      for (const tag of article.tags) {
-        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
-      }
-    }
-
-    const topTags = [...tagCounts.entries()]
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag))
-      .slice(0, 10);
-
-    const normalizedSelectedTags = selectedTags.filter((tag) => topTags.some((entry) => entry.tag === tag));
-    const activeTags = normalizedSelectedTags.length ? normalizedSelectedTags : topTags.slice(0, Math.min(3, topTags.length)).map((entry) => entry.tag);
+  private buildViewModel(dataset: ExploreDataset, graph: BlogArticleGraphData, selectedTags: string[]): ExploreVm {
+    const { articles, topTags, topTagSet } = dataset;
+    const normalizedSelectedTags = selectedTags.filter((tag) => topTagSet.has(tag));
+    const activeTags = normalizedSelectedTags.length
+      ? normalizedSelectedTags
+      : topTags.slice(0, Math.min(3, topTags.length)).map((entry) => entry.tag);
     const filteredArticles = normalizedSelectedTags.length
-      ? articles.filter((article) => article.tags.some((tag) => normalizedSelectedTags.includes(tag)))
+      ? this.collectFilteredArticles(dataset, normalizedSelectedTags)
       : articles;
 
     return {
@@ -305,7 +305,7 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
       timelineSeries: activeTags.map((tag, index) => ({
         tag,
         color: this.palette[index % this.palette.length],
-        data: this.buildMonthlyData(articles, tag)
+        data: dataset.timelineByTag.get(tag) ?? []
       })),
       filteredArticles,
       totalArticles: articles.length,
@@ -314,36 +314,82 @@ export class ExplorePage implements AfterViewInit, OnDestroy {
     };
   }
 
-  private buildMonthlyData(articles: BlogArticleSummary[], tag: string): TimelinePoint[] {
+  private getOrCreateExploreDataset(lang: Language, articles: BlogArticleSummary[]): ExploreDataset {
+    const cached = this.exploreDatasetCache.get(lang);
+    if (cached) {
+      return cached;
+    }
+
+    const tagCounts = new Map<string, number>();
+    const articlesByTag = new Map<string, BlogArticleSummary[]>();
     const articleMonths = articles
       .map((article) => this.toMonthStart(article.date))
       .filter((value): value is string => !!value)
       .sort();
 
-    if (!articleMonths.length) {
-      return [];
-    }
-
-    const range = this.buildMonthRange(articleMonths[0], articleMonths[articleMonths.length - 1]);
-    const counts = new Map<string, number>();
-
     for (const article of articles) {
-      if (!article.tags.includes(tag)) {
-        continue;
+      for (const tag of article.tags) {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+        const taggedArticles = articlesByTag.get(tag);
+        if (taggedArticles) {
+          taggedArticles.push(article);
+        } else {
+          articlesByTag.set(tag, [article]);
+        }
       }
-
-      const monthKey = this.toMonthStart(article.date);
-      if (!monthKey) {
-        continue;
-      }
-
-      counts.set(monthKey, (counts.get(monthKey) || 0) + 1);
     }
 
-    return range.map((monthKey) => ({
-      time: monthKey,
-      value: counts.get(monthKey) || 0
-    }));
+    const topTags = [...tagCounts.entries()]
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag))
+      .slice(0, 10);
+    const range = articleMonths.length
+      ? this.buildMonthRange(articleMonths[0], articleMonths[articleMonths.length - 1])
+      : [];
+    const timelineByTag = new Map<string, TimelinePoint[]>();
+
+    for (const entry of topTags) {
+      const counts = new Map<string, number>();
+      const taggedArticles = articlesByTag.get(entry.tag) ?? [];
+
+      for (const article of taggedArticles) {
+        const monthKey = this.toMonthStart(article.date);
+        if (!monthKey) {
+          continue;
+        }
+
+        counts.set(monthKey, (counts.get(monthKey) || 0) + 1);
+      }
+
+      timelineByTag.set(entry.tag, range.map((monthKey) => ({
+        time: monthKey,
+        value: counts.get(monthKey) || 0
+      })));
+    }
+
+    const dataset: ExploreDataset = {
+      articles,
+      topTags,
+      topTagSet: new Set(topTags.map((entry) => entry.tag)),
+      articlesByTag,
+      timelineByTag
+    };
+
+    this.exploreDatasetCache.set(lang, dataset);
+    return dataset;
+  }
+
+  private collectFilteredArticles(dataset: ExploreDataset, selectedTags: string[]): BlogArticleSummary[] {
+    const matchingSlugs = new Set<string>();
+
+    for (const tag of selectedTags) {
+      const taggedArticles = dataset.articlesByTag.get(tag) ?? [];
+      for (const article of taggedArticles) {
+        matchingSlugs.add(article.slug);
+      }
+    }
+
+    return dataset.articles.filter((article) => matchingSlugs.has(article.slug));
   }
 
   private createBarChartOptions(topTags: TagAggregate[], selectedTags: string[]): EChartsCoreOption {
