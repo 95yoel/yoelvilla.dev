@@ -1,7 +1,7 @@
 import { Component, ElementRef, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Subject, Subscription, catchError, combineLatest, map, of, startWith, switchMap, tap } from 'rxjs';
+import { Subject, Subscription, auditTime, catchError, combineLatest, fromEvent, map, merge, of, startWith, switchMap, tap } from 'rxjs';
 import gsap from 'gsap';
 import { Meta, Title } from '@angular/platform-browser';
 import { BlogGraphModalComponent } from '../../components/blog-graph-modal/blog-graph-modal.component';
@@ -71,7 +71,7 @@ export class BlogArticlePage {
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
-  private scrollWatcherId: number | null = null;
+  private scrollSubscription: Subscription | null = null;
   private shareFeedbackTimeoutId: number | null = null;
   private hasPlayedEntryAnimation = false;
   private readonly routeState$ = combineLatest([
@@ -389,12 +389,14 @@ export class BlogArticlePage {
   }
 
   private updateScrollTopButtonVisibility(): void {
-    const scrollTop = window.scrollY
-      || this.doc.documentElement.scrollTop
-      || this.doc.body.scrollTop
-      || 0;
+    const scrollTop = Math.max(
+      this.doc.defaultView?.scrollY ?? 0,
+      this.doc.scrollingElement?.scrollTop ?? 0,
+      this.doc.documentElement.scrollTop ?? 0,
+      this.doc.body.scrollTop ?? 0
+    );
 
-    this.showScrollTopButton = scrollTop > 180;
+    this.showScrollTopButton = scrollTop > 0;
   }
 
   private scrollDocumentToTop(): void {
@@ -422,16 +424,32 @@ export class BlogArticlePage {
 
   private startScrollWatcher(): void {
     this.stopScrollWatcher();
-    this.scrollWatcherId = window.setInterval(() => {
+    const view = this.doc.defaultView;
+    const scrollTargets = [
+      view,
+      this.doc,
+      this.doc.scrollingElement,
+      this.doc.documentElement,
+      this.doc.body
+    ].filter((target, index, array) => !!target && array.indexOf(target) === index);
+
+    if (!scrollTargets.length) {
+      return;
+    }
+
+    this.scrollSubscription = merge(
+      ...scrollTargets.map((target) => fromEvent(target as EventTarget, 'scroll', { passive: true }))
+    ).pipe(
+      startWith(null),
+      auditTime(50)
+    ).subscribe(() => {
       this.updateScrollTopButtonVisibility();
-    }, 150);
+    });
   }
 
   private stopScrollWatcher(): void {
-    if (this.scrollWatcherId !== null) {
-      window.clearInterval(this.scrollWatcherId);
-      this.scrollWatcherId = null;
-    }
+    this.scrollSubscription?.unsubscribe();
+    this.scrollSubscription = null;
   }
 
   private animateEntry(): void {

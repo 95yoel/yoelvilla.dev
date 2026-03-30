@@ -2,7 +2,7 @@ import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, Subscription, catchError, combineLatest, distinctUntilChanged, map, of, startWith, switchMap, tap, timer } from 'rxjs';
+import { Subject, Subscription, auditTime, catchError, combineLatest, distinctUntilChanged, fromEvent, map, merge, of, startWith, switchMap, tap, timer } from 'rxjs';
 import gsap from 'gsap';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -95,7 +95,7 @@ export class BlogIndexPage {
   private previousBodyOverflow = '';
   private previousBodyOverflowX = '';
   private previousHtmlOverflow = '';
-  private scrollWatcherId: number | null = null;
+  private scrollSubscription: Subscription | null = null;
   private hasPlayedEntryAnimation = false;
   private readonly lang$ = this.route.data.pipe(
     map(() => this.blogRoutingService.getRouteLanguage()),
@@ -438,16 +438,25 @@ export class BlogIndexPage {
 
   private startScrollWatcher(): void {
     this.stopScrollWatcher();
-    this.scrollWatcherId = window.setInterval(() => {
+    const view = this.doc.defaultView;
+    if (!view) {
+      return;
+    }
+
+    this.scrollSubscription = merge(
+      fromEvent(view, 'scroll', { passive: true }),
+      fromEvent(this.doc, 'scroll', { passive: true })
+    ).pipe(
+      startWith(null),
+      auditTime(75)
+    ).subscribe(() => {
       this.updateScrollTopButtonVisibility();
-    }, 150);
+    });
   }
 
   private stopScrollWatcher(): void {
-    if (this.scrollWatcherId !== null) {
-      window.clearInterval(this.scrollWatcherId);
-      this.scrollWatcherId = null;
-    }
+    this.scrollSubscription?.unsubscribe();
+    this.scrollSubscription = null;
   }
 
   private animateEntry(): void {

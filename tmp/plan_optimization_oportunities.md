@@ -1,0 +1,115 @@
+# Plan de seguimiento: optimization opportunities
+
+## Objetivo de esta rama
+
+Esta rama (`optimization`) se usara para ejecutar las optimizaciones del documento base y, en paralelo, dejar trazabilidad suficiente para convertir el trabajo en articulos tecnicos sobre rendimiento, enfoque, decisiones y resultados.
+
+Documento origen:
+
+- `tmp/optimization_oportunities.md`
+
+## Estado inicial
+
+- [x] Crear rama `optimization`
+- [x] Leer `tmp/optimization_oportunities.md`
+- [x] Crear este documento de seguimiento
+- [x] Ejecutar la tarea 1
+
+## Forma de trabajo
+
+Cuando me indiques una tarea del documento origen, hare dos cosas:
+
+1. Implementar la optimizacion en codigo.
+2. Actualizar este archivo con una seccion nueva para dejar seguimiento tecnico y base editorial.
+
+Cada tarea añadida seguira esta plantilla:
+
+## Tarea X. Titulo
+
+### Estado
+
+- [ ] Revisar implementacion actual
+- [ ] Aplicar cambios
+- [ ] Validar comportamiento
+- [ ] Documentar hallazgos para articulo
+
+### Objetivo
+
+Breve descripcion de que se optimiza y por que merece la pena.
+
+### Archivos previstos
+
+- `ruta/archivo-1`
+- `ruta/archivo-2`
+
+### Plan de ejecucion
+
+- Paso concreto 1
+- Paso concreto 2
+- Paso concreto 3
+
+### Cambios realizados
+
+- Pendiente
+
+### Validacion
+
+- Pendiente
+
+### Notas para articulo
+
+- Problema original
+- Enfoque aplicado
+- Tradeoff o decision importante
+- Impacto observado o esperado
+
+## Registro de tareas
+
+## Tarea 1. Evitar polling con `setInterval` para detectar scroll
+
+### Estado
+
+- [x] Revisar implementacion actual
+- [x] Aplicar cambios
+- [x] Validar comportamiento
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Eliminar el trabajo continuo de `setInterval(150ms)` en las pantallas de blog y sustituirlo por una reaccion a scroll real, reduciendo actividad innecesaria en main thread cuando no hay interaccion.
+
+### Archivos previstos
+
+- `src/app/features/blog/pages/blog-index/blog-index.page.ts`
+- `src/app/features/blog/pages/blog-article/blog-article.page.ts`
+
+### Plan de ejecucion
+
+- Revisar como se controla ahora `showScrollTopButton`.
+- Sustituir el polling por `fromEvent` con listener `passive`.
+- Mantener el mismo umbral visual del boton y validar que la build siga pasando.
+
+### Cambios realizados
+
+- Sustituido `window.setInterval(..., 150)` por una suscripcion RxJS a `scroll`.
+- Añadido `auditTime(75)` en `blog-index` para limitar recalculos durante scroll continuo sin volver al polling fijo.
+- Usado `this.doc.defaultView` como origen principal del evento para no depender de acceso directo a `window` al inicializar la suscripcion.
+- En `blog-index` se escucha tanto `window` como `document`, porque `scroll` no siempre llega de forma uniforme segun la pantalla y el contenedor real que desplaza.
+- En `blog-article` se simplifico la regla final: el boton solo depende de si el scroll efectivo esta arriba del todo o no.
+- En `blog-article` el boton se oculta solo cuando `scrollTop === 0` y se muestra cuando `scrollTop > 0`, sin depender del click sobre el propio boton.
+- En `blog-article` se escucha el scroll sobre todos los candidatos reales (`window`, `document`, `scrollingElement`, `documentElement`, `body`) para seguir el contenedor efectivo de scroll.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build sigue mostrando warnings ya existentes de budgets y dependencias CommonJS, pero no introduce errores nuevos por esta tarea.
+- Se reprodujo y corrigio un bug funcional en `blog-article`: tras pulsar scroll top, el boton no reaparecia en desplazamientos posteriores.
+
+### Notas para articulo
+
+- Problema original: un `setInterval` pequeño parece barato, pero mantiene trabajo recurrente incluso en reposo.
+- Enfoque aplicado: pasar de sondeo temporal a reaccion por evento con throttling ligero donde el origen del scroll es estable.
+- Tradeoff o decision importante: no toda pantalla responde igual a una estrategia unica de scroll; a veces conviene optimizar respetando la realidad del contenedor que desplaza.
+- Hallazgo de implementacion: al sustituir polling por eventos hay que verificar bien cual es la fuente real del scroll, porque `window` por si solo puede no cubrir todos los casos.
+- Hallazgo adicional: el estado del boton debe depender solo de la posicion efectiva (`arriba del todo` vs `no arriba del todo`), no de eventos derivados como el click sobre el boton.
+- Impacto observado o esperado: menos trabajo en idle, mejor eficiencia energetica y menos ruido en el main thread en blog index y article.
