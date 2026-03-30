@@ -5,7 +5,6 @@ import { MobileLayoutComponent } from '../mobile-layout/mobile-layout.component'
 import { LayoutService } from '../../services/layout.service';
 import { ConfigPanelComponent } from '../shared/config-panel/config-panel.component';
 import { LanguagePanelComponent } from '../shared/language-panel/language-panel.component';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Language, TranslationService } from '../../translations/services/translation.service';
 import { RouterLink } from '@angular/router';
@@ -16,7 +15,7 @@ import { PerformanceConfigService } from '../../services/performance-config.serv
 
 @Component({
   selector: 'app-layout',
-  imports: [MobileLayoutComponent, DesktopLayoutComponent, CommonModule, ConfigPanelComponent, LanguagePanelComponent, MatTooltipModule, RouterLink, UpperCasePipe],
+  imports: [MobileLayoutComponent, DesktopLayoutComponent, CommonModule, ConfigPanelComponent, LanguagePanelComponent, RouterLink, UpperCasePipe],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })

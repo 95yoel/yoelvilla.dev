@@ -381,3 +381,54 @@ Cada worker deberia recibir datos puros y devolver estructuras serializables, ev
 - Enfoque defendible: mover preparacion de datos, no eventos de puntero por frame.
 - Mensaje tecnico: `Web Workers` dan valor cuando desacoplas computacion pura, no cuando intentas sacar a la fuerza una UI interactiva entera.
 - Resultado practico: `explore` y la construccion del subgrafo ya pueden trabajar en segundo plano, mientras que Sigma y los charts siguen en main thread para conservar respuesta inmediata al usuario.
+
+## Tarea 9. Reducir el bundle inicial del shell principal
+
+### Estado
+
+- [x] Revisar el peso real del shell inicial
+- [x] Identificar imports eager evitables
+- [x] Aplicar carga diferida en el layout root
+- [x] Validar build
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Recortar el coste del shell inicial sin tocar GSAP en arranque, evitando que `layout` cargue eager variantes de interfaz y paneles que solo se usan de forma condicional.
+
+### Archivos previstos
+
+- `src/app/components/layout/layout.component.ts`
+- `src/app/components/layout/layout.component.html`
+- `tmp/plan_optimization_oportunities.md`
+
+### Plan de ejecucion
+
+- Confirmar si el sobrepeso del `initial` viene de rutas lazy o del shell.
+- Mantener `explore`, `blog` y Sigma como rutas o dependencias ya diferidas.
+- Aplicar `@defer` en `layout` para `desktop`, `mobile`, `config-panel` y `language-panel`.
+- Eliminar imports eager del root layout que no participan en su template real.
+
+### Cambios realizados
+
+- Auditada la build y la estructura del proyecto para confirmar que `explore`, `blog-index`, `blog-article` y Sigma ya viven fuera del bundle inicial.
+- Identificado que el sobrecoste del shell venia de `layout`, que importaba eager `DesktopLayoutComponent`, `MobileLayoutComponent`, `ConfigPanelComponent` y `LanguagePanelComponent`.
+- Aplicado `@defer` en `layout.component.html` para que `desktop` y `mobile` solo carguen cuando la variante correspondiente se renderiza.
+- Aplicado `@defer` tambien a `config-panel` y `language-panel`, de forma que no entren en el arranque si el usuario no los abre.
+- Eliminado `MatTooltipModule` de `layout.component.ts`, porque ese root component no usa tooltips directamente.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build ahora deja el `Initial total` en `371.23 kB`, por debajo del budget de `500 kB`.
+- Angular genera chunks lazy dedicados para `desktop-layout-component`, `mobile-layout-component` y `config-panel-component`, confirmando que el shell se ha partido correctamente.
+- Siguen presentes warnings ya existentes de budgets CSS por componente y dependencias CommonJS de `sigma`, sin errores nuevos por esta tarea.
+
+### Notas para articulo
+
+- Problema original: no basta con tener rutas lazy si el shell principal sigue importando variantes y overlays de forma eager.
+- Enfoque aplicado: usar `@defer` en el root layout para mover a chunks separados lo que depende de condiciones de uso reales.
+- Tradeoff o decision importante: GSAP se mantiene en arranque por requisito funcional, asi que la optimizacion se centra en componentes y paneles, no en esa libreria.
+- Hallazgo de implementacion: los graficos y el grafo no eran el cuello del `initial`; el verdadero arrastre venia del layout root.
+- Impacto observado o esperado: menos JS inicial, menor coste de parse/eval del shell y mejor primera carga real.
+- Dato util para articulo: una optimizacion de shell bien dirigida ha bajado el bundle inicial por debajo del budget sin tocar rutas lazy que ya estaban correctamente aisladas.

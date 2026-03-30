@@ -21,21 +21,33 @@
   </button>
 </header>
 
-<app-config-panel 
-  #configPanel
-  *ngIf="showConfigPanel"
-  [layout]="layout"
-  (close)="showConfigPanel = false">
-</app-config-panel>
+@if (showConfigPanel) {
+  @defer (when showConfigPanel) {
+    <app-config-panel
+      #configPanel
+      [layout]="layout"
+      (close)="showConfigPanel = false">
+    </app-config-panel>
+  }
+}
 
-<app-language-panel
-  #languagePanel
-  *ngIf="showLanguagePanel"
-  (close)="showLanguagePanel = false">
-</app-language-panel>
+@if (showLanguagePanel) {
+  @defer (when showLanguagePanel) {
+    <app-language-panel
+      #languagePanel
+      (close)="showLanguagePanel = false">
+    </app-language-panel>
+  }
+}
 
-<villayoel-desktop *ngIf="layout === 'desktop'"></villayoel-desktop>
-<villayoel-mobile
-  *ngIf="layout === 'mobile'"
-  (openLanguagePanel)="toggleLanguagePanel()"
-  (openConfigPanel)="toggleConfigPanel()"></villayoel-mobile>
+@if (layout === 'desktop') {
+  @defer (when layout === 'desktop') {
+    <villayoel-desktop></villayoel-desktop>
+  }
+} @else {
+  @defer (when layout === 'mobile') {
+    <villayoel-mobile
+      (openLanguagePanel)="toggleLanguagePanel()"
+      (openConfigPanel)="toggleConfigPanel()"></villayoel-mobile>
+  }
+}
