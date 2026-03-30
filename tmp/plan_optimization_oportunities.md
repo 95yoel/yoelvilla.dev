@@ -432,3 +432,56 @@ Recortar el coste del shell inicial sin tocar GSAP en arranque, evitando que `la
 - Hallazgo de implementacion: los graficos y el grafo no eran el cuello del `initial`; el verdadero arrastre venia del layout root.
 - Impacto observado o esperado: menos JS inicial, menor coste de parse/eval del shell y mejor primera carga real.
 - Dato util para articulo: una optimizacion de shell bien dirigida ha bajado el bundle inicial por debajo del budget sin tocar rutas lazy que ya estaban correctamente aisladas.
+
+## Tarea 14. Recortar el camino critico de la ruta de articulo
+
+### Estado
+
+- [x] Auditar imports y dependencias de la ruta
+- [x] Diferir extras de UI no criticos
+- [x] Sacar parsing markdown del chunk inicial
+- [x] Añadir hints de conexion para fuentes
+- [x] Validar build
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Reducir el trabajo y las dependencias que se cargan antes de que el lector pueda consumir el contenido principal de un articulo, dejando para despues overlays, cursor y parsing pesado.
+
+### Archivos previstos
+
+- `src/app/features/blog/pages/blog-article/blog-article.page.ts`
+- `src/app/features/blog/pages/blog-article/blog-article.page.html`
+- `src/app/features/blog/services/blog.service.ts`
+- `src/index.html`
+- `tmp/plan_optimization_oportunities.md`
+
+### Plan de ejecucion
+
+- Auditar que extras entran eager en la ruta del articulo.
+- Diferir `language-panel`, `blog-graph-modal` y `custom-cursor`.
+- Evitar que `marked` entre eager al resolver articulos.
+- Reducir friccion de fuentes con `preconnect`.
+
+### Cambios realizados
+
+- Auditada la ruta de articulo y detectado que el chunk de pagina seguia preparando de inicio overlays y utilidades secundarias.
+- Aplicado `@defer` en `blog-article.page.html` para `app-language-panel` y `app-blog-graph-modal`, de forma que solo se carguen al abrirlos.
+- Aplicado `@defer (on idle)` al `custom-cursor` del articulo para sacarlo del camino critico de lectura.
+- Eliminado el import eager de `gsap` en `blog-article.page.ts`; la animacion de entrada ahora hace `import('gsap')` solo si las animaciones estan activadas.
+- Eliminado el import eager de `marked` en `blog.service.ts`; el HTML del markdown ahora se genera con `import('marked')` bajo demanda.
+- Añadidos `preconnect` a `fonts.googleapis.com` y `fonts.gstatic.com` en `src/index.html`.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build ahora genera `marked-esm` como chunk lazy independiente, confirmando que el parser markdown ya no viaja en el camino inicial.
+- Siguen presentes warnings ya existentes de budgets CSS por componente y dependencias CommonJS de `sigma`, sin errores nuevos por esta tarea.
+
+### Notas para articulo
+
+- Problema original: una ruta de contenido puede parecer ligera, pero seguir cargando desde el principio extras pensados para interaccion secundaria.
+- Enfoque aplicado: priorizar la experiencia de lectura y retrasar todo lo que no sea necesario para mostrar articulo, sidebar y navegacion base.
+- Tradeoff o decision importante: no se elimina funcionalidad; simplemente se carga cuando el usuario la pide o cuando el navegador queda ocioso.
+- Hallazgo de implementacion: `marked`, overlays y cursor eran mejores candidatos para recorte del camino critico que el contenido en si.
+- Impacto observado o esperado: menos JS evaluado al entrar en un articulo, menor longitud de la cadena critica y mejor margen para LCP y TBT en produccion.

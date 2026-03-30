@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, of, shareReplay, switchMap, tap } from 'rxjs';
-import { marked } from 'marked';
+import { Observable, from, map, of, shareReplay, switchMap, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Language } from '../../../translations/services/translation.service';
 import { BlogArticle, BlogArticleGraphData, BlogArticleSummary, BlogGraphArticleNode, BlogGraphRelation, BlogGraphRelationType, BlogGraphShared } from '../models/blog-article.model';
@@ -106,10 +105,10 @@ export class BlogService {
             index,
             article,
             markdown
-          }))
+          })),
+          switchMap(({ index, article, markdown }) => from(this.toArticle(index, markdown, slug, lang, article)))
         )
       ),
-      map(({ index, article, markdown }) => this.toArticle(index, markdown, slug, lang, article)),
       tap((resolvedArticle) => {
         this.storeSessionArticle(cacheKey, resolvedArticle);
         this.storeLastArticle(slug);
@@ -161,13 +160,13 @@ export class BlogService {
     }
   }
 
-  private toArticle(
+  private async toArticle(
     index: BlogArticleSummary[],
     markdown: string,
     slug: string,
     lang: Language,
     matchedArticle?: BlogArticleSummary
-  ): BlogArticle {
+  ): Promise<BlogArticle> {
     const { body, frontmatter } = this.extractFrontmatter(markdown);
     const fromIndex = matchedArticle || index.find((article) => article.slug === slug);
 
@@ -190,9 +189,14 @@ export class BlogService {
     return {
       ...summary,
       markdown: body,
-      html: marked.parse(body) as string,
+      html: await this.renderMarkdown(body),
       readingTimeMinutes: this.calculateReadingTimeMinutes(body)
     };
+  }
+
+  private async renderMarkdown(markdown: string): Promise<string> {
+    const { marked } = await import('marked');
+    return marked.parse(markdown) as string;
   }
 
   private normalizeIndexPayload(payload: unknown, lang: Language): BlogIndexResource {

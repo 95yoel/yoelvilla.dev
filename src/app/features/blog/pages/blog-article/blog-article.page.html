@@ -82,18 +82,24 @@
     </div>
   </div>
 
-  <app-language-panel
-    *ngIf="showLanguagePanel && vm.status === 'ready'"
-    (close)="showLanguagePanel = false"
-    (languageChange)="onLanguageChange($event, vm.article.slug)"></app-language-panel>
+  @if (showLanguagePanel && vm.status === 'ready') {
+    @defer (when showLanguagePanel) {
+      <app-language-panel
+        (close)="showLanguagePanel = false"
+        (languageChange)="onLanguageChange($event, vm.article.slug)"></app-language-panel>
+    }
+  }
 
-  <app-blog-graph-modal
-    *ngIf="showGraphModal && vm.status === 'ready' && graphModalSlug"
-    [graphData]="vm.graph"
-    [currentSlug]="graphModalSlug"
-    [lang]="currentLanguage"
-    (close)="closeGraphModal()"
-    (navigateToArticle)="navigateFromGraph($event)"></app-blog-graph-modal>
+  @if (showGraphModal && vm.status === 'ready' && graphModalSlug) {
+    @defer (when showGraphModal) {
+      <app-blog-graph-modal
+        [graphData]="vm.graph"
+        [currentSlug]="graphModalSlug"
+        [lang]="currentLanguage"
+        (close)="closeGraphModal()"
+        (navigateToArticle)="navigateFromGraph($event)"></app-blog-graph-modal>
+    }
+  }
 
   <ng-template #articleLinksFallback>
     <div class="article-links">
@@ -128,5 +134,7 @@
     <span class="blog-scroll-top-text">{{ 'blog.actions.scrollTop' | translate }}</span>
   </button>
 
-  <custom-cursor *ngIf="(layout$ | async) === 'desktop'"></custom-cursor>
+  @defer (on idle) {
+    <custom-cursor *ngIf="(layout$ | async) === 'desktop'"></custom-cursor>
+  }
 </ng-container>

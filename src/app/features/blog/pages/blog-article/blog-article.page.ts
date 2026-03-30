@@ -2,7 +2,6 @@ import { Component, ElementRef, PLATFORM_ID, ViewChild, inject } from '@angular/
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, Subscription, auditTime, catchError, combineLatest, fromEvent, map, merge, of, startWith, switchMap, tap } from 'rxjs';
-import gsap from 'gsap';
 import { Meta, Title } from '@angular/platform-browser';
 import { BlogGraphModalComponent } from '../../components/blog-graph-modal/blog-graph-modal.component';
 import { BlogSidebarComponent } from '../../components/blog-sidebar/blog-sidebar.component';
@@ -161,7 +160,9 @@ export class BlogArticlePage {
         return;
       }
 
-      requestAnimationFrame(() => this.animateEntry());
+      requestAnimationFrame(() => {
+        void this.animateEntry();
+      });
     });
     this.updateScrollTopButtonVisibility();
     this.startScrollWatcher();
@@ -475,7 +476,7 @@ export class BlogArticlePage {
     this.scrollSubscription = null;
   }
 
-  private animateEntry(): void {
+  private async animateEntry(): Promise<void> {
     const articleCard = this.articleCard?.nativeElement;
     const articleSidebar = this.articleSidebar?.nativeElement;
 
@@ -486,9 +487,14 @@ export class BlogArticlePage {
     this.hasPlayedEntryAnimation = true;
 
     if (!this.performanceConfig.animationsEnabled) {
-      gsap.set([articleCard, articleSidebar], { opacity: 1, x: 0 });
+      articleCard.style.opacity = '1';
+      articleCard.style.transform = 'translateX(0)';
+      articleSidebar.style.opacity = '1';
+      articleSidebar.style.transform = 'translateX(0)';
       return;
     }
+
+    const { default: gsap } = await import('gsap');
 
     gsap.killTweensOf([articleCard, articleSidebar]);
     gsap.set(articleCard, { opacity: 0, x: -50 });
