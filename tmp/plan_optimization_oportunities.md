@@ -248,3 +248,48 @@ Evitar que cambios locales de filtros o busqueda en blog vuelvan a emitir `loadi
 - Tradeoff o decision importante: introducir streams intermedios hace el flujo un poco mas explicito, pero evita flicker y remounts innecesarios.
 - Hallazgo de implementacion: cuando los datos base ya viven en cache, los filtros deben ser una transformacion pura del estado cargado, no una pseudo-recarga.
 - Impacto observado o esperado: menos parpadeo, menos relanzamiento de animaciones y menor coste de montaje en blog index.
+
+## Tarea 7. Mejorar la estrategia de cache de blog
+
+### Estado
+
+- [x] Revisar implementacion actual
+- [x] Aplicar cambios
+- [x] Validar comportamiento
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Extender la cache actual en memoria para que `index.json` y los articulos ya abiertos sobrevivan a un refresh dentro de la misma sesion y no dependan solo de `shareReplay(1)`.
+
+### Archivos previstos
+
+- `src/app/features/blog/services/blog.service.ts`
+- `tmp/plan_optimization_oportunities.md`
+
+### Plan de ejecucion
+
+- Revisar la cache actual de `BlogService` y sus puntos de invalidacion.
+- Añadir una capa de `sessionStorage` para `index` y articulos por `lang:slug`.
+- Mantener compatibilidad con la cache en memoria y validar build.
+
+### Cambios realizados
+
+- Añadida una segunda capa de cache en `sessionStorage` para el recurso de indice por idioma.
+- Añadida cache de sesion para articulos por clave `lang:slug`.
+- Si existen datos en sesion, `BlogService` los sirve sin nueva peticion de red y vuelve a montar la cache en memoria desde ahi.
+- `clearCaches()` ahora admite invalidacion mas fina por idioma y por articulo, manteniendo compatibilidad con la llamada sin argumentos.
+- Los accesos a `localStorage` y `sessionStorage` se encapsulan con guardas seguras para evitar fallos fuera de browser.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build sigue mostrando warnings ya existentes de budgets y dependencias CommonJS, pero no introduce errores nuevos por esta tarea.
+
+### Notas para articulo
+
+- Problema original: `shareReplay(1)` acelera la sesion viva, pero no ayuda tras un refresh ni permite invalidacion granular.
+- Enfoque aplicado: combinar cache en memoria para la sesion activa con `sessionStorage` para rehidratar datos calientes tras recarga.
+- Tradeoff o decision importante: `sessionStorage` es una mejora pragmatica y simple antes de dar el salto a algo mas complejo como IndexedDB.
+- Hallazgo de implementacion: una cache persistida necesita invalidacion mas precisa que un simple `clear all`, aunque se mantenga esa opcion.
+- Impacto observado o esperado: aperturas repetidas mas rapidas, menos parsing repetido y menos peticiones al volver a index o articulos dentro de la misma sesion.

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, shareReplay, switchMap, tap } from 'rxjs';
+import { Observable, map, of, shareReplay, switchMap, tap } from 'rxjs';
 import { marked } from 'marked';
 import { environment } from '../../../../environments/environment';
 import { Language } from '../../../translations/services/translation.service';
@@ -31,6 +31,8 @@ export class BlogService {
   private readonly http = inject(HttpClient);
   private readonly articleCache = new Map<string, Observable<BlogArticle>>();
   private readonly indexCache = new Map<Language, Observable<BlogIndexResource>>();
+  private readonly sessionIndexPrefix = 'blog-session-index:';
+  private readonly sessionArticlePrefix = 'blog-session-article:';
   private readonly lastArticleKey = 'blog-last-article';
   private readonly lastLanguageKey = 'blog-last-language';
   // Future extension point: mirror hot articles into IndexedDB without changing the service contract.
@@ -50,9 +52,19 @@ export class BlogService {
       return cached;
     }
 
+    const sessionCached = this.readSessionIndex(lang);
+    if (sessionCached) {
+      const sessionRequest = of(sessionCached).pipe(shareReplay(1));
+      this.indexCache.set(lang, sessionRequest);
+      return sessionRequest;
+    }
+
     const request = this.http.get<unknown>(this.resolvePath('index.json')).pipe(
       map((payload) => this.normalizeIndexPayload(payload, lang)),
-      tap(() => this.storeLastLanguage(lang)),
+      tap((resource) => {
+        this.storeSessionIndex(lang, resource);
+        this.storeLastLanguage(lang);
+      }),
       shareReplay(1)
     );
 
@@ -65,6 +77,19 @@ export class BlogService {
     const cached = this.articleCache.get(cacheKey);
     if (cached) {
       return cached;
+    }
+
+    const sessionCached = this.readSessionArticle(cacheKey);
+    if (sessionCached) {
+      const sessionRequest = of(sessionCached).pipe(
+        tap(() => {
+          this.storeLastArticle(slug);
+          this.storeLastLanguage(lang);
+        }),
+        shareReplay(1)
+      );
+      this.articleCache.set(cacheKey, sessionRequest);
+      return sessionRequest;
     }
 
     const request = this.getIndex(lang).pipe(
@@ -85,7 +110,8 @@ export class BlogService {
         )
       ),
       map(({ index, article, markdown }) => this.toArticle(index, markdown, slug, lang, article)),
-      tap(() => {
+      tap((resolvedArticle) => {
+        this.storeSessionArticle(cacheKey, resolvedArticle);
         this.storeLastArticle(slug);
         this.storeLastLanguage(lang);
       }),
@@ -97,17 +123,42 @@ export class BlogService {
   }
 
   getLastOpenedSlug(): string | null {
-    return localStorage.getItem(this.lastArticleKey);
+    return this.readStorageValue('local', this.lastArticleKey);
   }
 
   getLastLanguage(): Language | null {
-    const value = localStorage.getItem(this.lastLanguageKey);
+    const value = this.readStorageValue('local', this.lastLanguageKey);
     return value === 'es' || value === 'en' ? value : null;
   }
 
-  clearCaches(): void {
-    this.indexCache.clear();
-    this.articleCache.clear();
+  clearCaches(options?: { lang?: Language; slug?: string }): void {
+    const lang = options?.lang;
+    const slug = options?.slug;
+
+    if (!lang && !slug) {
+      this.indexCache.clear();
+      this.articleCache.clear();
+      this.clearSessionEntriesByPrefix(this.sessionIndexPrefix);
+      this.clearSessionEntriesByPrefix(this.sessionArticlePrefix);
+      return;
+    }
+
+    if (lang) {
+      this.indexCache.delete(lang);
+      this.removeStorageValue('session', this.getSessionIndexKey(lang));
+      for (const key of [...this.articleCache.keys()]) {
+        if (key.startsWith(`${lang}:`)) {
+          this.articleCache.delete(key);
+          this.removeStorageValue('session', this.getSessionArticleKey(key));
+        }
+      }
+    }
+
+    if (lang && slug) {
+      const cacheKey = `${lang}:${slug}`;
+      this.articleCache.delete(cacheKey);
+      this.removeStorageValue('session', this.getSessionArticleKey(cacheKey));
+    }
   }
 
   private toArticle(
@@ -477,11 +528,123 @@ export class BlogService {
   }
 
   private storeLastArticle(slug: string): void {
-    localStorage.setItem(this.lastArticleKey, slug);
+    this.writeStorageValue('local', this.lastArticleKey, slug);
   }
 
   private storeLastLanguage(lang: Language): void {
-    localStorage.setItem(this.lastLanguageKey, lang);
+    this.writeStorageValue('local', this.lastLanguageKey, lang);
+  }
+
+  private readSessionIndex(lang: Language): BlogIndexResource | null {
+    return this.readJsonStorageValue<BlogIndexResource>('session', this.getSessionIndexKey(lang));
+  }
+
+  private storeSessionIndex(lang: Language, resource: BlogIndexResource): void {
+    this.writeJsonStorageValue('session', this.getSessionIndexKey(lang), resource);
+  }
+
+  private readSessionArticle(cacheKey: string): BlogArticle | null {
+    return this.readJsonStorageValue<BlogArticle>('session', this.getSessionArticleKey(cacheKey));
+  }
+
+  private storeSessionArticle(cacheKey: string, article: BlogArticle): void {
+    this.writeJsonStorageValue('session', this.getSessionArticleKey(cacheKey), article);
+  }
+
+  private getSessionIndexKey(lang: Language): string {
+    return `${this.sessionIndexPrefix}${lang}`;
+  }
+
+  private getSessionArticleKey(cacheKey: string): string {
+    return `${this.sessionArticlePrefix}${cacheKey}`;
+  }
+
+  private clearSessionEntriesByPrefix(prefix: string): void {
+    const storage = this.getSafeStorage('session');
+    if (!storage) {
+      return;
+    }
+
+    const keysToDelete: string[] = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(prefix)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    for (const key of keysToDelete) {
+      storage.removeItem(key);
+    }
+  }
+
+  private readJsonStorageValue<T>(storageType: 'local' | 'session', key: string): T | null {
+    const rawValue = this.readStorageValue(storageType, key);
+    if (!rawValue) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawValue) as T;
+    } catch {
+      this.removeStorageValue(storageType, key);
+      return null;
+    }
+  }
+
+  private writeJsonStorageValue(storageType: 'local' | 'session', key: string, value: unknown): void {
+    try {
+      this.writeStorageValue(storageType, key, JSON.stringify(value));
+    } catch {
+      this.removeStorageValue(storageType, key);
+    }
+  }
+
+  private readStorageValue(storageType: 'local' | 'session', key: string): string | null {
+    const safeStorage = this.getSafeStorage(storageType);
+    if (!safeStorage) {
+      return null;
+    }
+
+    try {
+      return safeStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  private writeStorageValue(storageType: 'local' | 'session', key: string, value: string): void {
+    const safeStorage = this.getSafeStorage(storageType);
+    if (!safeStorage) {
+      return;
+    }
+
+    try {
+      safeStorage.setItem(key, value);
+    } catch {
+      // Ignore storage quota and browser privacy mode failures.
+    }
+  }
+
+  private removeStorageValue(storageType: 'local' | 'session', key: string): void {
+    const safeStorage = this.getSafeStorage(storageType);
+    if (!safeStorage) {
+      return;
+    }
+
+    try {
+      safeStorage.removeItem(key);
+    } catch {
+      // Ignore storage access failures.
+    }
+  }
+
+  private getSafeStorage(storageType: 'local' | 'session'): Storage | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    return storageType === 'local' ? window.localStorage : window.sessionStorage;
   }
 
   private toStringValue(value: unknown): string {
