@@ -203,3 +203,48 @@ Reducir el coste continuo del cursor custom en desktop, especialmente su `reques
 - Tradeoff o decision importante: se mantiene la experiencia visual, pero se prioriza cortar trabajo continuo en estados donde el usuario no percibe beneficio.
 - Hallazgo de implementacion: cachear el ultimo target del puntero evita microtrabajo repetido en cada `mousemove` sin cambiar el diseño.
 - Impacto observado o esperado: menos CPU continua en desktop, menos coste en background tabs y menor ruido en main thread.
+
+## Tarea 6. Eliminar `startWith({ status: 'loading' })` innecesarios en flujos que ya tienen cache
+
+### Estado
+
+- [x] Revisar implementacion actual
+- [x] Aplicar cambios
+- [x] Validar comportamiento
+- [x] Documentar hallazgos para articulo
+
+### Objetivo
+
+Evitar que cambios locales de filtros o busqueda en blog vuelvan a emitir `loading`, desmonten partes de la UI y provoquen flicker innecesario cuando los datos base ya estan cargados o cacheados.
+
+### Archivos previstos
+
+- `src/app/features/blog/pages/blog-index/blog-index.page.ts`
+- `src/app/features/blog/pages/blog-article/blog-article.page.ts`
+- `tmp/plan_optimization_oportunities.md`
+
+### Plan de ejecucion
+
+- Separar la carga remota de datos del estado derivado de interfaz.
+- Hacer que filtros y busqueda transformen un dataset ya cargado en vez de reiniciar el flujo con `loading`.
+- Validar que el patron queda consistente tambien en `blog-article`.
+
+### Cambios realizados
+
+- En `blog-index` se ha separado `indexData$` de `vm$`.
+- `indexData$` gestiona solo la carga real de `getIndex()` y `getGraphData()`, incluyendo `loading` y `error`.
+- `vm$` en `blog-index` ahora compone filtros y busqueda sobre `indexData$` ya resuelto, sin volver a emitir `loading` por cambios locales.
+- En `blog-article` se ha dejado el mismo patron con `articleData$` separado del `vm$`, para que la estructura de carga remota y view model sea consistente.
+
+### Validacion
+
+- `npm run build` ejecutado correctamente.
+- La build sigue mostrando warnings ya existentes de budgets y dependencias CommonJS, pero no introduce errores nuevos por esta tarea.
+
+### Notas para articulo
+
+- Problema original: `loading` no debe pertenecer a cualquier recomputacion; si se mezcla con estado local, la UI hace trabajo visual innecesario.
+- Enfoque aplicado: separar claramente datos remotos y estado derivado de interfaz.
+- Tradeoff o decision importante: introducir streams intermedios hace el flujo un poco mas explicito, pero evita flicker y remounts innecesarios.
+- Hallazgo de implementacion: cuando los datos base ya viven en cache, los filtros deben ser una transformacion pura del estado cargado, no una pseudo-recarga.
+- Impacto observado o esperado: menos parpadeo, menos relanzamiento de animaciones y menor coste de montaje en blog index.

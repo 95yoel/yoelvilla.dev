@@ -37,6 +37,25 @@ type ArticleVm =
       graph: BlogArticleGraphData;
     };
 
+type ArticleDataState =
+  | { status: 'loading' }
+  | { status: 'error' }
+  | {
+      status: 'ready';
+      article: {
+        slug: string;
+        title: string;
+        description: string;
+        date: string;
+        readingTimeMinutes: number;
+        tags: string[];
+        coverImage?: string;
+        html: string;
+      };
+      articles: BlogArticleSummary[];
+      graph: BlogArticleGraphData;
+    };
+
 type ArticleViewData = Extract<ArticleVm, { status: 'ready' }>['article'];
 
 @Component({
@@ -86,7 +105,7 @@ export class BlogArticlePage {
     tap(({ slug, routeLang }) => this.blogRoutingService.ensureLocalizedArticleRoute(routeLang, slug))
   );
 
-  readonly vm$ = combineLatest([
+  private readonly articleData$ = combineLatest([
     this.routeState$,
     this.reload$.pipe(startWith(undefined))
   ]).pipe(
@@ -96,7 +115,7 @@ export class BlogArticlePage {
         this.blogService.getArticle(state.slug, state.lang),
         this.blogService.getGraphData(state.lang)
       ]).pipe(
-        map(([articles, article, graph]): ArticleVm => ({
+        map(([articles, article, graph]): ArticleDataState => ({
           status: 'ready',
           article: {
             slug: article.slug,
@@ -111,10 +130,14 @@ export class BlogArticlePage {
           articles,
           graph
         })),
-        startWith({ status: 'loading' } as ArticleVm),
-        catchError(() => of({ status: 'error' } as ArticleVm))
+        startWith({ status: 'loading' } as ArticleDataState),
+        catchError(() => of({ status: 'error' } as ArticleDataState))
       )
     )
+  );
+
+  readonly vm$ = this.articleData$.pipe(
+    map((dataState): ArticleVm => dataState)
   );
 
   ngOnInit(): void {

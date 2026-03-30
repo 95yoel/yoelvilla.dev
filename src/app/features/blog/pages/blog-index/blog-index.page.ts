@@ -38,6 +38,15 @@ type IndexViewState =
       searchTerm: string;
     };
 
+type IndexDataState =
+  | { status: 'loading' }
+  | { status: 'error' }
+  | {
+      status: 'ready';
+      articles: BlogArticleSummary[];
+      graph: BlogArticleGraphData;
+    };
+
 interface BlogFiltersFormValue {
   tag: string | null;
   startDate: Date | null;
@@ -112,22 +121,43 @@ export class BlogIndexPage {
     switchMap((value) => value.length >= 3 ? timer(300).pipe(map(() => value)) : of(value))
   );
 
-  readonly vm$ = combineLatest([
+  private readonly indexData$ = combineLatest([
     this.lang$,
-    this.reload$.pipe(startWith(undefined)),
-    this.filters$,
-    this.searchTerm$
+    this.reload$.pipe(startWith(undefined))
   ]).pipe(
-    switchMap(([lang, _reload, filters, searchTerm]) =>
+    switchMap(([lang]) =>
       combineLatest([
         this.blogService.getIndex(lang),
         this.blogService.getGraphData(lang)
       ]).pipe(
-        map(([articles, graph]): IndexViewState => this.buildViewState(articles, graph, this.normalizeFilters(filters), searchTerm)),
-        startWith({ status: 'loading' } as IndexViewState),
-        catchError(() => of({ status: 'error' } as IndexViewState))
+        map(([articles, graph]): IndexDataState => ({
+          status: 'ready',
+          articles,
+          graph
+        })),
+        startWith({ status: 'loading' } as IndexDataState),
+        catchError(() => of({ status: 'error' } as IndexDataState))
       )
     )
+  );
+
+  readonly vm$ = combineLatest([
+    this.indexData$,
+    this.filters$,
+    this.searchTerm$
+  ]).pipe(
+    map(([dataState, filters, searchTerm]): IndexViewState => {
+      if (dataState.status !== 'ready') {
+        return dataState;
+      }
+
+      return this.buildViewState(
+        dataState.articles,
+        dataState.graph,
+        this.normalizeFilters(filters),
+        searchTerm
+      );
+    })
   );
 
   ngOnInit(): void {
